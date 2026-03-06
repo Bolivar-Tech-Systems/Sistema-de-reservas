@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/pantalla_login.dart';
+//import 'screens/pantalla_login.dart';
+import 'screens/pantalla_registrar.dart';
 
 void main() {
   runApp(const MainApp());
@@ -13,7 +14,7 @@ class MainApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Sistema de Reservas",
-      home: PantallaLogin(),
+      home: PantallaRegistrar(),
     );
   }
 }
