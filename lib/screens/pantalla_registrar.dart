@@ -12,6 +12,15 @@ class PantallaRegistrar extends StatelessWidget {
         backgroundColor: const Color.fromRGBO(2, 56, 89, 1),
       ),
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Color.fromRGBO(2, 56, 89, 1), Color.fromRGBO(0, 0, 0, 1)],
+          ),
+        ),
         alignment: Alignment.center,
         padding: EdgeInsets.all(20),
         child: Column(
