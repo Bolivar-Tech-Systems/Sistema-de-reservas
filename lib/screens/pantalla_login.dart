@@ -1,9 +1,29 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'pantalla_registrar.dart';
 
-class PantallaLogin extends StatelessWidget {
+class PantallaLogin extends StatefulWidget  {
   const PantallaLogin({super.key});
 
+  @override
+  State<PantallaLogin> createState() => _PantallaLoginState();
+}
+
+class _PantallaLoginState extends State<PantallaLogin> {
+  final url = "http://localhost:8000/auth/login";
+  final textController = TextEditingController();
+  final passwordController = TextEditingController();
+  Future<Response>? response; 
+  void onLoginPressed() {
+    String body = jsonEncode({ 'email': textController.text, 'password': passwordController.text });
+    Map<String, String> headers = { 'Content-Type': 'application/json' };
+    response = post(Uri.parse(url), body: body, headers: headers );
+    setState(() {
+      
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +57,8 @@ class PantallaLogin extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 )),
                 const SizedBox(height: 30),
-                const TextField(
+                TextField(
+                  controller: textController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -51,7 +72,8 @@ class PantallaLogin extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const TextField(
+                TextField(
+                  controller: passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
@@ -68,7 +90,7 @@ class PantallaLogin extends StatelessWidget {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    // Acción al presionar el botón de inicio de sesión
+                    onLoginPressed();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(84, 172, 191, 1),
@@ -88,14 +110,14 @@ class PantallaLogin extends StatelessWidget {
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {
-                    // Acción al presionar el botón de inicio de sesión con Google
+                    onLoginPressed();
                   },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                     backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                    foregroundColor: Color.fromRGBO(2, 56, 89, 1),
+                    foregroundColor: Color.fromRGBO(1, 2, 2, 1),
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   child: Text('Iniciar sesion con Google', style: TextStyle(

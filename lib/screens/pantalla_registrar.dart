@@ -1,6 +1,7 @@
 // import 'dart:ffi';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 class PantallaRegistrar extends StatefulWidget {
   const PantallaRegistrar({super.key});
@@ -11,6 +12,16 @@ class PantallaRegistrar extends StatefulWidget {
 
 class _PantallaRegistrarState extends State<PantallaRegistrar> {
   bool _isChecked = false;
+  final url = "http://localhost:8000/auth/register";
+  final textController = TextEditingController();
+  final passwordController = TextEditingController();
+  Future <Response>? response;
+  void onRegistrarPressed() {
+    // Acción al presionar el botón de inicio de sesión
+    String body = jsonEncode({'name': 'prueba1', 'email': textController.text, 'password': passwordController.text });
+    Map<String, String> headers = { 'Content-Type': 'application/json' };
+    response = post(Uri.parse(url), body: body, headers: headers );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +48,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
             Icon(Icons.account_circle_outlined, size: 50, color: Colors.white),
             SizedBox(height: 30),
             TextField(
+              controller: textController, 
               decoration: InputDecoration(
                 prefixIcon: Icon(
                   Icons.email_outlined,
@@ -49,6 +61,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
             ),
             SizedBox(height: 20),
             TextField(
+              controller: passwordController,
               decoration: InputDecoration(
                 prefixIcon: Icon(
                   Icons.lock_outline_rounded,
@@ -61,6 +74,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
             ),
             SizedBox(height: 20),
             TextField(
+              controller: passwordController,
               decoration: InputDecoration(
                 prefixIcon: Icon(
                   Icons.lock_outline_rounded,
@@ -88,6 +102,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
             ElevatedButton(
               onPressed: () {
                 // Acción al presionar el botón de inicio de sesión
+                onRegistrarPressed();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromRGBO(2, 56, 89, 1),
