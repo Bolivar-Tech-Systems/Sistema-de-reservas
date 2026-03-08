@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'pantalla_registrar.dart';
 
 class PantallaLogin extends StatelessWidget {
   const PantallaLogin({super.key});
@@ -122,10 +123,20 @@ class PantallaLogin extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 15),
-                const Text("¿No tienes una cuenta? Regístrate", style: TextStyle(
-                  color: Color.fromRGBO(167,235,242,1),
-                  fontSize: 14,
-                )),
+                TextButton(
+                  onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PantallaRegistrar(),
+                      ),
+                    );
+                  }, 
+                  child: Text("¿No tienes una cuenta? Regístrate", style: TextStyle(
+                    color: Color.fromRGBO(167,235,242,1),
+                    fontSize: 14,
+                  )),
+                ),
               ],
             ),
           ),
