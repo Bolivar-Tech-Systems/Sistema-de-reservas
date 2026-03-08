@@ -34,8 +34,17 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
         padding: EdgeInsets.all(20),
         child: Column(
           children: [
-            Icon(Icons.account_circle_outlined, size: 50, color: Colors.white),
-            SizedBox(height: 30),
+            Icon(Icons.account_circle_rounded, size: 100, color: Colors.white),
+            SizedBox(height: 10),
+            Text(
+              "Sign In ",
+              style: TextStyle(
+                fontSize: 25,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
             TextField(
               decoration: InputDecoration(
                 prefixIcon: Icon(
@@ -71,7 +80,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 contentPadding: EdgeInsets.all(15),
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             CheckboxListTile(
               value: _isChecked,
               title: Text(
@@ -84,7 +93,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 });
               },
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             ElevatedButton(
               onPressed: () {
                 // Acción al presionar el botón de inicio de sesión
@@ -97,14 +106,14 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                   vertical: 15,
                 ),
               ),
-              child: const Text('Regitrarse'),
+              child: const Text('Registrarse'),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             Text(
               "Crear cuenta con",
               style: TextStyle(fontSize: 14, color: Colors.grey[300]),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             ElevatedButton(
               onPressed: () {
                 // Acción al presionar el botón de inicio de sesión
