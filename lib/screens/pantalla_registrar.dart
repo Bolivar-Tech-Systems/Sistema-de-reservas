@@ -90,10 +90,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 // Acción al presionar el botón de inicio de sesión
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.blue,
+                backgroundColor: const Color.fromRGBO(2, 56, 89, 1),
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 50,
+                  horizontal: 130,
                   vertical: 15,
                 ),
               ),
@@ -110,10 +110,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 // Acción al presionar el botón de inicio de sesión
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.blue,
+                backgroundColor: const Color.fromRGBO(2, 56, 89, 1),
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 50,
+                  horizontal: 85,
                   vertical: 15,
                 ),
               ),
@@ -125,10 +125,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 // Acción al presionar el botón de inicio de sesión
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.blue,
+                backgroundColor: const Color.fromRGBO(2, 56, 89, 1),
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 42,
+                  horizontal: 75,
                   vertical: 15,
                 ),
               ),
