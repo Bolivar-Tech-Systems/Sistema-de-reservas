@@ -13,12 +13,14 @@ class PantallaRegistrar extends StatefulWidget {
 class _PantallaRegistrarState extends State<PantallaRegistrar> {
   bool _isChecked = false;
   final url = "http://localhost:8000/auth/register";
+  final textControllerEmail = TextEditingController();
   final textController = TextEditingController();
   final passwordController = TextEditingController();
+  final passwordConfirmController = TextEditingController();
   Future <Response>? response;
   void onRegistrarPressed() {
     // Acción al presionar el botón de inicio de sesión
-    String body = jsonEncode({'name': 'prueba1', 'email': textController.text, 'password': passwordController.text });
+    String body = jsonEncode({'name': textController.text, 'email': textControllerEmail.text, 'password': passwordController.text, 'password_confirmation': passwordConfirmController.text});
     Map<String, String> headers = { 'Content-Type': 'application/json' };
     response = post(Uri.parse(url), body: body, headers: headers );
   }
@@ -42,13 +44,26 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
           ),
         ),
         alignment: Alignment.center,
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(15),
         child: Column(
           children: [
             Icon(Icons.account_circle_outlined, size: 50, color: Colors.white),
             SizedBox(height: 30),
             TextField(
               controller: textController, 
+              decoration: InputDecoration(
+                prefixIcon: Icon(
+                  Icons.person,
+                  color: const Color.fromRGBO(38, 101, 140, 1),
+                ),
+                border: OutlineInputBorder(),
+                hintText: 'Nombre',
+                contentPadding: EdgeInsets.all(15),
+              ),
+            ),
+            SizedBox(height: 30),
+            TextField(
+              controller: textControllerEmail, 
               decoration: InputDecoration(
                 prefixIcon: Icon(
                   Icons.email_outlined,
@@ -74,7 +89,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
             ),
             SizedBox(height: 20),
             TextField(
-              controller: passwordController,
+              controller: passwordConfirmController,
               decoration: InputDecoration(
                 prefixIcon: Icon(
                   Icons.lock_outline_rounded,
