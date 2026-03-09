@@ -1,8 +1,29 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class PantallaLogin extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:http/http.dart';
+import 'pantalla_registrar.dart';
+
+class PantallaLogin extends StatefulWidget  {
   const PantallaLogin({super.key});
 
+  @override
+  State<PantallaLogin> createState() => _PantallaLoginState();
+}
+
+class _PantallaLoginState extends State<PantallaLogin> {
+  final url = "http://localhost:8000/auth/login";
+  final textController = TextEditingController();
+  final passwordController = TextEditingController();
+  Future<Response>? response; 
+  void onLoginPressed() {
+    String body = jsonEncode({ 'email': textController.text, 'password': passwordController.text });
+    Map<String, String> headers = { 'Content-Type': 'application/json' };
+    response = post(Uri.parse(url), body: body, headers: headers );
+    setState(() {
+      
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,49 +57,108 @@ class PantallaLogin extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 )),
                 const SizedBox(height: 30),
-                const TextField(
+                TextField(
+                  controller: textController,
                   decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide.none,
+                    ),
                     labelText: "Email",
                     labelStyle: TextStyle(color: Color.fromRGBO(84, 172, 191, 1)),
-                    prefixIcon: Icon(Icons.email, color: Color.fromRGBO(84, 172, 191, 1)),
+                    prefixIcon: Icon(Icons.email_outlined, color: Color.fromRGBO(84, 172, 191, 1)),
+                    fillColor: Color.fromRGBO(2, 56, 89, 1),
+                    filled: true,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide.none,
+                    ),
+                    labelText: 'Contraseña',
+                    labelStyle: TextStyle(color: Color.fromRGBO(84, 172, 191, 1)),
+                    prefixIcon: Icon(Icons.lock_outline, color: Color.fromRGBO(84, 172, 191, 1)),
                     fillColor: Color.fromRGBO(2, 56, 89, 1),
                     filled: true
                   ),
                 ),
                 const SizedBox(height: 20),
-                const TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    labelStyle: TextStyle(color: Color.fromRGBO(84, 172, 191, 1)),
-                    prefixIcon: Icon(Icons.lock, color: Color.fromRGBO(84, 172, 191, 1)),
-                    fillColor: Color.fromRGBO(2, 56, 89, 1),
-                    filled: true
-                  ),
-                ),
-                const SizedBox(height: 13),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Remember me?", style: TextStyle(color: Colors.white, fontSize: 13)),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.only(right: 10),
-                      child: Text("Forgot Password?", style: TextStyle(color: Colors.white, fontSize: 13), textAlign: TextAlign.center),
-                    )
-                  ],
-                ),
                 ElevatedButton(
                   onPressed: () {
-                    // Acción al presionar el botón de inicio de sesión
+                    onLoginPressed();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    backgroundColor: Color.fromRGBO(84, 172, 191, 1),
+                    foregroundColor: Color.fromRGBO(2, 56, 89, 1),
+                    minimumSize: const Size(double.infinity, 50),
                   ),
-                  child: const Text('Iniciar Sesión'),
-                ),         
+                  child: const Text('Iniciar Sesión', style: TextStyle(
+                  color: Color.fromRGBO(167,235,242,1),
+                  fontSize: 14,
+                )),
+                ),  
+                const SizedBox(height: 20),
+                const Text("Iniciar sesion con", style: TextStyle(
+                  color: Color.fromRGBO(167,235,242,0.5),
+                  fontSize: 13,
+                )),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    onLoginPressed();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    backgroundColor: Color.fromRGBO(2, 56, 89, 1),
+                    foregroundColor: Color.fromRGBO(1, 2, 2, 1),
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  child: Text('Iniciar sesion con Google', style: TextStyle(
+                    color: Color.fromRGBO(167,235,242,1),
+                    fontSize: 14,
+                  ),),
+                ),       
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    // Acción al presionar el botón de inicio de sesión con Google
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    backgroundColor: Color.fromRGBO(2, 56, 89, 1),
+                    foregroundColor: Color.fromRGBO(2, 56, 89, 1),
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  child: Text('Iniciar sesion con Facebook', style: TextStyle(
+                      color: Color.fromRGBO(167,235,242,1),
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextButton(
+                  onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PantallaRegistrar(),
+                      ),
+                    );
+                  }, 
+                  child: Text("¿No tienes una cuenta? Regístrate", style: TextStyle(
+                    color: Color.fromRGBO(167,235,242,1),
+                    fontSize: 14,
+                  )),
+                ),
               ],
             ),
           ),
