@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_de_reservas/screens/home.dart';
+import 'package:sistema_de_reservas/screens/pantalla_registrar.dart';
 //import 'package:sistema_de_reservas/screens/pantalla_login.dart';
-//import 'screens/pantalla_login.dart';
-import 'screens/pantalla_registrar.dart';
+import 'screens/pantalla_login.dart';
 
 void main() {
   runApp(const MainApp());
@@ -15,7 +16,7 @@ class MainApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Sistema de Reservas",
-      home: PantallaRegistrar(),
+      home: PantallaLogin(),
     );
   }
 }
