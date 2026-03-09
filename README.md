@@ -1,5 +1,3 @@
-# sistema_de_reservas
-
 # Sistema de Reservas
 
 App de reservas desarrollada con Flutter y FastAPI.
