@@ -13,12 +13,12 @@ class Disponibilidad(Base):
     id = Column(Integer, primary_key=True, index=True)
     date = Column(Date)
     time = Column(Time)
-    reserva_id = Column(Integer, ForeignKey("reservas.id"))
+    reserva_id = Column(Integer, ForeignKey("Reservas.id"))
     
 class ReservaUsuario(Base):
     __tablename__ = "ReservaUsuario"
     id = Column(Integer, primary_key=True, index=True)
-    reserva_id = Column(Integer, ForeignKey("reservas.id"))
+    reserva_id = Column(Integer, ForeignKey("Reservas.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
     fecha_inicio = Column(Date)
     fecha_fin = Column(Date)
