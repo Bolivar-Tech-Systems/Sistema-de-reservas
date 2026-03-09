@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from passlib.context import CryptContext
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.core.security import create_access_token, verify_token
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -32,5 +33,6 @@ def login_user(db: Session, user: UserLogin):
     if not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contraseña incorrecta")
     
-    return db_user
+    access_token = create_access_token(data={"sub": db_user.email})
+    return {"access_token": access_token, "token_type": "bearer",}  
 
