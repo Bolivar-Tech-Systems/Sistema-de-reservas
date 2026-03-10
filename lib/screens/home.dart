@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'pantalla_login.dart';
 class PantallaHome extends StatefulWidget {
   const PantallaHome({super.key});
 
@@ -56,33 +56,43 @@ class _PantallaHomeState extends State<PantallaHome> {
                     ),
                   ),
                 ),
-                SizedBox(width: 15),
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.dashboard_outlined),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                    foregroundColor: Color.fromRGBO(167, 235, 242, 1),
-                  ),
-                ),
-                SizedBox(width: 15),
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.notifications_outlined),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                    foregroundColor: Color.fromRGBO(167, 235, 242, 1),
-                  ),
-                ),
-                SizedBox(width: 15),
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.settings_outlined),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                    foregroundColor: Color.fromRGBO(167, 235, 242, 1),
-                  ),
-                ),
+                Expanded(
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(context,
+                              MaterialPageRoute(builder: (context) => PantallaLogin())
+                              );
+                        },
+                        icon: Icon(Icons.logout_outlined),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(2, 56, 89, 1),
+                          foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(Icons.notifications_outlined),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(2, 56, 89, 1),
+                          foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(Icons.settings_outlined),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(2, 56, 89, 1),
+                          foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                        ),
+                      ),
+                    ],
+                  )
+                )
               ],
             ),
             Container(
