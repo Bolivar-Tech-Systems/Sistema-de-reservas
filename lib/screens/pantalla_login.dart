@@ -18,16 +18,39 @@ class _PantallaLoginState extends State<PantallaLogin> {
   final passwordController = TextEditingController();
   Future<Response>? response;
 
-  Future<void> onLoginPressed() async{
-    String body = jsonEncode({
-      'email': textController.text,
-      'password': passwordController.text,
-    });
-    Map<String, String> headers = {'Content-Type': 'application/json'};
-    Response result = await post(Uri.parse(url), body: body, headers: headers);
-    setState(() {});
+  Future<void> onLoginPressed() async {
+  final navigator = Navigator.of(context);
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+  String body = jsonEncode({
+    'email': textController.text,
+    'password': passwordController.text,
+  });
+  Map<String, String> headers = {'Content-Type': 'application/json'};
+  final result = await post(Uri.parse(url), body: body, headers: headers);
+  setState(() {
+    response = Future.value(result);
     
+  });
+
+   if (result.statusCode == 200) {
+    navigator.push( // usar la referencia guardada
+      MaterialPageRoute(
+        builder: (context) => const PantallaHome(),
+      ),
+    );
+    
+}
+  else if (result.statusCode == 401) {
+      scaffoldMessenger.showSnackBar(
+      const SnackBar(content: Text('Correo o contraseña incorrectos')),
+    );
+}
+  else{
+    scaffoldMessenger.showSnackBar(
+      SnackBar(content: Text('Error del servidor ${result.statusCode}')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -107,14 +130,6 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 ElevatedButton(
                   onPressed: () {
                       onLoginPressed();
-                    if(response.statusCode == 200){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PantallaHome(),
-                        ),
-                      );
-                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(84, 172, 191, 1),
