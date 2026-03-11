@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Response
 from passlib.context import CryptContext
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
@@ -40,3 +40,6 @@ def login_user(db: Session, user: UserLogin):
     access_token = create_access_token(data={"sub": db_user.email})
     return {"access_token": access_token, "token_type": "bearer", "id": db_user.id,"name": db_user.name, "email": db_user.email}  
 
+def logout_user(response= Response):
+    response.delete_cookie(key="access_token")
+    return {"detail": "Usuario desconectado"}
