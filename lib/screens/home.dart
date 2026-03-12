@@ -260,7 +260,7 @@ class _PantallaHomeState extends State<PantallaHome> {
               ),
 
               Container(
-                height: 190,
+                height: 240,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   color: Color.fromRGBO(58, 58, 58, 0.1),
@@ -282,8 +282,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                               borderRadius: BorderRadius.circular(8),
                               child: Image.asset(
                                 "assets/images/nitro.jpg",
-                                height: 110,
-                                width: 140,
+                                height: 160,
+                                width: 180,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -306,7 +306,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           ],
                         ),
                       ),
-                      SizedBox(width: 15),
+                      SizedBox(width: 10),
                       Padding(
                         padding: EdgeInsets.only(top: 15),
                         child: Column(
@@ -317,8 +317,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                               borderRadius: BorderRadius.circular(8),
                               child: Image.asset(
                                 "assets/images/nitro2.jpg",
-                                height: 110,
-                                width: 140,
+                                height: 160,
+                                width: 180,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -359,7 +359,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           ],
                         ),
                       ),
-                      SizedBox(width: 15),
+                      SizedBox(width: 10),
                       Padding(
                         padding: EdgeInsets.only(top: 15),
                         child: Column(
@@ -370,8 +370,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                               borderRadius: BorderRadius.circular(8),
                               child: Image.asset(
                                 "assets/images/nitro.jpg",
-                                height: 110,
-                                width: 140,
+                                height: 160,
+                                width: 180,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -436,7 +436,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                 ],
               ),
               Container(
-                height: 190,
+                height: 240,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   color: Color.fromRGBO(58, 58, 58, 0.1),
@@ -458,8 +458,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                               borderRadius: BorderRadius.circular(8),
                               child: Image.asset(
                                 "assets/images/nitro.jpg",
-                                height: 110,
-                                width: 140,
+                                height: 160,
+                                width: 180,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -482,7 +482,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           ],
                         ),
                       ),
-                      SizedBox(width: 15),
+                      SizedBox(width: 10),
                       Padding(
                         padding: EdgeInsets.only(top: 15),
                         child: Column(
@@ -493,8 +493,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                               borderRadius: BorderRadius.circular(8),
                               child: Image.asset(
                                 "assets/images/nitro2.jpg",
-                                height: 110,
-                                width: 140,
+                                height: 160,
+                                width: 180,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -526,7 +526,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           ],
                         ),
                       ),
-                      SizedBox(width: 15),
+                      SizedBox(width: 10),
                       Padding(
                         padding: EdgeInsets.only(top: 15),
                         child: Column(
@@ -537,8 +537,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                               borderRadius: BorderRadius.circular(8),
                               child: Image.asset(
                                 "assets/images/nitro.jpg",
-                                height: 110,
-                                width: 140,
+                                height: 160,
+                                width: 180,
                                 fit: BoxFit.cover,
                               ),
                             ),
