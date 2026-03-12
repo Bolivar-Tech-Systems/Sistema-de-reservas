@@ -13,44 +13,39 @@ class PantallaLogin extends StatefulWidget {
 }
 
 class _PantallaLoginState extends State<PantallaLogin> {
-  final url = "http://localhost:8000/auth/login";
+  final url = "http://127.0.0.1:8000/auth/login";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
   Future<Response>? response;
 
   Future<void> onLoginPressed() async {
-  final navigator = Navigator.of(context);
-  final scaffoldMessenger = ScaffoldMessenger.of(context);
-  String body = jsonEncode({
-    'email': textController.text,
-    'password': passwordController.text,
-  });
-  Map<String, String> headers = {'Content-Type': 'application/json'};
-  final result = await post(Uri.parse(url), body: body, headers: headers);
-  setState(() {
-    response = Future.value(result);
-    
-  });
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    String body = jsonEncode({
+      'email': textController.text,
+      'password': passwordController.text,
+    });
+    Map<String, String> headers = {'Content-Type': 'application/json'};
+    final result = await post(Uri.parse(url), body: body, headers: headers);
+    setState(() {
+      response = Future.value(result);
+    });
 
-   if (result.statusCode == 200) {
-    navigator.push( // usar la referencia guardada
-      MaterialPageRoute(
-        builder: (context) => const PantallaHome(),
-      ),
-    );
-    
-}
-  else if (result.statusCode == 401) {
+    if (result.statusCode == 200) {
+      navigator.push(
+        // usar la referencia guardada
+        MaterialPageRoute(builder: (context) => const PantallaHome()),
+      );
+    } else if (result.statusCode == 401) {
       scaffoldMessenger.showSnackBar(
-      const SnackBar(content: Text('Correo o contraseña incorrectos')),
-    );
-}
-  else{
-    scaffoldMessenger.showSnackBar(
-      SnackBar(content: Text('Error del servidor ${result.statusCode}')),
-    );
+        const SnackBar(content: Text('Correo o contraseña incorrectos')),
+      );
+    } else {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Error del servidor ${result.statusCode}')),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +83,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 const SizedBox(height: 30),
                 TextField(
                   controller: textController,
+                  style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -108,6 +104,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 const SizedBox(height: 20),
                 TextField(
                   controller: passwordController,
+                  style: TextStyle(color: Colors.white),
                   obscureText: true,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
@@ -129,7 +126,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                      onLoginPressed();
+                    onLoginPressed();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(84, 172, 191, 1),
