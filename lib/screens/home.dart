@@ -76,8 +76,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.exit_to_app_rounded),
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(240, 240, 240, 1),
-                            foregroundColor: Color.fromRGBO(0, 0, 0, 0.8),
+                            backgroundColor: Color.fromRGBO(96, 96, 96, 0.35),
+                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -90,8 +90,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.notifications_none_rounded), //
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(240, 240, 240, 1),
-                            foregroundColor: Color.fromRGBO(0, 0, 0, 0.8),
+                            backgroundColor: Color.fromRGBO(96, 96, 96, 0.35),
+                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -105,8 +105,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.tune_rounded),
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(240, 240, 240, 1),
-                            foregroundColor: Color.fromRGBO(0, 0, 0, 0.8),
+                            backgroundColor: Color.fromRGBO(96, 96, 96, 0.35),
+                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
