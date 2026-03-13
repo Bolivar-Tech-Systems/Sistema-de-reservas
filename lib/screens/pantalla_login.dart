@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'pantalla_registrar.dart';
+import '../util/colores.dart';
 import 'home.dart';
 
 class PantallaLogin extends StatefulWidget {
@@ -13,44 +14,39 @@ class PantallaLogin extends StatefulWidget {
 }
 
 class _PantallaLoginState extends State<PantallaLogin> {
-  final url = "http://localhost:8000/auth/login";
+  final url = "http://127.0.0.1:8000/auth/login";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
   Future<Response>? response;
 
   Future<void> onLoginPressed() async {
-  final navigator = Navigator.of(context);
-  final scaffoldMessenger = ScaffoldMessenger.of(context);
-  String body = jsonEncode({
-    'email': textController.text,
-    'password': passwordController.text,
-  });
-  Map<String, String> headers = {'Content-Type': 'application/json'};
-  final result = await post(Uri.parse(url), body: body, headers: headers);
-  setState(() {
-    response = Future.value(result);
-    
-  });
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    String body = jsonEncode({
+      'email': textController.text,
+      'password': passwordController.text,
+    });
+    Map<String, String> headers = {'Content-Type': 'application/json'};
+    final result = await post(Uri.parse(url), body: body, headers: headers);
+    setState(() {
+      response = Future.value(result);
+    });
 
-   if (result.statusCode == 200) {
-    navigator.push( // usar la referencia guardada
-      MaterialPageRoute(
-        builder: (context) => const PantallaHome(),
-      ),
-    );
-    
-}
-  else if (result.statusCode == 401) {
+    if (result.statusCode == 200) {
+      navigator.push(
+        // usar la referencia guardada
+        MaterialPageRoute(builder: (context) => const PantallaHome()),
+      );
+    } else if (result.statusCode == 401) {
       scaffoldMessenger.showSnackBar(
-      const SnackBar(content: Text('Correo o contraseña incorrectos')),
-    );
-}
-  else{
-    scaffoldMessenger.showSnackBar(
-      SnackBar(content: Text('Error del servidor ${result.statusCode}')),
-    );
+        const SnackBar(content: Text('Correo o contraseña incorrectos')),
+      );
+    } else {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Error del servidor ${result.statusCode}')),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +58,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
-            colors: [Color.fromRGBO(2, 56, 89, 1), Color.fromRGBO(0, 0, 0, 1)],
+            colors: [Colores.background, Colors.black],
           ),
         ),
         child: SingleChildScrollView(
@@ -75,19 +71,20 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 const Icon(
                   Icons.account_circle,
                   size: 100,
-                  color: Colors.white,
+                  color: Colores.textSecondary,
                 ),
                 const Text(
                   "Log In",
                   style: TextStyle(
                     fontSize: 30,
-                    color: Colors.white,
+                    color: Colores.textSecondary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 30),
                 TextField(
                   controller: textController,
+                  style: TextStyle(color: Colores.text),
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -95,19 +92,20 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     ),
                     labelText: "Email",
                     labelStyle: TextStyle(
-                      color: Color.fromRGBO(84, 172, 191, 1),
+                      color: Colores.text,
                     ),
                     prefixIcon: Icon(
                       Icons.email_outlined,
-                      color: Color.fromRGBO(84, 172, 191, 1),
+                      color: Colores.text,
                     ),
-                    fillColor: Color.fromRGBO(2, 56, 89, 1),
+                    fillColor: Colores.primary,
                     filled: true,
                   ),
                 ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: passwordController,
+                  style: TextStyle(color: Colores.text),
                   obscureText: true,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
@@ -116,30 +114,30 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     ),
                     labelText: 'Contraseña',
                     labelStyle: TextStyle(
-                      color: Color.fromRGBO(84, 172, 191, 1),
+                      color: Colores.text,
                     ),
                     prefixIcon: Icon(
                       Icons.lock_outline,
-                      color: Color.fromRGBO(84, 172, 191, 1),
+                      color: Colores.text,
                     ),
-                    fillColor: Color.fromRGBO(2, 56, 89, 1),
+                    fillColor: Colores.primary,
                     filled: true,
                   ),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                      onLoginPressed();
+                    onLoginPressed();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(84, 172, 191, 1),
-                    foregroundColor: Color.fromRGBO(2, 56, 89, 1),
+                    backgroundColor: Colores.text,
+                    foregroundColor: Colores.primary,
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   child: const Text(
                     'Iniciar Sesión',
                     style: TextStyle(
-                      color: Color.fromRGBO(167, 235, 242, 1),
+                      color: Colores.textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -148,7 +146,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 const Text(
                   "Iniciar sesion con",
                   style: TextStyle(
-                    color: Color.fromRGBO(167, 235, 242, 0.5),
+                    color: Colores.textSecondary,
                     fontSize: 13,
                   ),
                 ),
@@ -161,14 +159,14 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    backgroundColor: Color.fromRGBO(2, 56, 89, 1),
+                    backgroundColor: Colores.primary,
                     foregroundColor: Color.fromRGBO(1, 2, 2, 1),
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   child: Text(
                     'Iniciar sesion con Google',
                     style: TextStyle(
-                      color: Color.fromRGBO(167, 235, 242, 1),
+                      color: Colores.textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -182,14 +180,14 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                    foregroundColor: Color.fromRGBO(2, 56, 89, 1),
+                    backgroundColor: Colores.primary,
+                    foregroundColor: Colores.primary,
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   child: Text(
                     'Iniciar sesion con Facebook',
                     style: TextStyle(
-                      color: Color.fromRGBO(167, 235, 242, 1),
+                      color: Colores.textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -207,7 +205,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   child: Text(
                     "¿No tienes una cuenta? Regístrate",
                     style: TextStyle(
-                      color: Color.fromRGBO(167, 235, 242, 1),
+                      color: Colores.textSecondary,
                       fontSize: 14,
                     ),
                   ),

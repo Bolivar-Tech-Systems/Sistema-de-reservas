@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pantalla_login.dart';
+import '../util/colores.dart';
 
 class PantallaHome extends StatefulWidget {
   const PantallaHome({super.key});
@@ -7,6 +8,8 @@ class PantallaHome extends StatefulWidget {
   @override
   State<PantallaHome> createState() => _PantallaHomeState();
 }
+
+int _currentIndex = 0;
 
 class _PantallaHomeState extends State<PantallaHome> {
   @override
@@ -19,10 +22,13 @@ class _PantallaHomeState extends State<PantallaHome> {
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
-            colors: [Color.fromRGBO(2, 56, 89, 1), Color.fromRGBO(0, 0, 0, 1)],
+            colors: [
+              Colores.primary,
+              Colors.black,
+            ],
           ),
         ),
-        padding: EdgeInsets.only(top: 45, left: 10, right: 20),
+        padding: EdgeInsets.only(top: 25, left: 10, right: 20),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,25 +40,23 @@ class _PantallaHomeState extends State<PantallaHome> {
                   Icon(
                     Icons.account_circle_rounded,
                     size: 60,
-                    color: Colors.white,
+                    color: Colores.icon,
                   ),
                   SizedBox(width: 15),
                   ElevatedButton(
-                    onPressed: () {
-                      // Acción al presionar el botón de inicio de sesión con Google
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                      foregroundColor: Color.fromRGBO(2, 56, 89, 1),
+                      backgroundColor: Colores.primary,
+                      foregroundColor: Colores.primary,
                       padding: EdgeInsets.all(10),
                     ),
                     child: Text(
                       'Mi actividad',
                       style: TextStyle(
-                        color: Color.fromRGBO(167, 235, 242, 1),
+                        color: Colores.textSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -70,28 +74,43 @@ class _PantallaHomeState extends State<PantallaHome> {
                               ),
                             );
                           },
-                          icon: Icon(Icons.logout_outlined),
+                          icon: Icon(Icons.exit_to_app_rounded),
+                          iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            backgroundColor: Colores.background,
+                            foregroundColor: Colores.icon,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                         SizedBox(width: 5),
+
                         IconButton(
                           onPressed: () {},
-                          icon: Icon(Icons.notifications_outlined),
+                          icon: Icon(Icons.notifications_none_rounded), //
+                          iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            backgroundColor: Colores.background,
+                            foregroundColor: Colores.icon,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                         SizedBox(width: 5),
+
+                        // Settings
                         IconButton(
                           onPressed: () {},
-                          icon: Icon(Icons.settings_outlined),
+                          icon: Icon(Icons.tune_rounded),
+                          iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            backgroundColor: Colores.background,
+                            foregroundColor: Colores.icon,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                       ],
@@ -108,7 +127,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                   bottom: 20,
                 ),
                 decoration: BoxDecoration(
-                  color: Color.fromRGBO(2, 56, 89, 1),
+                  color: Colores.background,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -121,7 +140,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 0, 229, 255),
+                          color: Colores.text,
                         ),
                       ),
                     ),
@@ -133,8 +152,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Colores.textSecondary,
                         ),
                       ),
                     ),
@@ -144,7 +162,10 @@ class _PantallaHomeState extends State<PantallaHome> {
                       child: Text(
                         "Consulta, modifica o cancela tus reservas de manera fácil y rápida.",
                         textAlign: TextAlign.left,
-                        style: TextStyle(fontSize: 14, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colores.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -157,52 +178,61 @@ class _PantallaHomeState extends State<PantallaHome> {
                   Container(
                     padding: EdgeInsets.only(top: 2, left: 10, right: 5),
                     alignment: Alignment.topLeft,
-                    width: 174,
+                    width: 190,
                     height: 130,
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(2, 56, 89, 1),
+                      color: Colores.background,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text(
                           "Reservas activas",
-                          style: TextStyle(fontSize: 13, color: Colors.white),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colores.text,
+                          ),
                         ),
                         SizedBox(width: 0.02),
                         IconButton(
                           onPressed: () {},
                           icon: Icon(Icons.date_range_outlined),
                           style: IconButton.styleFrom(
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            foregroundColor: Colores.icon,
                             iconSize: 22,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(width: 12),
+                  SizedBox(width: 17),
+                  SizedBox(width: 17),
                   Container(
                     padding: EdgeInsets.only(top: 2, left: 10, right: 5),
                     alignment: Alignment.topLeft,
-                    width: 174,
+                    width: 190,
                     height: 130,
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(2, 56, 89, 1),
+                      color: Colores.background,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          "Ingresos",
-                          style: TextStyle(fontSize: 13, color: Colors.white),
+                          "Ingresos de horario",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colores.text,
+                          ),
                         ),
                         SizedBox(width: 0.02),
                         IconButton(
                           onPressed: () {},
                           icon: Icon(Icons.date_range_outlined),
                           style: IconButton.styleFrom(
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            foregroundColor: Colores.icon,
                             iconSize: 22,
                           ),
                         ),
@@ -211,50 +241,303 @@ class _PantallaHomeState extends State<PantallaHome> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
-              Container(
-                padding: EdgeInsets.only(top: 2, left: 5, right: 5),
-                child: Row(
-                  children: [
-                    Text(
-                      "Reservas Rápidas",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    SizedBox(width: 150),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        "Ver todas",
-                        style: TextStyle(
-                          color: Color.fromRGBO(167, 235, 242, 1),
-                          fontSize: 14,
-                        ),
+              SizedBox(height: 40),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 5, right: 8),
+                    child: Text(
+                      "Recursos más usados",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colores.text,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+
               Container(
-                padding: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 90),
+                height: 240,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Color.fromRGBO(2, 56, 89, 1),
+                  color: Colores.background,
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Image.asset(
-                        "assets/images/nitro.jpg",
-                        height: 150,
-                        fit: BoxFit.fill,
+                      SizedBox(width: 10),
+                      Padding(
+                        padding: EdgeInsets.only(top: 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                "assets/images/nitro.jpg",
+                                height: 160,
+                                width: 180,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              "Cancha de futbol UTB",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colores.text,
+                              ),
+                            ),
+                            Text(
+                              "Se necesitan minimo 10",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colores.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(width: 30),
-                      Image.asset(
-                        "assets/images/nitro2.jpg",
-                        height: 150,
-                        fit: BoxFit.fitWidth,
+                      SizedBox(width: 10),
+                      Padding(
+                        padding: EdgeInsets.only(top: 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                "assets/images/nitro2.jpg",
+                                height: 160,
+                                width: 180,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            SizedBox(
+                              width: 140,
+                              child: Text(
+                                "Mesa de Ping Pong",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.normal,
+                                  color: Colores.text,
+                                ),
+                                maxLines: 2,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 140,
+                              child: Text(
+                                "Disponible de 2-4 personas",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colores.textSecondary,
+                                ),
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      SizedBox(width: 10),
+                      Padding(
+                        padding: EdgeInsets.only(top: 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                "assets/images/nitro.jpg",
+                                height: 160,
+                                width: 180,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            SizedBox(
+                              width: 140,
+                              child: Text(
+                                "Cancha de futbol UTB",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colores.text,
+                                ),
+                                maxLines: 2,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 140,
+                              child: Text(
+                                "Se necesitan minimo 10 personas",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colores.textSecondary,
+                                ),
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 40),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 5, right: 8),
+                    child: Text(
+                      "Recursos disponibles en el momento",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                        color: Colores.text,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                height: 240,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colores.background,
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(width: 10),
+                      Padding(
+                        padding: EdgeInsets.only(top: 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                "assets/images/nitro.jpg",
+                                height: 160,
+                                width: 180,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              "Cancha de futbol UTB",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colores.text,
+                              ),
+                            ),
+                            Text(
+                              "Se necesitan minimo 10",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colores.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Padding(
+                        padding: EdgeInsets.only(top: 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                "assets/images/nitro2.jpg",
+                                height: 160,
+                                width: 180,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              "Mesa de Ping Pong",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                                color: Colores.text,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 140,
+                              child: Text(
+                                "Disponible de 2-4 personas",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colores.textSecondary,
+                                ),
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Padding(
+                        padding: EdgeInsets.only(top: 15),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                "assets/images/nitro.jpg",
+                                height: 160,
+                                width: 180,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              "Cancha de futbol UTB",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colores.text,
+                              ),
+                            ),
+                            Text(
+                              "Se necesitan minimo 10",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colores.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 10),
                     ],
                   ),
                 ),
@@ -263,23 +546,28 @@ class _PantallaHomeState extends State<PantallaHome> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Inicio"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Buscar"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Perfil"),
-        ],
+      //
+      bottomNavigationBar: PhysicalModel(
+        color: Colores.primary,
+        elevation: 8,
+        //shadowColor: Color.fromRGBO(58, 58, 58, 0.3),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          backgroundColor: Colores.primary,
+          selectedItemColor: Colores.secondary,
+          unselectedItemColor: Colores.icon,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Inicio"),
+            BottomNavigationBarItem(icon: Icon(Icons.star), label: "Favoritos"),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Perfil"),
+          ],
+        ),
       ),
     );
   }
 }
-
-
-                // Text(
-                //   "Bienvenido a la Pantalla de Home",
-                //   style: TextStyle(
-                //     fontSize: 25,
-                //     color: Colors.white,
-                //     fontWeight: FontWeight.bold,
-                //   ),
-                // ),
