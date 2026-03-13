@@ -71,13 +71,13 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 const Icon(
                   Icons.account_circle,
                   size: 100,
-                  color: Colores.textSecondary,
+                  color: Colores.iconActive,
                 ),
                 const Text(
                   "Log In",
                   style: TextStyle(
                     fontSize: 30,
-                    color: Colores.textSecondary,
+                    color: Colores.text,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -92,13 +92,13 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     ),
                     labelText: "Email",
                     labelStyle: TextStyle(
-                      color: Colores.text,
+                      color: Colores.textSecondary,
                     ),
                     prefixIcon: Icon(
                       Icons.email_outlined,
-                      color: Colores.text,
+                      color: Colores.primary,
                     ),
-                    fillColor: Colores.primary,
+                    fillColor: Colores.surface,
                     filled: true,
                   ),
                 ),
@@ -114,13 +114,13 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     ),
                     labelText: 'Contraseña',
                     labelStyle: TextStyle(
-                      color: Colores.text,
+                      color: Colores.textSecondary,
                     ),
                     prefixIcon: Icon(
                       Icons.lock_outline,
-                      color: Colores.text,
+                      color: Colores.primary,
                     ),
-                    fillColor: Colores.primary,
+                    fillColor: Colores.surface,
                     filled: true,
                   ),
                 ),
@@ -130,14 +130,14 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     onLoginPressed();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colores.text,
-                    foregroundColor: Colores.primary,
+                    backgroundColor: Colores.primaryDark,
+                    foregroundColor: Colores.text,
                     minimumSize: const Size(double.infinity, 50),
                   ),
                   child: const Text(
                     'Iniciar Sesión',
                     style: TextStyle(
-                      color: Colores.textSecondary,
+                      color: Colores.text,
                       fontSize: 14,
                     ),
                   ),
@@ -159,14 +159,15 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    backgroundColor: Colores.primary,
-                    foregroundColor: Color.fromRGBO(1, 2, 2, 1),
+                    backgroundColor: Colores.surface,
+                    foregroundColor: Colores.text,
                     minimumSize: const Size(double.infinity, 50),
+                    side: const BorderSide(color: Colores.border),
                   ),
                   child: Text(
                     'Iniciar sesion con Google',
                     style: TextStyle(
-                      color: Colores.textSecondary,
+                      color: Colores.text,
                       fontSize: 14,
                     ),
                   ),
@@ -180,14 +181,15 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    backgroundColor: Colores.primary,
-                    foregroundColor: Colores.primary,
+                    backgroundColor: Colores.surface,
+                    foregroundColor: Colores.text,
                     minimumSize: const Size(double.infinity, 50),
+                    side: const BorderSide(color: Colores.border),
                   ),
                   child: Text(
                     'Iniciar sesion con Facebook',
                     style: TextStyle(
-                      color: Colores.textSecondary,
+                      color: Colores.text,
                       fontSize: 14,
                     ),
                   ),
@@ -205,7 +207,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   child: Text(
                     "¿No tienes una cuenta? Regístrate",
                     style: TextStyle(
-                      color: Colores.textSecondary,
+                      color: Colores.primary,
                       fontSize: 14,
                     ),
                   ),
