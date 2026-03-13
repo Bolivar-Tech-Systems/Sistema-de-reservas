@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pantalla_login.dart';
+import '../util/colores.dart';
 
 class PantallaHome extends StatefulWidget {
   const PantallaHome({super.key});
@@ -22,8 +23,8 @@ class _PantallaHomeState extends State<PantallaHome> {
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
             colors: [
-              Color.fromRGBO(2, 56, 89, 1),
-              Color.fromRGBO(0, 0, 0, 0.9),
+              Colores.primary,
+              Colors.black,
             ],
           ),
         ),
@@ -39,7 +40,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                   Icon(
                     Icons.account_circle_rounded,
                     size: 60,
-                    color: const Color.fromARGB(255, 255, 255, 255),
+                    color: Colores.icon,
                   ),
                   SizedBox(width: 15),
                   ElevatedButton(
@@ -48,14 +49,14 @@ class _PantallaHomeState extends State<PantallaHome> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      backgroundColor: Color.fromRGBO(2, 56, 89, 1),
-                      foregroundColor: Color.fromRGBO(2, 56, 89, 1),
+                      backgroundColor: Colores.primary,
+                      foregroundColor: Colores.primary,
                       padding: EdgeInsets.all(10),
                     ),
                     child: Text(
                       'Mi actividad',
                       style: TextStyle(
-                        color: Color.fromRGBO(167, 235, 242, 1),
+                        color: Colores.textSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -76,8 +77,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.exit_to_app_rounded),
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(96, 96, 96, 0.35),
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            backgroundColor: Colores.background,
+                            foregroundColor: Colores.icon,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -90,8 +91,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.notifications_none_rounded), //
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(96, 96, 96, 0.35),
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            backgroundColor: Colores.background,
+                            foregroundColor: Colores.icon,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -105,8 +106,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.tune_rounded),
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Color.fromRGBO(96, 96, 96, 0.35),
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            backgroundColor: Colores.background,
+                            foregroundColor: Colores.icon,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -126,7 +127,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                   bottom: 20,
                 ),
                 decoration: BoxDecoration(
-                  color: Color.fromRGBO(96, 96, 96, 0.35),
+                  color: Colores.background,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -139,7 +140,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromRGBO(167, 235, 242, 1),
+                          color: Colores.text,
                         ),
                       ),
                     ),
@@ -151,8 +152,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.normal,
-                          color: const Color.fromARGB(255, 255, 255, 255),
+                          color: Colores.textSecondary,
                         ),
                       ),
                     ),
@@ -164,7 +164,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           fontSize: 14,
-                          color: const Color.fromARGB(255, 255, 255, 255),
+                          color: Colores.textSecondary,
                         ),
                       ),
                     ),
@@ -181,7 +181,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                     width: 190,
                     height: 130,
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(96, 96, 96, 0.35),
+                      color: Colores.background,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -191,7 +191,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           "Reservas activas",
                           style: TextStyle(
                             fontSize: 13,
-                            color: const Color.fromARGB(255, 255, 255, 255),
+                            color: Colores.text,
                           ),
                         ),
                         SizedBox(width: 0.02),
@@ -199,7 +199,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           onPressed: () {},
                           icon: Icon(Icons.date_range_outlined),
                           style: IconButton.styleFrom(
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            foregroundColor: Colores.icon,
                             iconSize: 22,
                           ),
                         ),
@@ -213,7 +213,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                     width: 190,
                     height: 130,
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(96, 96, 96, 0.35),
+                      color: Colores.background,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -223,7 +223,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           "Ingresos de horario",
                           style: TextStyle(
                             fontSize: 13,
-                            color: const Color.fromARGB(255, 255, 255, 255),
+                            color: Colores.text,
                           ),
                         ),
                         SizedBox(width: 0.02),
@@ -231,7 +231,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           onPressed: () {},
                           icon: Icon(Icons.date_range_outlined),
                           style: IconButton.styleFrom(
-                            foregroundColor: Color.fromRGBO(167, 235, 242, 1),
+                            foregroundColor: Colores.icon,
                             iconSize: 22,
                           ),
                         ),
@@ -250,9 +250,9 @@ class _PantallaHomeState extends State<PantallaHome> {
                     child: Text(
                       "Recursos más usados",
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal,
-                        color: Color.fromRGBO(255, 255, 255, 1),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colores.text,
                       ),
                     ),
                   ),
@@ -263,7 +263,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                 height: 240,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Color.fromRGBO(58, 58, 58, 0.1),
+                  color: Colores.background,
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -293,14 +293,14 @@ class _PantallaHomeState extends State<PantallaHome> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: const Color.fromARGB(255, 255, 255, 255),
+                                color: Colores.text,
                               ),
                             ),
                             Text(
                               "Se necesitan minimo 10",
                               style: TextStyle(
                                 fontSize: 12,
-                                color: const Color.fromARGB(136, 193, 192, 192),
+                                color: Colores.textSecondary,
                               ),
                             ),
                           ],
@@ -330,12 +330,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.normal,
-                                  color: const Color.fromARGB(
-                                    255,
-                                    255,
-                                    255,
-                                    255,
-                                  ),
+                                  color: Colores.text,
                                 ),
                                 maxLines: 2,
                               ),
@@ -346,12 +341,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                                 "Disponible de 2-4 personas",
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: const Color.fromARGB(
-                                    136,
-                                    193,
-                                    192,
-                                    192,
-                                  ),
+                                  color: Colores.textSecondary,
                                 ),
                                 maxLines: 2,
                               ),
@@ -383,12 +373,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color.fromARGB(
-                                    255,
-                                    255,
-                                    255,
-                                    255,
-                                  ),
+                                  color: Colores.text,
                                 ),
                                 maxLines: 2,
                               ),
@@ -399,12 +384,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                                 "Se necesitan minimo 10 personas",
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: const Color.fromARGB(
-                                    136,
-                                    193,
-                                    192,
-                                    192,
-                                  ),
+                                  color: Colores.textSecondary,
                                 ),
                                 maxLines: 2,
                               ),
@@ -429,7 +409,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.normal,
-                        color: Color.fromRGBO(255, 255, 255, 1),
+                        color: Colores.text,
                       ),
                     ),
                   ),
@@ -439,7 +419,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                 height: 240,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Color.fromRGBO(58, 58, 58, 0.1),
+                  color: Colores.background,
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -469,14 +449,14 @@ class _PantallaHomeState extends State<PantallaHome> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: const Color.fromARGB(255, 255, 255, 255),
+                                color: Colores.text,
                               ),
                             ),
                             Text(
                               "Se necesitan minimo 10",
                               style: TextStyle(
                                 fontSize: 12,
-                                color: const Color.fromARGB(136, 193, 192, 192),
+                                color: Colores.textSecondary,
                               ),
                             ),
                           ],
@@ -504,7 +484,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.normal,
-                                color: const Color.fromARGB(255, 255, 255, 255),
+                                color: Colores.text,
                               ),
                             ),
                             SizedBox(
@@ -513,12 +493,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                                 "Disponible de 2-4 personas",
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: const Color.fromARGB(
-                                    136,
-                                    193,
-                                    192,
-                                    192,
-                                  ),
+                                  color: Colores.textSecondary,
                                 ),
                                 maxLines: 2,
                               ),
@@ -548,14 +523,14 @@ class _PantallaHomeState extends State<PantallaHome> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: const Color.fromARGB(255, 255, 255, 255),
+                                color: Colores.text,
                               ),
                             ),
                             Text(
                               "Se necesitan minimo 10",
                               style: TextStyle(
                                 fontSize: 12,
-                                color: const Color.fromARGB(136, 193, 192, 192),
+                                color: Colores.textSecondary,
                               ),
                             ),
                           ],
@@ -572,7 +547,7 @@ class _PantallaHomeState extends State<PantallaHome> {
       ),
       //
       bottomNavigationBar: PhysicalModel(
-        color: Color.fromRGBO(61, 59, 59, 0.5),
+        color: Colores.primary,
         elevation: 8,
         //shadowColor: Color.fromRGBO(58, 58, 58, 0.3),
         child: BottomNavigationBar(
@@ -582,9 +557,9 @@ class _PantallaHomeState extends State<PantallaHome> {
               _currentIndex = index;
             });
           },
-          backgroundColor: Color.fromRGBO(0, 0, 0, 0.79),
-          selectedItemColor: Color.fromRGBO(167, 235, 242, 1),
-          unselectedItemColor: Color.fromRGBO(255, 255, 255, 0.498),
+          backgroundColor: Colores.primary,
+          selectedItemColor: Colores.secondary,
+          unselectedItemColor: Colores.icon,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Inicio"),
             BottomNavigationBarItem(icon: Icon(Icons.star), label: "Favoritos"),
