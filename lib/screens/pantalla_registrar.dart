@@ -92,7 +92,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const Icon(Icons.account_circle_rounded, size: 100, color: Colores.icon),
+              const Icon(Icons.account_circle_rounded, size: 100, color: Colores.iconActive),
               const SizedBox(height: 3),
               const Text(
                 "Sign In",
@@ -103,10 +103,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 controller: textController,
                 style: const TextStyle(color: Colores.text),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.person, color: Colores.secondary),
+                  prefixIcon: Icon(Icons.person, color: Colores.primary),
                   border: OutlineInputBorder(),
                   hintText: 'Nombre',
-                  hintStyle: TextStyle(color: Colores.textSecondary),
+                  hintStyle: TextStyle(color: Colores.textMuted),
                   contentPadding: EdgeInsets.all(15),
                 ),
               ),
@@ -116,10 +116,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 style: const TextStyle(color: Colores.text),
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.email_outlined, color: Colores.secondary),
+                  prefixIcon: Icon(Icons.email_outlined, color: Colores.primary),
                   border: OutlineInputBorder(),
                   hintText: 'Email',
-                  hintStyle: TextStyle(color: Colores.textSecondary),
+                  hintStyle: TextStyle(color: Colores.textMuted),
                   contentPadding: EdgeInsets.all(15),
                 ),
               ),
@@ -129,10 +129,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 obscureText: true,
                 style: const TextStyle(color: Colores.text),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.lock_outline_rounded, color: Colores.secondary),
+                  prefixIcon: Icon(Icons.lock_outline_rounded, color: Colores.primary),
                   border: OutlineInputBorder(),
                   hintText: 'Contraseña',
-                  hintStyle: TextStyle(color: Colores.textSecondary),
+                  hintStyle: TextStyle(color: Colores.textMuted),
                   contentPadding: EdgeInsets.all(15),
                 ),
               ),
@@ -142,29 +142,30 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 obscureText: true,
                 style: const TextStyle(color: Colores.text),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.lock_outline_rounded, color: Colores.secondary),
+                  prefixIcon: Icon(Icons.lock_outline_rounded, color: Colores.primary),
                   border: OutlineInputBorder(),
                   hintText: 'Confirmar Contraseña',
-                  hintStyle: TextStyle(color: Colores.textSecondary),
+                  hintStyle: TextStyle(color: Colores.textMuted),
                   contentPadding: EdgeInsets.all(15),
                 ),
               ),
               const SizedBox(height: 5),
               CheckboxListTile(
                 value: _isChecked,
-                title: const Text("Acepto términos y condiciones", style: TextStyle(color: Colores.text)),
+                activeColor: Colores.primary,
+                checkColor: Colores.background,
+                title: const Text("Acepto términos y condiciones", style: TextStyle(color: Colores.textSecondary)),
                 onChanged: (bool? value) {
                   setState(() => _isChecked = value ?? false);
                 },
               ),
 
-              // Mensaje de error
               if (_errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                    style: const TextStyle(color: Colores.danger, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -173,12 +174,12 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               ElevatedButton(
                 onPressed: _isLoading ? null : onRegistrarPressed,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colores.primary,
-                  foregroundColor: Colores.textSecondary,
+                  backgroundColor: Colores.primaryDark,
+                  foregroundColor: Colores.text,
                   minimumSize: const Size(double.infinity, 50),
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colores.textSecondary)
+                    ? const CircularProgressIndicator(color: Colores.primary)
                     : const Text('Registrarse'),
               ),
               const SizedBox(height: 15),
@@ -187,9 +188,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colores.primary,
-                  foregroundColor: Colores.textSecondary,
+                  backgroundColor: Colores.surface,
+                  foregroundColor: Colores.text,
                   minimumSize: const Size(double.infinity, 50),
+                  side: const BorderSide(color: Colores.border),
                 ),
                 child: const Text('Crear cuenta con Google'),
               ),
@@ -197,9 +199,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colores.primary,
-                  foregroundColor: Colores.textSecondary,
+                  backgroundColor: Colores.surface,
+                  foregroundColor: Colores.text,
                   minimumSize: const Size(double.infinity, 50),
+                  side: const BorderSide(color: Colores.border),
                 ),
                 child: const Text('Crear cuenta con Facebook'),
               ),

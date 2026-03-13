@@ -23,7 +23,7 @@ class _PantallaHomeState extends State<PantallaHome> {
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
             colors: [
-              Colores.primary,
+              Colores.background,
               Colors.black,
             ],
           ),
@@ -40,7 +40,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                   Icon(
                     Icons.account_circle_rounded,
                     size: 60,
-                    color: Colores.icon,
+                    color: Colores.iconActive,
                   ),
                   SizedBox(width: 15),
                   ElevatedButton(
@@ -49,9 +49,10 @@ class _PantallaHomeState extends State<PantallaHome> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      backgroundColor: Colores.primary,
-                      foregroundColor: Colores.primary,
+                      backgroundColor: Colores.surface,
+                      foregroundColor: Colores.surface,
                       padding: EdgeInsets.all(10),
+                      side: BorderSide(color: Colores.border),
                     ),
                     child: Text(
                       'Mi actividad',
@@ -77,7 +78,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.exit_to_app_rounded),
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Colores.background,
+                            backgroundColor: Colores.surface,
                             foregroundColor: Colores.icon,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -91,7 +92,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.notifications_none_rounded), //
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Colores.background,
+                            backgroundColor: Colores.surface,
                             foregroundColor: Colores.icon,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -106,7 +107,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           icon: Icon(Icons.tune_rounded),
                           iconSize: 26,
                           style: IconButton.styleFrom(
-                            backgroundColor: Colores.background,
+                            backgroundColor: Colores.surface,
                             foregroundColor: Colores.icon,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -127,8 +128,9 @@ class _PantallaHomeState extends State<PantallaHome> {
                   bottom: 20,
                 ),
                 decoration: BoxDecoration(
-                  color: Colores.background,
+                  color: Colores.surface,
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colores.border),
                 ),
                 child: Column(
                   children: [
@@ -152,7 +154,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           fontSize: 20,
-                          color: Colores.textSecondary,
+                          color: Colores.text,
                         ),
                       ),
                     ),
@@ -181,8 +183,9 @@ class _PantallaHomeState extends State<PantallaHome> {
                     width: 190,
                     height: 130,
                     decoration: BoxDecoration(
-                      color: Colores.background,
+                      color: Colores.surface,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colores.border),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -199,7 +202,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           onPressed: () {},
                           icon: Icon(Icons.date_range_outlined),
                           style: IconButton.styleFrom(
-                            foregroundColor: Colores.icon,
+                            foregroundColor: Colores.iconActive,
                             iconSize: 22,
                           ),
                         ),
@@ -214,8 +217,9 @@ class _PantallaHomeState extends State<PantallaHome> {
                     width: 190,
                     height: 130,
                     decoration: BoxDecoration(
-                      color: Colores.background,
+                      color: Colores.surface,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colores.border),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -232,7 +236,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                           onPressed: () {},
                           icon: Icon(Icons.date_range_outlined),
                           style: IconButton.styleFrom(
-                            foregroundColor: Colores.icon,
+                            foregroundColor: Colores.iconActive,
                             iconSize: 22,
                           ),
                         ),
@@ -264,7 +268,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                 height: 240,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Colores.background,
+                  color: Colores.surface,
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -420,7 +424,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                 height: 240,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Colores.background,
+                  color: Colores.surface,
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -548,7 +552,7 @@ class _PantallaHomeState extends State<PantallaHome> {
       ),
       //
       bottomNavigationBar: PhysicalModel(
-        color: Colores.primary,
+        color: Colores.surface,
         elevation: 8,
         //shadowColor: Color.fromRGBO(58, 58, 58, 0.3),
         child: BottomNavigationBar(
@@ -558,8 +562,8 @@ class _PantallaHomeState extends State<PantallaHome> {
               _currentIndex = index;
             });
           },
-          backgroundColor: Colores.primary,
-          selectedItemColor: Colores.secondary,
+          backgroundColor: Colores.surface,
+          selectedItemColor: Colores.primary,
           unselectedItemColor: Colores.icon,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Inicio"),

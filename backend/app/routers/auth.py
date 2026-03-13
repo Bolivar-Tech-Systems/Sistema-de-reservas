@@ -30,3 +30,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login", response_model=Token)
 def login(user: UserLogin, db: Session = Depends(get_db)):
     return login_user(db, user)
+
+@router.post("/logout")
+def logout(current_user: User = Depends(get_current_user)):
+        return current_user
