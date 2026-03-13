@@ -14,7 +14,7 @@ class PantallaLogin extends StatefulWidget {
 }
 
 class _PantallaLoginState extends State<PantallaLogin> {
-  final url = "http://localhost:8000/auth/login";
+  final url = "http://127.0.0.1:8000/auth/login";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
   Future<Response>? response;

@@ -207,6 +207,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                     ),
                   ),
                   SizedBox(width: 17),
+                  SizedBox(width: 17),
                   Container(
                     padding: EdgeInsets.only(top: 2, left: 10, right: 5),
                     alignment: Alignment.topLeft,
