@@ -17,3 +17,16 @@ class UserResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+class ForgetPasswordRequest(BaseModel):
+    email: str
+
+class ResetForgottenPassword(BaseModel):
+    secret_token: str
+    new_password: str
+    confirm_password: str
+
+class SuccessMessage(BaseModel):
+    success: bool
+    status_code: int
+    message: str

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
-from app.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, FORGET_PWD_SECRET_KEY
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -17,3 +17,7 @@ def verify_token(token: str):
         return email
     except JWTError:
         return None
+def create_reset_password_token (email: str):
+     data = {"sub":email, "exp": datetime.utcnow() + timedelta(minutes = 10)}
+     token = jwt.encode(data,FORGET_PWD_SECRET_KEY, ALGORITHM)
+     return token

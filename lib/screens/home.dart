@@ -22,10 +22,7 @@ class _PantallaHomeState extends State<PantallaHome> {
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
-            colors: [
-              Colores.background,
-              Colors.black,
-            ],
+            colors: [Colores.background, Colors.black],
           ),
         ),
         padding: EdgeInsets.only(top: 25, left: 10, right: 20),
@@ -152,10 +149,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                       child: Text(
                         "Gestiona tus reservas",
                         textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colores.text,
-                        ),
+                        style: TextStyle(fontSize: 20, color: Colores.text),
                       ),
                     ),
                     SizedBox(height: 10),
@@ -192,10 +186,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                       children: [
                         Text(
                           "Reservas activas",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colores.text,
-                          ),
+                          style: TextStyle(fontSize: 13, color: Colores.text),
                         ),
                         SizedBox(width: 0.02),
                         IconButton(
@@ -210,7 +201,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                     ),
                   ),
                   SizedBox(width: 17),
-                  SizedBox(width: 17),
+
                   Container(
                     padding: EdgeInsets.only(top: 2, left: 10, right: 5),
                     alignment: Alignment.topLeft,
@@ -226,10 +217,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                       children: [
                         Text(
                           "Ingresos de horario",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colores.text,
-                          ),
+                          style: TextStyle(fontSize: 13, color: Colores.text),
                         ),
                         SizedBox(width: 0.02),
                         IconButton(
@@ -301,11 +289,14 @@ class _PantallaHomeState extends State<PantallaHome> {
                                 color: Colores.text,
                               ),
                             ),
-                            Text(
-                              "Se necesitan minimo 10",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colores.textSecondary,
+                            SizedBox(
+                              width: 160,
+                              child: Text(
+                                "Se necesitan 10 personas 🥅",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colores.textSecondary,
+                                ),
                               ),
                             ),
                           ],
@@ -341,9 +332,9 @@ class _PantallaHomeState extends State<PantallaHome> {
                               ),
                             ),
                             SizedBox(
-                              width: 140,
+                              width: 160,
                               child: Text(
-                                "Disponible de 2-4 personas",
+                                "Disponible de 2-4 personas 🏓",
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colores.textSecondary,
@@ -412,8 +403,8 @@ class _PantallaHomeState extends State<PantallaHome> {
                     child: Text(
                       "Recursos disponibles en el momento",
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                         color: Colores.text,
                       ),
                     ),
