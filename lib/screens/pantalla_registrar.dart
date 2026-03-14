@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:sistema_de_reservas/screens/pantalla_login.dart';
 import '../util/colores.dart';
 
 class PantallaRegistrar extends StatefulWidget {
@@ -15,7 +16,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  final url = "http://localhost:8000/auth/register";
+  final url = "http://10.0.2.2:8000/auth/register";
   final textController = TextEditingController();
   final textControllerEmail = TextEditingController();
   final passwordController = TextEditingController();
@@ -23,7 +24,9 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
 
   Future<void> onRegistrarPressed() async {
     if (!_isChecked) {
-      setState(() => _errorMessage = "Debes aceptar los términos y condiciones");
+      setState(
+        () => _errorMessage = "Debes aceptar los términos y condiciones",
+      );
       return;
     }
     if (textController.text.isEmpty ||
@@ -55,7 +58,9 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
         // Registro exitoso — vuelve al login
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("¡Cuenta creada exitosamente! Inicia sesión.")),
+            const SnackBar(
+              content: Text("¡Cuenta creada exitosamente! Inicia sesión."),
+            ),
           );
           Navigator.pop(context);
         }
@@ -92,11 +97,40 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const Icon(Icons.account_circle_rounded, size: 100, color: Colores.iconActive),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  SizedBox(width: 250),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colores.surface,
+                      iconSize: 30,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PantallaLogin(),
+                        ),
+                      );
+                    },
+                    child: Icon(Icons.login, color: Colores.iconActive),
+                  ),
+                ],
+              ),
+              const Icon(
+                Icons.account_circle_rounded,
+                size: 100,
+                color: Colores.iconActive,
+              ),
               const SizedBox(height: 3),
               const Text(
                 "Sign In",
-                style: TextStyle(fontSize: 25, color: Colores.text, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 25,
+                  color: Colores.text,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 10),
               TextField(
@@ -116,7 +150,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 style: const TextStyle(color: Colores.text),
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.email_outlined, color: Colores.primary),
+                  prefixIcon: Icon(
+                    Icons.email_outlined,
+                    color: Colores.primary,
+                  ),
                   border: OutlineInputBorder(),
                   hintText: 'Email',
                   hintStyle: TextStyle(color: Colores.textMuted),
@@ -129,7 +166,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 obscureText: true,
                 style: const TextStyle(color: Colores.text),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.lock_outline_rounded, color: Colores.primary),
+                  prefixIcon: Icon(
+                    Icons.lock_outline_rounded,
+                    color: Colores.primary,
+                  ),
                   border: OutlineInputBorder(),
                   hintText: 'Contraseña',
                   hintStyle: TextStyle(color: Colores.textMuted),
@@ -142,7 +182,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 obscureText: true,
                 style: const TextStyle(color: Colores.text),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.lock_outline_rounded, color: Colores.primary),
+                  prefixIcon: Icon(
+                    Icons.lock_outline_rounded,
+                    color: Colores.primary,
+                  ),
                   border: OutlineInputBorder(),
                   hintText: 'Confirmar Contraseña',
                   hintStyle: TextStyle(color: Colores.textMuted),
@@ -154,7 +197,10 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                 value: _isChecked,
                 activeColor: Colores.primary,
                 checkColor: Colores.background,
-                title: const Text("Acepto términos y condiciones", style: TextStyle(color: Colores.textSecondary)),
+                title: const Text(
+                  "Acepto términos y condiciones",
+                  style: TextStyle(color: Colores.textSecondary),
+                ),
                 onChanged: (bool? value) {
                   setState(() => _isChecked = value ?? false);
                 },
@@ -183,7 +229,13 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                     : const Text('Registrarse'),
               ),
               const SizedBox(height: 15),
-              Text("Crear cuenta con", style: TextStyle(fontSize: 14, color: Colores.textSecondary.withAlpha(130))),
+              Text(
+                "Crear cuenta con",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colores.textSecondary.withAlpha(130),
+                ),
+              ),
               const SizedBox(height: 15),
               ElevatedButton(
                 onPressed: () {},
