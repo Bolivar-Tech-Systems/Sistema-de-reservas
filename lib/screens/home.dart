@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_de_reservas/screens/pantalla_registrar.dart';
+import 'package:http/http.dart';
 import 'pantalla_login.dart';
 import 'horario_disponible.dart';
 import '../util/colores.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PantallaHome extends StatefulWidget {
   const PantallaHome({super.key});
@@ -14,6 +15,24 @@ class PantallaHome extends StatefulWidget {
 int _currentIndex = 0;
 
 class _PantallaHomeState extends State<PantallaHome> {
+    SharedPreferences? sharedPreferences;
+
+    Future<void> logout() async {
+    final navigator = Navigator.of(context);
+    final sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString('access_token');
+    await post(Uri.parse("http://127.0.0.1:8000/auth/logout"),
+     headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $token',
+  });
+    await sharedPreferences.remove('access_token');
+      navigator.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const PantallaLogin()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,12 +87,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                       children: [
                         IconButton(
                           onPressed: () {
-                            Navigator.pop(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PantallaLogin(),
-                              ),
-                            );
+                            logout();
                           },
                           icon: Icon(Icons.exit_to_app_rounded),
                           iconSize: 26,
