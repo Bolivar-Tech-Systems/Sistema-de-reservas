@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_de_reservas/screens/pantalla_registrar.dart';
 import 'pantalla_login.dart';
+import 'horario_disponible.dart';
 import '../util/colores.dart';
 
 class PantallaHome extends StatefulWidget {
@@ -31,6 +33,7 @@ class _PantallaHomeState extends State<PantallaHome> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -276,10 +279,13 @@ class _PantallaHomeState extends State<PantallaHome> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                Navigator.pop(
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => PantallaLogin(),
+                                    builder: (context) => PantallaHorario(
+                                      recurso: "Cancha de futbol UTB",
+                                      imagen: "assets/images/nitro.jpg",
+                                    ),
                                   ),
                                 );
                               },
@@ -319,13 +325,26 @@ class _PantallaHomeState extends State<PantallaHome> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                "assets/images/nitro2.jpg",
-                                height: 160,
-                                width: 180,
-                                fit: BoxFit.cover,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PantallaHorario(
+                                      recurso: "Mesa de Ping Pong",
+                                      imagen: "assets/images/nitro2.jpg",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  "assets/images/nitro2.jpg",
+                                  height: 160,
+                                  width: 180,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                             SizedBox(height: 6),
@@ -362,13 +381,26 @@ class _PantallaHomeState extends State<PantallaHome> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                "assets/images/nitro.jpg",
-                                height: 160,
-                                width: 180,
-                                fit: BoxFit.cover,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PantallaHorario(
+                                      recurso: "Cancha de futbol UTB",
+                                      imagen: "assets/images/nitro.jpg",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  "assets/images/nitro.jpg",
+                                  height: 160,
+                                  width: 180,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                             SizedBox(height: 6),
@@ -440,13 +472,26 @@ class _PantallaHomeState extends State<PantallaHome> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                "assets/images/nitro.jpg",
-                                height: 160,
-                                width: 180,
-                                fit: BoxFit.cover,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PantallaHorario(
+                                      recurso: "Cancha de futbol UTB",
+                                      imagen: "assets/images/nitro.jpg",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  "assets/images/nitro.jpg",
+                                  height: 160,
+                                  width: 180,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                             SizedBox(height: 6),
@@ -475,13 +520,26 @@ class _PantallaHomeState extends State<PantallaHome> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                "assets/images/nitro2.jpg",
-                                height: 160,
-                                width: 180,
-                                fit: BoxFit.cover,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PantallaHorario(
+                                      recurso: "Mesa de Ping Pong",
+                                      imagen: "assets/images/nitro2.jpg",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  "assets/images/nitro2.jpg",
+                                  height: 160,
+                                  width: 180,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                             SizedBox(height: 6),
@@ -514,13 +572,26 @@ class _PantallaHomeState extends State<PantallaHome> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                "assets/images/nitro.jpg",
-                                height: 160,
-                                width: 180,
-                                fit: BoxFit.cover,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PantallaHorario(
+                                      recurso: "Cancha de futbol UTB",
+                                      imagen: "assets/images/nitro.jpg",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  "assets/images/nitro.jpg",
+                                  height: 160,
+                                  width: 180,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                             SizedBox(height: 6),
