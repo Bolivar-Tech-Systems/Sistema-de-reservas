@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 import 'pantalla_registrar.dart';
 import '../util/colores.dart';
 import 'home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PantallaLogin extends StatefulWidget {
   const PantallaLogin({super.key});
@@ -17,8 +18,9 @@ class _PantallaLoginState extends State<PantallaLogin> {
   final url = "http://127.0.0.1:8000/auth/login";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
+  SharedPreferences? sharedPreferences;
   Future<Response>? response;
-
+  
   Future<void> onLoginPressed() async {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -28,25 +30,28 @@ class _PantallaLoginState extends State<PantallaLogin> {
     });
     Map<String, String> headers = {'Content-Type': 'application/json'};
     final result = await post(Uri.parse(url), body: body, headers: headers);
+    sharedPreferences = await SharedPreferences.getInstance();
     setState(() {
       response = Future.value(result);
     });
-
-    if (result.statusCode == 200) {
-      navigator.push(
-        // usar la referencia guardada
-        MaterialPageRoute(builder: (context) => const PantallaHome()),
-      );
-    } else if (result.statusCode == 401) {
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('Correo o contraseña incorrectos')),
-      );
-    } else {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Error del servidor ${result.statusCode}')),
-      );
-    }
+      if (result.statusCode == 200) {
+        final responseBody = jsonDecode(result.body);
+        await sharedPreferences?.setString('access_token', responseBody['access_token']);
+        navigator.push(
+          // usar la referencia guardada
+          MaterialPageRoute(builder: (context) => const PantallaHome()),
+        );
+      } else if (result.statusCode == 401) {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('Correo o contraseña incorrectos')),
+        );
+      } else {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Error del servidor ${result.statusCode}')),
+        );
+      }
   }
+
 
   @override
   Widget build(BuildContext context) {

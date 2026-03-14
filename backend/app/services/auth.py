@@ -4,6 +4,7 @@ from passlib.context import CryptContext
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.core.security import create_access_token, verify_token
+from fastapi.responses import JSONResponse
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -40,6 +41,5 @@ def login_user(db: Session, user: UserLogin):
     access_token = create_access_token(data={"sub": db_user.email})
     return {"access_token": access_token, "token_type": "bearer", "id": db_user.id,"name": db_user.name, "email": db_user.email}  
 
-def logout_user(response= Response):
-    response.delete_cookie(key="access_token")
-    return {"detail": "Usuario desconectado"}
+def logout_user():
+    return JSONResponse({"message": "Logout exitoso"}, status_code=status.HTTP_200_OK)
