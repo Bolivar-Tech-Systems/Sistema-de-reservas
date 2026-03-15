@@ -16,7 +16,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  final url = "http://10.0.2.2:8000/auth/register";
+  final url = "http://localhost:8000/auth/register";
   final textController = TextEditingController();
   final textControllerEmail = TextEditingController();
   final passwordController = TextEditingController();
@@ -100,21 +100,21 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               SizedBox(height: 10),
               Row(
                 children: [
-                  SizedBox(width: 250),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colores.surface,
-                      iconSize: 30,
-                    ),
-                    onPressed: () {
-                      Navigator.pop(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PantallaLogin(),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colores.surface,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Icon(Icons.login, color: Colores.iconActive),
                         ),
-                      );
-                    },
-                    child: Icon(Icons.login, color: Colores.iconActive),
+                      ],
+                    ),
                   ),
                 ],
               ),

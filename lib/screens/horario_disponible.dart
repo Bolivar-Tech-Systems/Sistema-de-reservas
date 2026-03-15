@@ -118,8 +118,8 @@ class _PantallaHorario extends State<PantallaHorario> {
                 child: Column(
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -132,7 +132,6 @@ class _PantallaHorario extends State<PantallaHorario> {
                           onPressed: () {},
                           child: Text("08:00 AM"),
                         ),
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -145,7 +144,6 @@ class _PantallaHorario extends State<PantallaHorario> {
                           onPressed: () {},
                           child: Text("09:00 AM"),
                         ),
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -162,8 +160,8 @@ class _PantallaHorario extends State<PantallaHorario> {
                     ),
                     SizedBox(height: 5),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -176,7 +174,6 @@ class _PantallaHorario extends State<PantallaHorario> {
                           onPressed: () {},
                           child: Text("11:00 AM"),
                         ),
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -189,7 +186,6 @@ class _PantallaHorario extends State<PantallaHorario> {
                           onPressed: () {},
                           child: Text("12:00 PM"),
                         ),
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -206,8 +202,8 @@ class _PantallaHorario extends State<PantallaHorario> {
                     ),
                     SizedBox(height: 5),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -220,7 +216,6 @@ class _PantallaHorario extends State<PantallaHorario> {
                           onPressed: () {},
                           child: Text("02:00 PM"),
                         ),
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -233,7 +228,6 @@ class _PantallaHorario extends State<PantallaHorario> {
                           onPressed: () {},
                           child: Text("03:00 PM"),
                         ),
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -250,8 +244,8 @@ class _PantallaHorario extends State<PantallaHorario> {
                     ),
                     SizedBox(height: 5),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
@@ -264,7 +258,6 @@ class _PantallaHorario extends State<PantallaHorario> {
                           onPressed: () {},
                           child: Text("05:00 PM"),
                         ),
-                        SizedBox(width: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
