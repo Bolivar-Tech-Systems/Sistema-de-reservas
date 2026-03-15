@@ -48,7 +48,7 @@ class _PantallaHomeState extends State<PantallaHome> {
       final sharedPreferences = await SharedPreferences.getInstance();
       var token = sharedPreferences.getString('access_token');
       final response = await get(
-        Uri.parse("http://127.0.0.1:8000/reservas"),
+        Uri.parse("http://127.0.0.1:8000/reservas/list/"),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (!mounted) return;

@@ -22,4 +22,6 @@ class ReservaUsuario(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     fecha_inicio = Column(Date)
     fecha_fin = Column(Date)
-    estado = Column(String, default="pendiente")
+    hora_inicio = Column(Time)
+    hora_fin = Column(Time)
+    estado = Column(String, default="Pendiente")
