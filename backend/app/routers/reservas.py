@@ -3,7 +3,7 @@ from langcodes import get
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.reservas import ReservaCreate, DisponibilidadCreate, ReservaUsuarioCreate, ReservaResponse, DisponibilidadResponse, ReservaUsuarioResponse
-from app.services.reservas import create_reserva, update_reserva, delete_reserva, show_reserva, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
+from app.services.reservas import create_reserva, list_all_reservas_usuario, list_disponibilidades_by_reserva, update_reserva, delete_reserva, show_reserva, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
 from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/reservas", tags=["reservas"])
@@ -36,6 +36,10 @@ def update_disponibilidad_endpoint(disponibilidad_id: int, disponibilidad: Dispo
 def show_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db)):
     return show_disponibilidad(db, disponibilidad_id)
 
+@router.get("/disponibilidad/{reserva_id}", response_model=list[DisponibilidadResponse])
+def list_disponibilidades_by_reserva_endpoint(reserva_id: int, db: Session = Depends(get_db)):
+    return list_disponibilidades_by_reserva(db, reserva_id)
+
 @router.delete("/disponibilidad/{disponibilidad_id}")
 def delete_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db)):
     return delete_disponibilidad(db, disponibilidad_id)
@@ -55,3 +59,7 @@ def show_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends
 @router.delete("/reserva_usuario/{reserva_usuario_id}")
 def delete_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db)):
     return delete_reserva_usuario(db, reserva_usuario_id)
+
+@router.get("/reservas/", response_model=list[ReservaUsuarioResponse])
+def list_reservas_usuario_endpoint(user_id: int, db: Session = Depends(get_db)):
+    return list_all_reservas_usuario(db, user_id)

@@ -5,7 +5,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.schemas.token import Token
-from app.services.auth import create_user, login_user
+from app.services.auth import create_user, login_user, logout_user
 from app.core.security import verify_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -33,4 +33,4 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/logout")
 def logout(current_user: User = Depends(get_current_user)):
-        return current_user
+        return logout_user()
