@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'pantalla_login.dart';
 import 'horario_disponible.dart';
-import 'crear_reserva.dart';
+import 'CreateReservas.dart';
 import '../util/colores.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,7 +24,7 @@ class _PantallaHomeState extends State<PantallaHome> {
     final sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString('access_token');
     await post(
-      Uri.parse("http://192.168.1.54:8000/auth/logout"),
+      Uri.parse("http://127.0.0.1:8000/auth/logout"),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -48,7 +48,7 @@ class _PantallaHomeState extends State<PantallaHome> {
       final sharedPreferences = await SharedPreferences.getInstance();
       var token = sharedPreferences.getString('access_token');
       final response = await get(
-        Uri.parse("http://192.168.1.54:8000/reservas"),
+        Uri.parse("http://127.0.0.1:8000/reservas"),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (!mounted) return;
@@ -146,7 +146,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => CrearReserva(),
+                                builder: (context) => PantallaCreateReserva(),
                               ),
                             ).then((value) {
                               if (value == true) fetchReserva();
