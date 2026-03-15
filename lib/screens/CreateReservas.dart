@@ -52,7 +52,7 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
       );
 
       if (response.statusCode == 200) {
-        if (mounted) Navigator.pop(context);
+        if (mounted) Navigator.pop(context, true);
       } else {
         setState(() => _errorMSG = "Error ${response.statusCode}");
       }
