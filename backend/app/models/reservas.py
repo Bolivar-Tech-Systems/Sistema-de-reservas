@@ -11,8 +11,10 @@ class Reserva(Base):
 class Disponibilidad(Base):
     __tablename__ = "Disponibilidad"
     id = Column(Integer, primary_key=True, index=True)
-    date = Column(Date)
-    time = Column(Time)
+    fecha_inicio = Column(Date)
+    fecha_fin = Column(Date)
+    hora_inicio = Column(Time)
+    hora_fin = Column(Time)
     reserva_id = Column(Integer, ForeignKey("Reservas.id"))
     
 class ReservaUsuario(Base):
@@ -20,6 +22,9 @@ class ReservaUsuario(Base):
     id = Column(Integer, primary_key=True, index=True)
     reserva_id = Column(Integer, ForeignKey("Reservas.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
+    Disponibilidad_id = Column(Integer, ForeignKey("Disponibilidad.id"))
     fecha_inicio = Column(Date)
     fecha_fin = Column(Date)
+    hora_inicio = Column(Time)
+    hora_fin = Column(Time)
     estado = Column(String, default="pendiente")
