@@ -38,6 +38,7 @@ class ReservaUsuarioCreate(BaseModel):
     fecha_fin: date
     hora_inicio: time
     hora_fin: time
+    estado : str 
 
 class ReservaUsuarioResponse(BaseModel):
     id: int
