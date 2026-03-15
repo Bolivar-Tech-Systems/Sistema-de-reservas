@@ -54,7 +54,13 @@ def show_reserva(db: Session, reserva_id: int, owner_id: int):
         raise HTTPException(status_code=404, detail="Reserva not found")
     else:
         return db_reserva
-    
+
+def list_reserva(db: Session, owner_id: int):
+    db_list_reserva = db.query(Reserva).filter(Reserva.owner_id == owner_id).all()
+    if not db_list_reserva:
+        raise HTTPException(status_code=404, detail="No reservas found")
+    return db_list_reserva
+
 def list_all_reservas(db: Session):
     db_reservas = db.query(Reserva).all()
     return db_reservas

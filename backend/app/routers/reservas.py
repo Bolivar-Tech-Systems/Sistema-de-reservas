@@ -3,18 +3,22 @@ from langcodes import get
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.reservas import ReservaCreate, DisponibilidadCreate, ReservaUsuarioCreate, ReservaResponse, DisponibilidadResponse, ReservaUsuarioResponse
-from app.services.reservas import create_reserva, list_all_reservas_usuario, list_disponibilidades_by_reserva, update_reserva, delete_reserva, show_reserva, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
+from app.services.reservas import create_reserva, list_all_reservas_usuario, list_reserva, list_disponibilidades_by_reserva, update_reserva, delete_reserva, show_reserva, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
 from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/reservas", tags=["reservas"])
 
 @router.post("/", response_model=ReservaResponse)
 def create_reserva_endpoint(reserva: ReservaCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return create_reserva(db, reserva, current_user)
+    return create_reserva(db, reserva, current_user.id)
 
 @router.put("/{reserva_id}", response_model=ReservaResponse)
 def update_reserva_endpoint(reserva_id: int, reserva: ReservaCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return update_reserva(db, reserva_id, reserva, current_user)
+    return update_reserva(db, reserva_id, reserva, current_user.id)
+
+@router.get("/", response_model=list[ReservaResponse])
+def list_reservas_endpoint(db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    return list_reserva(db, current_user.id)
 
 @router.get("/{reserva_id}", response_model=ReservaResponse)
 def show_reserva_endpoint(reserva_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
