@@ -8,6 +8,7 @@ from app.core.config import APP_HOST, FORGET_PASSWORD_URL, MAIL_FROM_NAME, FORGE
 from jose import jwt, JWTError
 from app.core.config import FORGET_PWD_SECRET_KEY, ALGORITHM, APP_HOST
 from app.core.security import create_reset_password_token
+from fastapi.responses import JSONResponse
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -108,3 +109,6 @@ def reset_user_password(rfp, db=Session):
         "status_code": status.HTTP_200_OK,
         "message": "Contraseña reiniciada correctamente"
     }
+
+def logout_user():
+    return JSONResponse({"message": "Logout exitoso"}, status_code=status.HTTP_200_OK)
