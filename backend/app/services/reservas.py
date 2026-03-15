@@ -121,7 +121,7 @@ def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, u
                 Disponibilidad.hora_fin >= new_reserva_usuario.hora_fin
             ).first()
             if not disponible:
-                raise HTTPException(status_code=400, estado ="No disponible")
+                raise HTTPException(status_code=400, detail="No disponible")
             db.add(new_reserva_usuario)
             db.commit()
             db.refresh(new_reserva_usuario)
