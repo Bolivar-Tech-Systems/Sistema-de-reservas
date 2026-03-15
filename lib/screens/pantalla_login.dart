@@ -15,7 +15,7 @@ class PantallaLogin extends StatefulWidget {
 }
 
 class _PantallaLoginState extends State<PantallaLogin> {
-  final url = "http://127.0.0.1:8000/auth/login";
+  final url = "http://localhost:8000/auth/login";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
   SharedPreferences? sharedPreferences;
@@ -41,7 +41,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
           // usar la referencia guardada
           MaterialPageRoute(builder: (context) => const PantallaHome()),
         );
-      } else if (result.statusCode == 401) {
+      } else if (result.statusCode == 400) {
         scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('Correo o contraseña incorrectos')),
         );
