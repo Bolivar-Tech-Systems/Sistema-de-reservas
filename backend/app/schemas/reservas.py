@@ -15,14 +15,18 @@ class ReservaResponse(BaseModel):
         from_attributes = True
 
 class DisponibilidadCreate(BaseModel):
-    date: date    
-    time: time   
+    fecha_inicio: date    
+    fecha_fin: date
+    hora_inicio: time  
+    hora_fin: time
     reserva_id: int
 
 class DisponibilidadResponse(BaseModel):
     id: int
-    date: date
-    time: time
+    fecha_inicio: date
+    fecha_fin: date
+    hora_inicio: time
+    hora_fin: time
     reserva_id: int
 
     class Config:
@@ -42,6 +46,8 @@ class ReservaUsuarioResponse(BaseModel):
     user_id: int
     fecha_inicio: date
     fecha_fin: date
+    hora_inicio: time
+    hora_fin: time
     estado: str
 
     class Config:
