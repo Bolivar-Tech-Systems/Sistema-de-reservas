@@ -78,4 +78,5 @@ async def reset_password(
      rfp: ResetForgottenPassword,
      db: Session = Depends(get_db)
 ):
-     return reset_user_password(rfp,db)()
+     return reset_user_password(rfp,db)
+        
