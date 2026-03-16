@@ -36,6 +36,10 @@ def update_disponibilidad_endpoint(disponibilidad_id: int, disponibilidad: Dispo
 def show_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db)):
     return show_disponibilidad(db, disponibilidad_id)
 
+@router.get("/disponibilidad/{reserva_id}", response_model=list[DisponibilidadResponse])
+def list_disponibilidades_by_reserva_endpoint(reserva_id: int, db: Session = Depends(get_db)):
+    return list_disponibilidades_by_reserva(db, reserva_id)
+
 @router.delete("/disponibilidad/{disponibilidad_id}")
 def delete_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db)):
     return delete_disponibilidad(db, disponibilidad_id)

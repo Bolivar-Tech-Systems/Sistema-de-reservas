@@ -1,7 +1,5 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sistema_de_reservas/screens/home.dart';
-import 'pantalla_login.dart';
 import '../util/colores.dart';
 
 class PantallaHorario extends StatefulWidget {
@@ -15,10 +13,49 @@ class PantallaHorario extends StatefulWidget {
   });
 
   @override
-  State<PantallaHorario> createState() => _PantallaHorario();
+  State<PantallaHorario> createState() => _PantallaHorarioState();
 }
 
-class _PantallaHorario extends State<PantallaHorario> {
+class _PantallaHorarioState extends State<PantallaHorario> {
+  DateTime? _fecha;
+  TimeOfDay? _hora;
+
+  Future<void> _seleccionarFecha() async {
+    final DateTime? nuevaFecha = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.dark(
+            primary: Colores.primary,
+            surface: Colores.surface,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (nuevaFecha != null) setState(() => _fecha = nuevaFecha);
+  }
+
+  Future<void> _seleccionarHora() async {
+    final TimeOfDay? nuevaHora = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.dark(
+            primary: Colores.primary,
+            surface: Colores.surface,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (nuevaHora != null) setState(() => _hora = nuevaHora);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,32 +69,28 @@ class _PantallaHorario extends State<PantallaHorario> {
             colors: [Colores.background, Colors.black],
           ),
         ),
-        padding: EdgeInsets.only(top: 25, left: 10, right: 20),
+        padding: const EdgeInsets.only(top: 20, left: 10, right: 20),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
+
+              // Header
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(
-                        context,
-                        MaterialPageRoute(builder: (context) => PantallaHome()),
-                      );
-                    },
+                    onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colores.surface,
                       foregroundColor: Colores.text,
-                      // minimumSize: Size(40, 50),
-                      // maximumSize: Size(40, 50),
                     ),
-                    child: Icon(Icons.arrow_back_ios_new_outlined, size: 20),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_outlined,
+                      size: 20,
+                    ),
                   ),
-                  SizedBox(width: 15),
+                  const SizedBox(width: 15),
                   Text(
                     'Horario disponible',
                     style: TextStyle(
@@ -68,223 +101,198 @@ class _PantallaHorario extends State<PantallaHorario> {
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+
+              const SizedBox(height: 20),
+
+              // Tarjeta recurso
               Container(
-                padding: EdgeInsets.only(
-                  top: 10,
-                  left: 10,
-                  right: 10,
-                  bottom: 10,
-                ),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colores.surface,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colores.border),
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.asset(
                         widget.imagen,
                         height: 160,
-                        width: 400,
+                        width: double.infinity,
                         fit: BoxFit.cover,
                       ),
                     ),
-                    SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        widget.recurso,
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colores.text,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    const SizedBox(height: 10),
+                    Text(
+                      widget.recurso,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colores.text,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+
+              const SizedBox(height: 20),
+
               Text(
                 "Selecciona una hora disponible",
                 style: TextStyle(color: Colores.text, fontSize: 15),
               ),
-              SizedBox(height: 20),
-              Container(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("08:00 AM"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("09:00 AM"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("10:00 AM"),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("11:00 AM"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("12:00 PM"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("01:00 PM"),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("02:00 PM"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("03:00 PM"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("04:00 PM"),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("05:00 PM"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colores.primaryDark,
-                              width: 1,
-                            ),
-                            backgroundColor: Colores.border,
-                            foregroundColor: Colores.text,
-                          ),
-                          onPressed: () {},
-                          child: Text("06:00 PM"),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colores.primaryDark,
-                        foregroundColor: Colores.text,
-                        minimumSize: Size(360, 50),
+
+              const SizedBox(height: 20),
+
+              // Campo fecha
+              GestureDetector(
+                onTap: _seleccionarFecha,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colores.surface,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        color: Colores.primary,
+                        size: 20,
                       ),
-                      onPressed: () {},
-                      child: Text("Reservar"),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Text(
+                        _fecha == null
+                            ? "Seleccionar fecha"
+                            : "${_fecha!.day}/${_fecha!.month}/${_fecha!.year}",
+                        style: TextStyle(
+                          color: _fecha == null
+                              ? Colores.textSecondary
+                              : Colores.text,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+
+              const SizedBox(height: 12),
+
+              // Campo hora
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _seleccionarHora,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colores.surface,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              color: Colores.primary,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Flexible(
+                              child: Text(
+                                _hora == null
+                                    ? "Seleccionar hora"
+                                    : _hora!.format(context),
+                                style: TextStyle(
+                                  color: _hora == null
+                                      ? Colores.textSecondary
+                                      : Colores.text,
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 30),
+
+              // Botón verificar base de datos
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colores.surface,
+                    foregroundColor: Colores.text,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: Colores.primary),
+                    ),
+                  ),
+                  onPressed: () {},
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search, color: Colores.primary, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Verificar base de datos",
+                        style: TextStyle(color: Colores.primary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Botón reservar
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colores.primaryDark,
+                    foregroundColor: Colores.text,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    disabledBackgroundColor: Colores.surface,
+                    disabledForegroundColor: Colores.textSecondary,
+                  ),
+                  onPressed: (_fecha == null || _hora == null) ? null : () {},
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        (_fecha == null || _hora == null)
+                            ? Icons.lock_outline
+                            : Icons.check_circle_outline,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text("Reservar"),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
             ],
           ),
         ),

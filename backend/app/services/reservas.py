@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from passlib.context import CryptContext
 from app.models.reservas import Reserva, Disponibilidad, ReservaUsuario
 from app.schemas.reservas import ReservaCreate, DisponibilidadCreate, ReservaUsuarioCreate, ReservaResponse, DisponibilidadResponse, ReservaUsuarioResponse
+from app.routers.auth import get_current_user
 
 def create_reserva(db: Session, reserva: ReservaCreate, owner_id: int):
     new_reserva = db.query(Reserva).filter(Reserva.name == reserva.name).first()
@@ -54,14 +55,17 @@ def show_reserva(db: Session, reserva_id: int, owner_id: int):
     else:
         return db_reserva
     
-        
+def list_all_reservas(db: Session):
+    db_reservas = db.query(Reserva).all()
+    return db_reservas
+
 def create_disponibilidad(db: Session, disponibilidad: DisponibilidadCreate):
-    new_disponibilidad = db.query(Disponibilidad).filter(Disponibilidad.date == disponibilidad.date, Disponibilidad.time == disponibilidad.time, Disponibilidad.reserva_id == disponibilidad.reserva_id).first()
+    new_disponibilidad = db.query(Disponibilidad).filter(Disponibilidad.fecha_inicio == disponibilidad.fecha_inicio, Disponibilidad.fecha_fin == disponibilidad.fecha_fin, Disponibilidad.hora_inicio == disponibilidad.hora_inicio, Disponibilidad.hora_fin == disponibilidad.hora_fin, Disponibilidad.reserva_id == disponibilidad.reserva_id).first()
     if new_disponibilidad:
         raise HTTPException(status_code=400, detail="Disponibilidad already exists")
     else:
         try:
-            new_disponibilidad = Disponibilidad(date=disponibilidad.date, time=disponibilidad.time, reserva_id=disponibilidad.reserva_id)
+            new_disponibilidad = Disponibilidad(fecha_inicio=disponibilidad.fecha_inicio, fecha_fin=disponibilidad.fecha_fin, hora_inicio=disponibilidad.hora_inicio, hora_fin=disponibilidad.hora_fin, reserva_id=disponibilidad.reserva_id)
             db.add(new_disponibilidad)
             db.commit()
             db.refresh(new_disponibilidad)
@@ -76,8 +80,10 @@ def update_disponibilidad(db: Session, disponibilidad_id: int, disponibilidad: D
         raise HTTPException(status_code=404, detail="Disponibilidad not found")
     else:
         try:
-            db_disponibilidad.date = disponibilidad.date
-            db_disponibilidad.time = disponibilidad.time
+            db_disponibilidad.fecha_inicio = disponibilidad.fecha_inicio
+            db_disponibilidad.fecha_fin = disponibilidad.fecha_fin
+            db_disponibilidad.hora_inicio = disponibilidad.hora_inicio
+            db_disponibilidad.hora_fin = disponibilidad.hora_fin
             db_disponibilidad.reserva_id = disponibilidad.reserva_id
             db.commit()
             db.refresh(db_disponibilidad)
@@ -105,6 +111,11 @@ def show_disponibilidad(db: Session, disponibilidad_id: int):
         raise HTTPException(status_code=404, detail="Disponibilidad not found")
     else:
         return db_disponibilidad
+    
+def list_disponibilidades_by_reserva(db: Session, reserva_id: int):
+    return db.query(Disponibilidad).filter(
+        Disponibilidad.reserva_id == reserva_id
+    ).all()
         
 def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, user_id: int):
     new_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.reserva_id == reserva_usuario.reserva_id, ReservaUsuario.user_id == user_id).first()
@@ -169,3 +180,6 @@ def show_reserva_usuario(db: Session, reserva_usuario_id: int, user_id: int):
     else:
         return db_reserva_usuario
 
+def list_all_reservas_usuario(db: Session, user_id: int):
+    db_reservas_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.user_id == user_id).all()
+    return db_reservas_usuario
