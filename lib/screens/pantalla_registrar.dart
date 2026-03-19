@@ -37,6 +37,16 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
       return;
     }
 
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(textControllerEmail.text)) {
+      setState(() => _errorMessage = "Ingresa un correo válido");
+      return;
+    }
+
+    if (passwordController.text.length < 6) {
+      setState(() => _errorMessage = "La contraseña debe tener mínimo 6 caracteres");
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
