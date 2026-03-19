@@ -129,7 +129,7 @@ def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, u
         raise HTTPException(status_code=400, detail="ReservaUsuario already exists")
     else:
         try:
-            new_reserva_usuario = ReservaUsuario(reserva_id=reserva_usuario.reserva_id, user_id=user_id, fecha_inicio=reserva_usuario.fecha_inicio, fecha_fin=reserva_usuario.fecha_fin, hora_inicio=reserva_usuario.hora_inicio, hora_fin=reserva_usuario.hora_fin)
+            new_reserva_usuario = ReservaUsuario(reserva_id=reserva_usuario.reserva_id, user_id=user_id, fecha_inicio=reserva_usuario.fecha_inicio, fecha_fin=reserva_usuario.fecha_fin, hora_inicio=reserva_usuario.hora_inicio, hora_fin=reserva_usuario.hora_fin, estado= reserva_usuario.estado)
             disponible = db.query(Disponibilidad).filter(
                 Disponibilidad.reserva_id == reserva_usuario.reserva_id, 
                 Disponibilidad.fecha_inicio <= new_reserva_usuario.fecha_inicio,
@@ -147,7 +147,7 @@ def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, u
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         
-def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate, user_id: int):
+def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate,user_id: int):
     db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.user_id == user_id).first()
     if not db_reserva_usuario:
         raise HTTPException(status_code=404, detail="ReservaUsuario not found")
@@ -158,6 +158,7 @@ def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario
             db_reserva_usuario.fecha_fin = reserva_usuario.fecha_fin
             db_reserva_usuario.hora_inicio = reserva_usuario.hora_inicio
             db_reserva_usuario.hora_fin = reserva_usuario.hora_fin
+            db_reserva_usuario.estado = reserva_usuario.estado
             db.commit()
             db.refresh(db_reserva_usuario)
             return db_reserva_usuario

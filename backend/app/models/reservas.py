@@ -27,4 +27,4 @@ class ReservaUsuario(Base):
     fecha_fin = Column(Date)
     hora_inicio = Column(Time)
     hora_fin = Column(Time)
-    estado = Column(String, default="pendiente")
+    estado = Column(String, default="Pendiente")

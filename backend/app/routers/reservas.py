@@ -3,7 +3,7 @@ from langcodes import get
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.reservas import ReservaCreate, DisponibilidadCreate, ReservaUsuarioCreate, ReservaResponse, DisponibilidadResponse, ReservaUsuarioResponse
-from app.services.reservas import create_reserva, list_all_reservas_usuario, list_reserva, list_disponibilidades_by_reserva, update_reserva, delete_reserva, show_reserva, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
+from app.services.reservas import create_reserva, list_all_reservas, list_all_reservas_usuario, list_disponibilidades_by_reserva, update_reserva, delete_reserva, show_reserva, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
 from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/reservas", tags=["reservas"])
@@ -64,6 +64,10 @@ def show_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends
 def delete_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db)):
     return delete_reserva_usuario(db, reserva_usuario_id)
 
-@router.get("/reservas/", response_model=list[ReservaUsuarioResponse])
+@router.get("/reservas_usuario/", response_model=list[ReservaUsuarioResponse])
 def list_reservas_usuario_endpoint(user_id: int, db: Session = Depends(get_db)):
     return list_all_reservas_usuario(db, user_id)
+
+@router.get("/list/", response_model=list[ReservaResponse])
+def list_reservas_endpoint(db: Session = Depends(get_db)):
+    return list_all_reservas(db)

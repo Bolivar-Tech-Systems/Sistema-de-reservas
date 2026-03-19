@@ -14,7 +14,7 @@ class PantallaHome extends StatefulWidget {
   State<PantallaHome> createState() => _PantallaHomeState();
 }
 
-int _currentIndex = 0;
+int currentIndex = 0;
 
 class _PantallaHomeState extends State<PantallaHome> {
   List<dynamic>? reservas = [];
@@ -48,7 +48,7 @@ class _PantallaHomeState extends State<PantallaHome> {
       final sharedPreferences = await SharedPreferences.getInstance();
       var token = sharedPreferences.getString('access_token');
       final response = await get(
-        Uri.parse("http://127.0.0.1:8000/reservas"),
+        Uri.parse("http://127.0.0.1:8000/reservas/list/"),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (!mounted) return;
@@ -395,10 +395,10 @@ class _PantallaHomeState extends State<PantallaHome> {
         elevation: 8,
         //shadowColor: Color.fromRGBO(58, 58, 58, 0.3),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: currentIndex,
           onTap: (index) {
             setState(() {
-              _currentIndex = index;
+              currentIndex = index;
             });
           },
           backgroundColor: Colores.surface,
