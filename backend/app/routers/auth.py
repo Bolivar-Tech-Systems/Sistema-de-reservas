@@ -65,13 +65,13 @@ async def forget_password(
           )
           template_name = "mail/password_reset.html"
           fm = FastMail(mail_conf)
-          background_tasks.add_task(fm.send_message, message, template_name)
+          background_tasks.add_task(fm.send_message, message, template_name=template_name)
 
           return  {"message": "Se ha enviado el email", "completado": True,}    
+     except HTTPException:
+          raise
      except Exception:
-          raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                    detail = "Algo inesperado sucedio, error del servidor",
-                                    )                   
+          raise HTTPException(status_code=500, detail="Algo inesperado sucedio, error del servidor")
                               
 @router.post("/reset-password", response_model=SuccessMessage)
 async def reset_password(
