@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../util/colores.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ResetPwd extends StatefulWidget {
   const ResetPwd({super.key});
@@ -9,10 +11,56 @@ class ResetPwd extends StatefulWidget {
 }
 
 class _ResetPwdState extends State<ResetPwd> {
-  final url = "http://localhost:8000/auth/login";
+  final url = "http://localhost:8000/auth/forget-password";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
   bool code = false;
+  String? _errorMessage;
+
+  Future<void> resetPwd() async{
+    if(textController.text.isEmpty){
+      setState(() {
+        _errorMessage = 'Ingrese el correo';
+      });
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': textController.text,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        // Registro exitoso — vuelve al login
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Correo enviado"),
+            ),
+          );
+          setState(() {
+            code = true;
+          });
+        }
+      } else {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _errorMessage = data['detail'] ?? 'Error al registrarse';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'No se pudo conectar al servidor';
+      });
+    }
+
+  } 
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +129,21 @@ class _ResetPwdState extends State<ResetPwd> {
                       filled: true,
                     ),
                   ),
+                  
+                  if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colores.danger, fontSize: 13),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
                   const SizedBox(height: 25),
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        code = true;
-                      });
+                      resetPwd();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colores.primaryDark,
