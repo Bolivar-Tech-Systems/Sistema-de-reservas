@@ -162,10 +162,12 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
                 ),
               ),
               onPressed: crearReserva,
-              child: Text(
-                "Crear Reserva",
-                style: TextStyle(fontSize: 16, color: Colores.text),
-              ),
+              child: _cargando
+                  ? const CircularProgressIndicator(color: Colores.primary)
+                  : const Text(
+                      "Crear Reserva",
+                      style: TextStyle(fontSize: 16, color: Colores.text),
+                    ),
             ),
           ],
         ),
