@@ -1,10 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
-import 'pantalla_registrar.dart';
 import '../util/colores.dart';
-import 'home.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ResetPwd extends StatefulWidget {
   const ResetPwd({super.key});

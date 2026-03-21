@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_de_reservas/screens/home.dart';
 import '../util/colores.dart';
 
 class PantallaHorario extends StatefulWidget {
