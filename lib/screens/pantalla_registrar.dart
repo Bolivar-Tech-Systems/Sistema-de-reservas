@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:sistema_de_reservas/screens/pantalla_login.dart';
 import '../util/colores.dart';
 
 class PantallaRegistrar extends StatefulWidget {
@@ -34,6 +33,16 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
         passwordController.text.isEmpty ||
         passwordConfirmController.text.isEmpty) {
       setState(() => _errorMessage = "Por favor completa todos los campos");
+      return;
+    }
+
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(textControllerEmail.text)) {
+      setState(() => _errorMessage = "Ingresa un correo válido");
+      return;
+    }
+
+    if (passwordController.text.length < 6) {
+      setState(() => _errorMessage = "La contraseña debe tener mínimo 6 caracteres");
       return;
     }
 

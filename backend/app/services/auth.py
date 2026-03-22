@@ -61,7 +61,7 @@ def decode_reset_password_token(token: str):
     except JWTError:
         return None
     
-def generate_forget_password_email(email: str, db= Session):
+def generate_forget_password_email(email: str, db: Session):
     user = get_user(email=email, db=db)
 
     if user is None:
@@ -78,7 +78,7 @@ def generate_forget_password_email(email: str, db= Session):
           }
     return email_body
 
-def reset_user_password(rfp, db=Session):
+def reset_user_password(rfp, db:Session):
 
     info= decode_reset_password_token(token=rfp.secret_token)
 
@@ -100,9 +100,13 @@ def reset_user_password(rfp, db=Session):
             detail="Usuario no encontrado"
         )
     hashed_password = pwd_context.hash(rfp.new_password)
-    user.password = hashed_password
-    db.add(user)
-    db.commit()
+    try:
+        user.password = hashed_password
+        db.add(user)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al actualizar la contraseña")
 
     return {
         "success": True,

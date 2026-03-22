@@ -14,7 +14,7 @@ def create_reserva_endpoint(reserva: ReservaCreate, db: Session = Depends(get_db
 
 @router.put("/{reserva_id}", response_model=ReservaResponse)
 def update_reserva_endpoint(reserva_id: int, reserva: ReservaCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return update_reserva(db, reserva_id, reserva, current_user)
+    return update_reserva(db, reserva_id, reserva, current_user.id)
 
 @router.get("/{reserva_id}", response_model=ReservaResponse)
 def show_reserva_endpoint(reserva_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):

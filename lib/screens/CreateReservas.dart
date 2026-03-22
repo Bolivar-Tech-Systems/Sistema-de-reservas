@@ -104,7 +104,7 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
             ),
             SizedBox(height: 20),
             Text(
-              "Crea tu reserva",
+              "Crea tu Recurso",
               style: TextStyle(
                 fontSize: 25,
                 color: Colores.text,
@@ -120,7 +120,7 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                   borderSide: BorderSide.none,
                 ),
-                labelText: "Nombre de la reserva",
+                labelText: "Nombre del recurso",
                 labelStyle: TextStyle(color: Colores.textSecondary),
                 prefixIcon: Icon(Icons.add, color: Colores.primary),
                 fillColor: Colores.surface,
@@ -136,7 +136,7 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                   borderSide: BorderSide.none,
                 ),
-                labelText: "Descripcion de la reserva",
+                labelText: "Descripcion de la recurso",
                 labelStyle: TextStyle(color: Colores.textSecondary),
                 prefixIcon: Icon(Icons.add, color: Colores.primary),
                 fillColor: Colores.surface,
@@ -162,10 +162,12 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
                 ),
               ),
               onPressed: crearReserva,
-              child: Text(
-                "Crear Reserva",
-                style: TextStyle(fontSize: 16, color: Colores.text),
-              ),
+              child: _cargando
+                  ? const CircularProgressIndicator(color: Colores.primary)
+                  : const Text(
+                      "Crear Recurso",
+                      style: TextStyle(fontSize: 16, color: Colores.text),
+                    ),
             ),
           ],
         ),
