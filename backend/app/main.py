@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.core.database import engine, Base
-from app.routers import auth, reservas
+from app.routers import auth, reservas, images
 from fastapi.middleware.cors import CORSMiddleware
 # Crea las tablas en PostgreSQL
 Base.metadata.create_all(bind=engine)
@@ -17,4 +17,5 @@ app.add_middleware(
 # Routers
 app.include_router(auth.router)
 app.include_router(reservas.router)
+app.include_router(images.router)
 
