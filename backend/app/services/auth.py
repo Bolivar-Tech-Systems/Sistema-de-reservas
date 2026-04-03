@@ -28,7 +28,7 @@ def create_user(db: Session, user: UserCreate):
     if user.password == user.password_confirmation:
         try:
             hashed_password = get_password_hash(user.password)
-            new_user = User(name=user.name, email=user.email, password=hashed_password, role="user")
+            new_user = User(name=user.name, email=user.email, password=hashed_password,)
             db.add(new_user)
             db.commit()
             db.refresh(new_user) 
