@@ -4,9 +4,8 @@ from passlib.context import CryptContext
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.core.security import create_access_token, verify_token
-from app.core.config import APP_HOST, FORGET_PASSWORD_URL, MAIL_FROM_NAME, FORGET_PASSWORD_LINK_EXPIRE_MINUTES, FORGET_PWD_SECRET_KEY, ALGORITHM
+from app.core.config import FRONTEND_HOST,BACKEND_HOST, FORGET_PASSWORD_URL, MAIL_FROM_NAME, FORGET_PASSWORD_LINK_EXPIRE_MINUTES, FORGET_PWD_SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
-from app.core.config import FORGET_PWD_SECRET_KEY, ALGORITHM, APP_HOST
 from app.core.security import create_reset_password_token
 from fastapi.responses import JSONResponse
 
@@ -28,7 +27,7 @@ def create_user(db: Session, user: UserCreate):
     if user.password == user.password_confirmation:
         try:
             hashed_password = get_password_hash(user.password)
-            new_user = User(name=user.name, email=user.email, password=hashed_password, role="user")
+            new_user = User(name=user.name, email=user.email, password=hashed_password)
             db.add(new_user)
             db.commit()
             db.refresh(new_user) 
@@ -69,7 +68,7 @@ def generate_forget_password_email(email: str, db= Session):
                                    detail="Correo invalido")
     secret_token = create_reset_password_token(email=user.email)
 
-    forget_url_link = f"{APP_HOST}{FORGET_PASSWORD_URL}/{secret_token}"
+    forget_url_link =  f"{FRONTEND_HOST}/?token={secret_token}"
 
     email_body = {
                "company_name": MAIL_FROM_NAME,

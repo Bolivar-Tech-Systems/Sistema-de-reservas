@@ -1,11 +1,13 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'pantalla_registrar.dart';
 import '../util/colores.dart';
 import 'home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'pantalla_recuperar.dart';
+
+bool recuperar = false;
 
 class PantallaLogin extends StatefulWidget {
   const PantallaLogin({super.key});
@@ -20,7 +22,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
   final passwordController = TextEditingController();
   SharedPreferences? sharedPreferences;
   Future<Response>? response;
-  
+
   Future<void> onLoginPressed() async {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -34,24 +36,29 @@ class _PantallaLoginState extends State<PantallaLogin> {
     setState(() {
       response = Future.value(result);
     });
-      if (result.statusCode == 200) {
-        final responseBody = jsonDecode(result.body);
-        await sharedPreferences?.setString('access_token', responseBody['access_token']);
-        navigator.push(
-          // usar la referencia guardada
-          MaterialPageRoute(builder: (context) => const PantallaHome()),
-        );
-      } else if (result.statusCode == 400) {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('Correo o contraseña incorrectos')),
-        );
-      } else {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('Error del servidor ${result.statusCode}')),
-        );
-      }
+    if (result.statusCode == 200) {
+      final responseBody = jsonDecode(result.body);
+      await sharedPreferences?.setString(
+        'access_token',
+        responseBody['access_token'],
+      );
+      navigator.push(
+        // usar la referencia guardada
+        MaterialPageRoute(builder: (context) => const PantallaHome()),
+      );
+    } else if (result.statusCode == 400) {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Correo o contraseña incorrectos')),
+      );
+      setState(() {
+        recuperar = true;
+      });
+    } else {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Error del servidor ${result.statusCode}')),
+      );
+    }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -96,9 +103,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                       borderSide: BorderSide.none,
                     ),
                     labelText: "Email",
-                    labelStyle: TextStyle(
-                      color: Colores.textSecondary,
-                    ),
+                    labelStyle: TextStyle(color: Colores.textSecondary),
                     prefixIcon: Icon(
                       Icons.email_outlined,
                       color: Colores.primary,
@@ -118,9 +123,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                       borderSide: BorderSide.none,
                     ),
                     labelText: 'Contraseña',
-                    labelStyle: TextStyle(
-                      color: Colores.textSecondary,
-                    ),
+                    labelStyle: TextStyle(color: Colores.textSecondary),
                     prefixIcon: Icon(
                       Icons.lock_outline,
                       color: Colores.primary,
@@ -141,19 +144,31 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   ),
                   child: const Text(
                     'Iniciar Sesión',
-                    style: TextStyle(
-                      color: Colores.text,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colores.text, fontSize: 14),
                   ),
                 ),
+                if (recuperar == true) ...[
+                  SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const Forget()),
+                      );
+                      setState(() {
+                        recuperar = false;
+                      });
+                    },
+                    child: Text(
+                      "¿Olvidaste tu contraseña? Recuperala aqui",
+                      style: TextStyle(color: Colores.primary, fontSize: 14),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 const Text(
                   "Iniciar sesion con",
-                  style: TextStyle(
-                    color: Colores.textSecondary,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Colores.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(
@@ -171,10 +186,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   ),
                   child: Text(
                     'Iniciar sesion con Google',
-                    style: TextStyle(
-                      color: Colores.text,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colores.text, fontSize: 14),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -193,10 +205,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   ),
                   child: Text(
                     'Iniciar sesion con Facebook',
-                    style: TextStyle(
-                      color: Colores.text,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colores.text, fontSize: 14),
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -211,10 +220,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   },
                   child: Text(
                     "¿No tienes una cuenta? Regístrate",
-                    style: TextStyle(
-                      color: Colores.primary,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colores.primary, fontSize: 14),
                   ),
                 ),
               ],

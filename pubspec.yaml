@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
   http: ^1.6.0
   shared_preferences: ^2.2.2
+  app_links: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -20,5 +21,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/nitro.jpg
-    - assets/images/nitro2.jpg
+    - assets/images/forgotp.png
+    - assets/images/resetp.png
+    - assets/images/finalp.png
