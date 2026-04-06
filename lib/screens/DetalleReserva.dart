@@ -119,7 +119,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
             colors: [Colores.background, Colors.black],
           ),
         ),
-        padding: EdgeInsets.only(top: 25, left: 10, right: 20),
+        padding: EdgeInsets.only(left: 10, right: 20),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

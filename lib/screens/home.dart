@@ -364,6 +364,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                                     MaterialPageRoute(
                                       builder: (context) => PantallaHorario(
                                         recurso: reserva['name'],
+                                        reservaId: reserva['id'],
                                         imagen: "assets/images/nitro.jpg",
                                       ),
                                     ),

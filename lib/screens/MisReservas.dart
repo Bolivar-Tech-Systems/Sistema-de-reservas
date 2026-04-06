@@ -36,7 +36,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
       final token = prefs.getString('access_token');
 
       final response = await http.get(
-        Uri.parse("http://127.0.0.1:8000/reservas/list/"),
+        Uri.parse("http://127.0.0.1:8000/reservas/reservas_usuario/"),
         headers: {'Authorization': 'Bearer $token'},
       );
 
