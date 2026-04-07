@@ -20,7 +20,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
   final List<Map<String, String>> filtros = [
     {'label': 'Todas', 'value': 'todas'},
     {'label': 'Activas', 'value': 'activa'},
-    {'label': 'Pendientes', 'value': 'pendiente'},
+    {'label': 'Pendiente', 'value': 'pendiente'},
     {'label': 'Canceladas', 'value': 'cancelada'},
   ];
 
@@ -31,6 +31,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
   }
 
   Future<void> fetchMisReservas() async {
+    setState(() => _cargando = true);
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('access_token');
@@ -43,8 +44,35 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
+        final List<dynamic> lista = jsonDecode(response.body);
+
+        final List<dynamic> listaCompleta = await Future.wait(
+          lista.map((ruRaw) async {
+            final ru = Map<String, dynamic>.from(ruRaw as Map);
+            try {
+              final detalle = await http.get(
+                Uri.parse("http://127.0.0.1:8000/reservas/${ru['reserva_id']}"),
+                headers: {'Authorization': 'Bearer $token'},
+              );
+              if (detalle.statusCode == 200) {
+                final info = Map<String, dynamic>.from(jsonDecode(detalle.body) as Map);
+                return <String, dynamic>{
+                  ...ru,
+                  'name': info['name'],
+                  'description': info['description'],
+                };
+              }
+            } catch (_) {}
+            return <String, dynamic>{
+              ...ru,
+              'name': 'Reserva #${ru['reserva_id']}',
+              'description': null,
+            };
+          }),
+        );
+
         setState(() {
-          reservas = jsonDecode(response.body);
+          reservas = listaCompleta;
           _cargando = false;
         });
       } else {
@@ -55,19 +83,31 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
       }
     } catch (e) {
       setState(() => _cargando = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("No se pudo conectar al servidor")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("No se pudo conectar al servidor")),
+        );
+      }
     }
   }
 
   List<dynamic> get reservasFiltradas {
     if (_filtro == 'todas') return reservas;
-    return reservas.where((r) => r['estado'] == _filtro).toList();
+    return reservas
+        .where((r) => (r['estado'] ?? '').toString().toLowerCase() == _filtro)
+        .toList();
+  }
+
+  String _formatearFechas(dynamic reserva) {
+    final inicio = reserva['fecha_inicio'];
+    final fin = reserva['fecha_fin'];
+    if (inicio == null && fin == null) return 'Sin fecha';
+    if (inicio != null && fin != null) return '$inicio → $fin';
+    return inicio ?? fin ?? 'Sin fecha';
   }
 
   Color _colorEstado(String estado) {
-    switch (estado) {
+    switch (estado.toLowerCase()) {
       case 'activa':
         return Colores.primary;
       case 'pendiente':
@@ -80,7 +120,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
   }
 
   IconData _iconoEstado(String estado) {
-    switch (estado) {
+    switch (estado.toLowerCase()) {
       case 'activa':
         return Icons.check_circle_outline;
       case 'pendiente':
@@ -201,7 +241,9 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
                             separatorBuilder: (_, __) => SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               final reserva = reservasFiltradas[index];
-                              final estado = reserva['estado'] ?? 'pendiente';
+                              final estado = (reserva['estado'] ?? 'pendiente')
+                                  .toString()
+                                  .toLowerCase();
 
                               return GestureDetector(
                                 onTap: () {
@@ -240,7 +282,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              reserva['name'] ?? 'Sin nombre',
+                                              reserva['name'] ?? 'Reserva #${reserva['reserva_id']}',
                                               style: TextStyle(
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.bold,
@@ -249,7 +291,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
                                             ),
                                             SizedBox(height: 4),
                                             Text(
-                                              reserva['fecha'] ?? 'Sin fecha',
+                                              _formatearFechas(reserva),
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 color: Colores.textSecondary,
@@ -267,7 +309,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
                                           ),
                                           SizedBox(width: 4),
                                           Text(
-                                            estado,
+                                            estado[0].toUpperCase() + estado.substring(1),
                                             style: TextStyle(
                                               color: _colorEstado(estado),
                                               fontSize: 12,
@@ -288,4 +330,4 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
       ),
     );
   }
-} 
+}

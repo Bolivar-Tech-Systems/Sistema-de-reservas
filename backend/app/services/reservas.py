@@ -48,8 +48,8 @@ def delete_reserva(db: Session, reserva_id: int, owner_id: int):
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         
-def show_reserva(db: Session, reserva_id: int, owner_id: int):
-    db_reserva = db.query(Reserva).filter(Reserva.id == reserva_id, Reserva.owner_id == owner_id).first()
+def show_reserva(db: Session, reserva_id: int):
+    db_reserva = db.query(Reserva).filter(Reserva.id == reserva_id).first()
     if not db_reserva:
         raise HTTPException(status_code=404, detail="Reserva not found")
     else:
