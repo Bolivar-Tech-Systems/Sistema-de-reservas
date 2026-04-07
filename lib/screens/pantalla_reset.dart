@@ -121,7 +121,7 @@ class _ResetState extends State<Reset> {
 
         await Future.delayed(const Duration(seconds: 2));
 
-        html.window.location.href = "http://localhost:5000/?screen=home";
+        html.window.location.href = "http://localhost:8000/?screen=home";
       } else {
         setState(() {
           _errorMessage = "Error al cambiar la contraseña";

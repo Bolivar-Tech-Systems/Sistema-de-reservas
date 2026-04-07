@@ -54,7 +54,13 @@ def show_reserva(db: Session, reserva_id: int, owner_id: int):
         raise HTTPException(status_code=404, detail="Reserva not found")
     else:
         return db_reserva
-    
+
+def list_reserva(db: Session, owner_id: int):
+    db_list_reserva = db.query(Reserva).filter(Reserva.owner_id == owner_id).all()
+    if not db_list_reserva:
+        raise HTTPException(status_code=404, detail="No reservas found")
+    return db_list_reserva
+
 def list_all_reservas(db: Session):
     db_reservas = db.query(Reserva).all()
     return db_reservas
@@ -124,15 +130,19 @@ def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, u
     else:
         try:
             new_reserva_usuario = ReservaUsuario(reserva_id=reserva_usuario.reserva_id, user_id=user_id, fecha_inicio=reserva_usuario.fecha_inicio, fecha_fin=reserva_usuario.fecha_fin, hora_inicio=reserva_usuario.hora_inicio, hora_fin=reserva_usuario.hora_fin, estado= reserva_usuario.estado)
-            disponible = db.query(Disponibilidad).filter(
-                Disponibilidad.reserva_id == reserva_usuario.reserva_id, 
-                Disponibilidad.fecha_inicio <= new_reserva_usuario.fecha_inicio,
-                Disponibilidad.fecha_fin >= new_reserva_usuario.fecha_fin,
-                Disponibilidad.hora_inicio <= new_reserva_usuario.hora_inicio,
-                Disponibilidad.hora_fin >= new_reserva_usuario.hora_fin
-            ).first()
-            if not disponible:
-                raise HTTPException(status_code=400, detail="No disponible")
+            # disponible = db.query(Disponibilidad).filter(
+            #     Disponibilidad.reserva_id == reserva_usuario.reserva_id,
+
+            #     # fechas se cruzan
+            #     Disponibilidad.fecha_inicio <= new_reserva_usuario.fecha_fin,
+            #     Disponibilidad.fecha_fin >= new_reserva_usuario.fecha_inicio,
+
+            #     # horas se cruzan
+            #     Disponibilidad.hora_inicio < new_reserva_usuario.hora_fin,
+            #     Disponibilidad.hora_fin > new_reserva_usuario.hora_inicio
+            # ).first()
+            # if not disponible:
+            #     raise HTTPException(status_code=400, detail="No disponible")
             db.add(new_reserva_usuario)
             db.commit()
             db.refresh(new_reserva_usuario)

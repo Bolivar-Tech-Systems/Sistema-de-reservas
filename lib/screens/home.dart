@@ -6,6 +6,8 @@ import 'horario_disponible.dart';
 import 'CreateReservas.dart';
 import '../util/colores.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'MisReservas.dart';
+import 'Perfil.dart';
 
 class PantallaHome extends StatefulWidget {
   const PantallaHome({super.key});
@@ -96,14 +98,30 @@ class _PantallaHomeState extends State<PantallaHome> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.account_circle_rounded,
-                    size: 60,
+                  IconButton(
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PantallaPerfil(),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.account_circle_rounded),
+                    iconSize: 60,
                     color: Colores.iconActive,
+
                   ),
                   SizedBox(width: 15),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PantallaMisReservas(),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -346,6 +364,7 @@ class _PantallaHomeState extends State<PantallaHome> {
                                     MaterialPageRoute(
                                       builder: (context) => PantallaHorario(
                                         recurso: reserva['name'],
+                                        reservaId: reserva['id'],
                                         imagen: "assets/images/nitro.jpg",
                                       ),
                                     ),

@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.core.security import create_access_token, verify_token
-from app.core.config import FRONTEND_HOST,BACKEND_HOST, FORGET_PASSWORD_URL, MAIL_FROM_NAME, FORGET_PASSWORD_LINK_EXPIRE_MINUTES, FORGET_PWD_SECRET_KEY, ALGORITHM
+from app.core.config import APP_HOST, FORGET_PASSWORD_URL, MAIL_FROM_NAME, FORGET_PASSWORD_LINK_EXPIRE_MINUTES, FORGET_PWD_SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
 from app.core.security import create_reset_password_token
 from fastapi.responses import JSONResponse
@@ -27,6 +27,7 @@ def create_user(db: Session, user: UserCreate):
     if user.password == user.password_confirmation:
         try:
             hashed_password = get_password_hash(user.password)
+            new_user = User(name=user.name, email=user.email, password=hashed_password,)
             new_user = User(name=user.name, email=user.email, password=hashed_password)
             db.add(new_user)
             db.commit()
@@ -60,7 +61,7 @@ def decode_reset_password_token(token: str):
     except JWTError:
         return None
     
-def generate_forget_password_email(email: str, db= Session):
+def generate_forget_password_email(email: str, db: Session):
     user = get_user(email=email, db=db)
 
     if user is None:
@@ -68,7 +69,7 @@ def generate_forget_password_email(email: str, db= Session):
                                    detail="Correo invalido")
     secret_token = create_reset_password_token(email=user.email)
 
-    forget_url_link =  f"{FRONTEND_HOST}/?token={secret_token}"
+    forget_url_link =  f"http://localhost:8000/?token={secret_token}"
 
     email_body = {
                "company_name": MAIL_FROM_NAME,
@@ -77,7 +78,7 @@ def generate_forget_password_email(email: str, db= Session):
           }
     return email_body
 
-def reset_user_password(rfp, db=Session):
+def reset_user_password(rfp, db:Session):
 
     info= decode_reset_password_token(token=rfp.secret_token)
 
@@ -99,9 +100,13 @@ def reset_user_password(rfp, db=Session):
             detail="Usuario no encontrado"
         )
     hashed_password = pwd_context.hash(rfp.new_password)
-    user.password = hashed_password
-    db.add(user)
-    db.commit()
+    try:
+        user.password = hashed_password
+        db.add(user)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al actualizar la contraseña")
 
     return {
         "success": True,

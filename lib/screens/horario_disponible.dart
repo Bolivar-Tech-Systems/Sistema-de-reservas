@@ -1,14 +1,18 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:sistema_de_reservas/screens/home.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
 
 class PantallaHorario extends StatefulWidget {
   final String recurso;
   final String imagen;
+  final int reservaId; // <-- nuevo parámetro
 
   const PantallaHorario({
     required this.recurso,
     required this.imagen,
+    required this.reservaId,
     super.key,
   });
 
@@ -18,7 +22,9 @@ class PantallaHorario extends StatefulWidget {
 
 class _PantallaHorarioState extends State<PantallaHorario> {
   DateTime? _fecha;
-  TimeOfDay? _hora;
+  TimeOfDay? _horaInicio;
+  TimeOfDay? _horaFin;
+  bool _cargando = false;
 
   Future<void> _seleccionarFecha() async {
     final DateTime? nuevaFecha = await showDatePicker(
@@ -39,8 +45,8 @@ class _PantallaHorarioState extends State<PantallaHorario> {
     if (nuevaFecha != null) setState(() => _fecha = nuevaFecha);
   }
 
-  Future<void> _seleccionarHora() async {
-    final TimeOfDay? nuevaHora = await showTimePicker(
+  Future<void> _seleccionarHoraInicio() async {
+    final TimeOfDay? nueva = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
       builder: (context, child) => Theme(
@@ -53,8 +59,85 @@ class _PantallaHorarioState extends State<PantallaHorario> {
         child: child!,
       ),
     );
-    if (nuevaHora != null) setState(() => _hora = nuevaHora);
+    if (nueva != null) setState(() => _horaInicio = nueva);
   }
+
+  Future<void> _seleccionarHoraFin() async {
+    final TimeOfDay? nueva = await showTimePicker(
+      context: context,
+      initialTime: _horaInicio ?? TimeOfDay.now(),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.dark(
+            primary: Colores.primary,
+            surface: Colores.surface,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (nueva != null) setState(() => _horaFin = nueva);
+  }
+
+  String _formatearHora(TimeOfDay hora) {
+    final h = hora.hour.toString().padLeft(2, '0');
+    final m = hora.minute.toString().padLeft(2, '0');
+    return '$h:$m:00';
+  }
+
+  String _formatearFecha(DateTime fecha) {
+    final y = fecha.year;
+    final m = fecha.month.toString().padLeft(2, '0');
+    final d = fecha.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
+  }
+
+  Future<void> _reservar() async {
+    setState(() => _cargando = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+
+      final response = await http.post(
+        Uri.parse("http://127.0.0.1:8000/reservas/reserva_usuario/"),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          "reserva_id": widget.reservaId,
+          "fecha_inicio": _formatearFecha(_fecha!),
+          "fecha_fin": _formatearFecha(_fecha!),
+          "hora_inicio": _formatearHora(_horaInicio!),
+          "hora_fin": _formatearHora(_horaFin!),
+          "estado": "pendiente",
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Reserva creada correctamente")),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al reservar: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("No se pudo conectar al servidor")),
+      );
+    } finally {
+      setState(() => _cargando = false);
+    }
+  }
+
+  bool get _formularioCompleto =>
+      _fecha != null && _horaInicio != null && _horaFin != null;
 
   @override
   Widget build(BuildContext context) {
@@ -85,10 +168,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                       backgroundColor: Colores.surface,
                       foregroundColor: Colores.text,
                     ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_outlined,
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.arrow_back_ios_new_outlined, size: 20),
                   ),
                   const SizedBox(width: 15),
                   Text(
@@ -150,30 +230,21 @@ class _PantallaHorarioState extends State<PantallaHorario> {
               GestureDetector(
                 onTap: _seleccionarFecha,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 16,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   decoration: BoxDecoration(
                     color: Colores.surface,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.calendar_today,
-                        color: Colores.primary,
-                        size: 20,
-                      ),
+                      Icon(Icons.calendar_today, color: Colores.primary, size: 20),
                       const SizedBox(width: 12),
                       Text(
                         _fecha == null
                             ? "Seleccionar fecha"
                             : "${_fecha!.day}/${_fecha!.month}/${_fecha!.year}",
                         style: TextStyle(
-                          color: _fecha == null
-                              ? Colores.textSecondary
-                              : Colores.text,
+                          color: _fecha == null ? Colores.textSecondary : Colores.text,
                           fontSize: 16,
                         ),
                       ),
@@ -184,38 +255,56 @@ class _PantallaHorarioState extends State<PantallaHorario> {
 
               const SizedBox(height: 12),
 
-              // Campo hora
+              // Hora inicio y fin en fila
               Row(
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: _seleccionarHora,
+                      onTap: _seleccionarHoraInicio,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         decoration: BoxDecoration(
                           color: Colores.surface,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              Icons.access_time_rounded,
-                              color: Colores.primary,
-                              size: 18,
-                            ),
+                            Icon(Icons.access_time_rounded, color: Colores.primary, size: 18),
                             const SizedBox(width: 10),
                             Flexible(
                               child: Text(
-                                _hora == null
-                                    ? "Seleccionar hora"
-                                    : _hora!.format(context),
+                                _horaInicio == null ? "Hora inicio" : _horaInicio!.format(context),
                                 style: TextStyle(
-                                  color: _hora == null
-                                      ? Colores.textSecondary
-                                      : Colores.text,
+                                  color: _horaInicio == null ? Colores.textSecondary : Colores.text,
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _seleccionarHoraFin,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colores.surface,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.access_time_filled_rounded, color: Colores.primary, size: 18),
+                            const SizedBox(width: 10),
+                            Flexible(
+                              child: Text(
+                                _horaFin == null ? "Hora fin" : _horaFin!.format(context),
+                                style: TextStyle(
+                                  color: _horaFin == null ? Colores.textSecondary : Colores.text,
                                   fontSize: 14,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -231,7 +320,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
 
               const SizedBox(height: 30),
 
-              // Botón verificar base de datos
+              // Botón verificar
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -250,10 +339,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                     children: [
                       Icon(Icons.search, color: Colores.primary, size: 18),
                       const SizedBox(width: 8),
-                      Text(
-                        "Verificar base de datos",
-                        style: TextStyle(color: Colores.primary),
-                      ),
+                      Text("Verificar base de datos", style: TextStyle(color: Colores.primary)),
                     ],
                   ),
                 ),
@@ -269,26 +355,26 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                     backgroundColor: Colores.primaryDark,
                     foregroundColor: Colores.text,
                     minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     disabledBackgroundColor: Colores.surface,
                     disabledForegroundColor: Colores.textSecondary,
                   ),
-                  onPressed: (_fecha == null || _hora == null) ? null : () {},
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        (_fecha == null || _hora == null)
-                            ? Icons.lock_outline
-                            : Icons.check_circle_outline,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text("Reservar"),
-                    ],
-                  ),
+                  onPressed: _formularioCompleto && !_cargando ? _reservar : null,
+                  child: _cargando
+                      ? CircularProgressIndicator(color: Colores.primary)
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _formularioCompleto
+                                  ? Icons.check_circle_outline
+                                  : Icons.lock_outline,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text("Reservar"),
+                          ],
+                        ),
                 ),
               ),
 

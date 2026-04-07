@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:sistema_de_reservas/screens/resetPwd.dart';
 import 'pantalla_registrar.dart';
 import '../util/colores.dart';
 import 'home.dart';
@@ -20,6 +21,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
   final url = "http://localhost:8000/auth/login";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
+  bool remember = false;
   SharedPreferences? sharedPreferences;
   Future<Response>? response;
 
@@ -50,9 +52,6 @@ class _PantallaLoginState extends State<PantallaLogin> {
       scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Correo o contraseña incorrectos')),
       );
-      setState(() {
-        recuperar = true;
-      });
     } else {
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Error del servidor ${result.statusCode}')),
@@ -133,6 +132,35 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: remember,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          remember = value!;
+                        });
+                      },
+                    ),
+                    Text(
+                      "Recordarme?",
+                      style: TextStyle(color: Colores.text),
+                    ),
+                    Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, 
+                          MaterialPageRoute(builder: (context)=>ResetPwd())
+                        );
+                      },
+                      child: Text(
+                        "Olvidaste tu contraseña?",
+                        style: TextStyle(color: Colores.primaryDark),
+                      ),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     onLoginPressed();
@@ -209,20 +237,27 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   ),
                 ),
                 const SizedBox(height: 15),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PantallaRegistrar(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("¿No tienes una cuenta? ", style: TextStyle(color: Colores.text)),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PantallaRegistrar(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Regístrate",
+                        style: TextStyle(color: Colores.primary, fontSize: 14),
                       ),
-                    );
-                  },
-                  child: Text(
-                    "¿No tienes una cuenta? Regístrate",
-                    style: TextStyle(color: Colores.primary, fontSize: 14),
-                  ),
-                ),
+                    ),
+                  ]
+                )
               ],
             ),
           ),
