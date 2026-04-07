@@ -52,7 +52,6 @@ async def forget_password(
      db: Session = Depends(get_db)
 ):
      try:
-
           email_body = generate_forget_password_email(
                email=fpr.email,
                db=db
