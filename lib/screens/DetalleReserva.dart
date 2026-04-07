@@ -23,7 +23,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
       final token = prefs.getString('access_token');
 
       final response = await http.delete(
-        Uri.parse("http://127.0.0.1:8000/reservas/${widget.reserva['id']}"),
+        Uri.parse("http://127.0.0.1:8000/reservas/reserva_usuario/${widget.reserva['id']}"),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -55,7 +55,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
         backgroundColor: Colores.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(
-          "¿Cancelar reserva?",
+          "¿Cancelar reserva?", 
           style: TextStyle(color: Colores.text),
         ),
         content: Text(
@@ -87,6 +87,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
     return Padding(
       padding: EdgeInsets.only(bottom: 14),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icono, color: Colores.primary, size: 20),
           SizedBox(width: 12),
@@ -102,10 +103,26 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
     );
   }
 
+  String _formatearFechas() {
+    final inicio = widget.reserva['fecha_inicio'];
+    final fin = widget.reserva['fecha_fin'];
+    if (inicio == null && fin == null) return 'No disponible';
+    if (inicio != null && fin != null) return '$inicio → $fin';
+    return inicio ?? fin ?? 'No disponible';
+  }
+
+  String _formatearHoras() {
+    final inicio = widget.reserva['hora_inicio'];
+    final fin = widget.reserva['hora_fin'];
+    if (inicio == null && fin == null) return 'No disponible';
+    if (inicio != null && fin != null) return '$inicio → $fin';
+    return inicio ?? fin ?? 'No disponible';
+  }
+
   @override
   Widget build(BuildContext context) {
     final reserva = widget.reserva;
-    final estado = reserva['estado'] ?? 'pendiente';
+    final estado = (reserva['estado'] ?? 'pendiente').toString().toLowerCase();
     final cancelada = estado == 'cancelada';
 
     return Scaffold(
@@ -124,7 +141,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 30),
+              SizedBox(height: 55),
 
               // Header
               Row(
@@ -153,7 +170,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
                 ],
               ),
 
-              SizedBox(height: 20),
+               SizedBox(height: 20),
 
               // Imagen del recurso
               ClipRRect(
@@ -230,10 +247,21 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
                 ),
                 child: Column(
                   children: [
-                    _infoFila(Icons.calendar_today_outlined, "Fecha", reserva['fecha'] ?? 'No disponible'),
-                    _infoFila(Icons.access_time_rounded, "Hora", reserva['hora'] ?? 'No disponible'),
-                    _infoFila(Icons.location_on_outlined, "Ubicación", reserva['ubicacion'] ?? 'No disponible'),
-                    _infoFila(Icons.person_outline, "Reservado por", reserva['usuario'] ?? 'No disponible'),
+                    _infoFila(
+                      Icons.calendar_today_outlined,
+                      "Fecha",
+                      _formatearFechas(),
+                    ),
+                    _infoFila(
+                      Icons.access_time_rounded,
+                      "Hora",
+                      _formatearHoras(),
+                    ),
+                    _infoFila(
+                      Icons.confirmation_number_outlined,
+                      "ID de reserva",
+                      '#${reserva['reserva_id'] ?? reserva['id']}',
+                    ),
                   ],
                 ),
               ),
