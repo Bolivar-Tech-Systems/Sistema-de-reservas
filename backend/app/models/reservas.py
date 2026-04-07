@@ -22,6 +22,7 @@ class ReservaUsuario(Base):
     id = Column(Integer, primary_key=True, index=True)
     reserva_id = Column(Integer, ForeignKey("Reservas.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
+    Disponibilidad_id = Column(Integer, ForeignKey("Disponibilidad.id"))
     fecha_inicio = Column(Date)
     fecha_fin = Column(Date)
     hora_inicio = Column(Time)
