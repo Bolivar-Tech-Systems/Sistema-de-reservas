@@ -2,6 +2,7 @@
 # Entorno
 .env
 *.env
+venv/
 
 # Miscellaneous
 *.class
