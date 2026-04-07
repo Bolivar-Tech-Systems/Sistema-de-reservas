@@ -58,8 +58,8 @@ def show_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends
     return show_reserva_usuario(db, reserva_usuario_id)
 
 @router.delete("/reserva_usuario/{reserva_usuario_id}")
-def delete_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db)):
-    return delete_reserva_usuario(db, reserva_usuario_id)
+def delete_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return delete_reserva_usuario(db, reserva_usuario_id, user.id)
 
 @router.get("/reservas_usuario/", response_model=list[ReservaUsuarioResponse])
 def list_reservas_usuario_endpoint(user_id: User = Depends(get_current_user), db: Session = Depends(get_db)):
