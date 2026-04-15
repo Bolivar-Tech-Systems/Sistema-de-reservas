@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../util/colores.dart';
+import '../util/app_config.dart';
 
 class PantallaRegistrar extends StatefulWidget {
   const PantallaRegistrar({super.key});
@@ -15,7 +16,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  final url = "http://localhost:8000/auth/register";
+  final url = "${AppConfig.baseUrl}/auth/register";
   final textController = TextEditingController();
   final textControllerEmail = TextEditingController();
   final passwordController = TextEditingController();

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sistema_de_reservas/screens/resetPwd.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 import 'home.dart';
 
 class PantallaAuth extends StatefulWidget {
@@ -32,8 +33,8 @@ class _PantallaAuthState extends State<PantallaAuth> {
   String? _errorMessage;
 
   // ── URLs ────────────────────────────────────────────────────────
-  static const _loginUrl = "http://10.0.2.2:8000/auth/login";
-  static const _registerUrl = "http://10.0.2.2:8000/auth/register";
+  static const _loginUrl = "${AppConfig.baseUrl}/auth/login";
+  static const _registerUrl = "${AppConfig.baseUrl}/auth/register";
 
   void _switchTab(bool toLogin) {
     setState(() {

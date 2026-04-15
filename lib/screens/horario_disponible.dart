@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 
 class PantallaHorario extends StatefulWidget {
   final String recurso;
@@ -100,7 +101,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
       final token = prefs.getString('access_token');
 
       final response = await http.post(
-        Uri.parse("http://127.0.0.1:8000/reservas/reserva_usuario/"),
+        Uri.parse("${AppConfig.baseUrl}/reservas/reserva_usuario/"),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

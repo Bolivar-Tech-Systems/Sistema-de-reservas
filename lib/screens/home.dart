@@ -5,6 +5,7 @@ import 'pantalla_login.dart';
 import 'horario_disponible.dart';
 import 'CreateReservas.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'MisReservas.dart';
 import 'Perfil.dart';
@@ -26,7 +27,7 @@ class _PantallaHomeState extends State<PantallaHome> {
     final sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString('access_token');
     await post(
-      Uri.parse("http://127.0.0.1:8000/auth/logout"),
+      Uri.parse("${AppConfig.baseUrl}/auth/logout"),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -50,7 +51,7 @@ class _PantallaHomeState extends State<PantallaHome> {
       final sharedPreferences = await SharedPreferences.getInstance();
       var token = sharedPreferences.getString('access_token');
       final response = await get(
-        Uri.parse("http://127.0.0.1:8000/reservas/list/"),
+        Uri.parse("${AppConfig.baseUrl}/reservas/list/"),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (!mounted) return;
