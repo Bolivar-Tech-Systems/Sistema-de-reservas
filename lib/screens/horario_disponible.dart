@@ -6,16 +6,11 @@ import '../util/colores.dart';
 import '../util/app_config.dart';
 
 class PantallaHorario extends StatefulWidget {
-  final String recurso;
-  final String imagen;
-  final int reservaId; // <-- nuevo parámetro
+  // final String recurso;
+  // final String imagen;
+  // final int reservaId; // <-- nuevo parámetro
 
-  const PantallaHorario({
-    required this.recurso,
-    required this.imagen,
-    required this.reservaId,
-    super.key,
-  });
+  const PantallaHorario({super.key});
 
   @override
   State<PantallaHorario> createState() => _PantallaHorarioState();
@@ -107,7 +102,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          "reserva_id": widget.reservaId,
+          // "reserva_id": widget.reservaId,
           "fecha_inicio": _formatearFecha(_fecha!),
           "fecha_fin": _formatearFecha(_fecha!),
           "hora_inicio": _formatearHora(_horaInicio!),
@@ -119,9 +114,9 @@ class _PantallaHorarioState extends State<PantallaHorario> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Reserva creada correctamente")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Reserva creada correctamente")));
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -169,7 +164,10 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                       backgroundColor: Colores.surface,
                       foregroundColor: Colores.text,
                     ),
-                    child: const Icon(Icons.arrow_back_ios_new_outlined, size: 20),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_outlined,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 15),
                   Text(
@@ -185,39 +183,38 @@ class _PantallaHorarioState extends State<PantallaHorario> {
 
               const SizedBox(height: 20),
 
-              // Tarjeta recurso
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colores.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colores.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        widget.imagen,
-                        height: 160,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      widget.recurso,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colores.text,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
+              // // Tarjeta recurso
+              // Container(
+              //   padding: const EdgeInsets.all(10),
+              //   decoration: BoxDecoration(
+              //     color: Colores.surface,
+              //     borderRadius: BorderRadius.circular(10),
+              //     border: Border.all(color: Colores.border),
+              //   ),
+              //   child: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       ClipRRect(
+              //         borderRadius: BorderRadius.circular(8),
+              //         child: Image.asset(
+              //           widget.imagen,
+              //           height: 160,
+              //           width: double.infinity,
+              //           fit: BoxFit.cover,
+              //         ),
+              //       ),
+              //       const SizedBox(height: 10),
+              //       Text(
+              //         widget.recurso,
+              //         style: TextStyle(
+              //           fontSize: 16,
+              //           color: Colores.text,
+              //           fontWeight: FontWeight.bold,
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
               const SizedBox(height: 20),
 
               Text(
@@ -231,21 +228,30 @@ class _PantallaHorarioState extends State<PantallaHorario> {
               GestureDetector(
                 onTap: _seleccionarFecha,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colores.surface,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today, color: Colores.primary, size: 20),
+                      Icon(
+                        Icons.calendar_today,
+                        color: Colores.primary,
+                        size: 20,
+                      ),
                       const SizedBox(width: 12),
                       Text(
                         _fecha == null
                             ? "Seleccionar fecha"
                             : "${_fecha!.day}/${_fecha!.month}/${_fecha!.year}",
                         style: TextStyle(
-                          color: _fecha == null ? Colores.textSecondary : Colores.text,
+                          color: _fecha == null
+                              ? Colores.textSecondary
+                              : Colores.text,
                           fontSize: 16,
                         ),
                       ),
@@ -263,20 +269,31 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                     child: GestureDetector(
                       onTap: _seleccionarHoraInicio,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                         decoration: BoxDecoration(
                           color: Colores.surface,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.access_time_rounded, color: Colores.primary, size: 18),
+                            Icon(
+                              Icons.access_time_rounded,
+                              color: Colores.primary,
+                              size: 18,
+                            ),
                             const SizedBox(width: 10),
                             Flexible(
                               child: Text(
-                                _horaInicio == null ? "Hora inicio" : _horaInicio!.format(context),
+                                _horaInicio == null
+                                    ? "Hora inicio"
+                                    : _horaInicio!.format(context),
                                 style: TextStyle(
-                                  color: _horaInicio == null ? Colores.textSecondary : Colores.text,
+                                  color: _horaInicio == null
+                                      ? Colores.textSecondary
+                                      : Colores.text,
                                   fontSize: 14,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -292,20 +309,31 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                     child: GestureDetector(
                       onTap: _seleccionarHoraFin,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                         decoration: BoxDecoration(
                           color: Colores.surface,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.access_time_filled_rounded, color: Colores.primary, size: 18),
+                            Icon(
+                              Icons.access_time_filled_rounded,
+                              color: Colores.primary,
+                              size: 18,
+                            ),
                             const SizedBox(width: 10),
                             Flexible(
                               child: Text(
-                                _horaFin == null ? "Hora fin" : _horaFin!.format(context),
+                                _horaFin == null
+                                    ? "Hora fin"
+                                    : _horaFin!.format(context),
                                 style: TextStyle(
-                                  color: _horaFin == null ? Colores.textSecondary : Colores.text,
+                                  color: _horaFin == null
+                                      ? Colores.textSecondary
+                                      : Colores.text,
                                   fontSize: 14,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -340,7 +368,10 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                     children: [
                       Icon(Icons.search, color: Colores.primary, size: 18),
                       const SizedBox(width: 8),
-                      Text("Verificar base de datos", style: TextStyle(color: Colores.primary)),
+                      Text(
+                        "Verificar base de datos",
+                        style: TextStyle(color: Colores.primary),
+                      ),
                     ],
                   ),
                 ),
@@ -356,11 +387,15 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                     backgroundColor: Colores.primaryDark,
                     foregroundColor: Colores.text,
                     minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     disabledBackgroundColor: Colores.surface,
                     disabledForegroundColor: Colores.textSecondary,
                   ),
-                  onPressed: _formularioCompleto && !_cargando ? _reservar : null,
+                  onPressed: _formularioCompleto && !_cargando
+                      ? _reservar
+                      : null,
                   child: _cargando
                       ? CircularProgressIndicator(color: Colores.primary)
                       : Row(
