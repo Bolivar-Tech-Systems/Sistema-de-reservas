@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -11,7 +12,7 @@ class ResetPwd extends StatefulWidget {
 }
 
 class _ResetPwdState extends State<ResetPwd> {
-  final url = "http://localhost:8000/auth/forget-password";
+  final url = "${AppConfig.baseUrl}/auth/forget-password";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
   bool code = false;

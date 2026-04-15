@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 
 class PantallaDetalleReserva extends StatefulWidget {
   final Map<String, dynamic> reserva;
@@ -23,7 +24,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
       final token = prefs.getString('access_token');
 
       final response = await http.delete(
-        Uri.parse("http://127.0.0.1:8000/reservas/reserva_usuario/${widget.reserva['id']}"),
+        Uri.parse("${AppConfig.baseUrl}/reservas/reserva_usuario/${widget.reserva['id']}"),
         headers: {'Authorization': 'Bearer $token'},
       );
 

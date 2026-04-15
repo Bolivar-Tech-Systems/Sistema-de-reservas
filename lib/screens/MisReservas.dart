@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 import 'DetalleReserva.dart';
 
 class PantallaMisReservas extends StatefulWidget {
@@ -37,7 +38,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
       final token = prefs.getString('access_token');
 
       final response = await http.get(
-        Uri.parse("http://127.0.0.1:8000/reservas/reservas_usuario/"),
+        Uri.parse("${AppConfig.baseUrl}/reservas/reservas_usuario/"),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -51,7 +52,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
             final ru = Map<String, dynamic>.from(ruRaw as Map);
             try {
               final detalle = await http.get(
-                Uri.parse("http://127.0.0.1:8000/reservas/${ru['reserva_id']}"),
+                Uri.parse("${AppConfig.baseUrl}/reservas/${ru['reserva_id']}"),
                 headers: {'Authorization': 'Bearer $token'},
               );
               if (detalle.statusCode == 200) {

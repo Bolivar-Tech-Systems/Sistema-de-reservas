@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +28,7 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
   Uint8List? _imagenBytes;
   final ImagePicker _picker = ImagePicker();
 
-  final String baseUrl = "http://localhost:8000";
+  final String baseUrl = AppConfig.baseUrl;
 
   Future<void> _seleccionarImagen() async {
     final XFile? picked = await _picker.pickImage(

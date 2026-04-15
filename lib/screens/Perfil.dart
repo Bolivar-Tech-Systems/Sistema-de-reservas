@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 
 class PantallaPerfil extends StatefulWidget {
   const PantallaPerfil({super.key});
@@ -32,7 +33,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
       final token = prefs.getString('access_token');
 
       final response = await http.get(
-        Uri.parse("http://127.0.0.1:8000/auth/me/"),
+        Uri.parse("${AppConfig.baseUrl}/auth/me/"),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -73,7 +74,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
       final token = prefs.getString('access_token');
 
       final response = await http.patch(
-        Uri.parse("http://127.0.0.1:8000/auth/me/"),
+        Uri.parse("${AppConfig.baseUrl}/auth/me/"),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

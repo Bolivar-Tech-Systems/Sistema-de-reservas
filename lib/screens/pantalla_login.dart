@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 import 'package:sistema_de_reservas/screens/resetPwd.dart';
 import 'pantalla_registrar.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 import 'home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,7 +17,7 @@ class PantallaLogin extends StatefulWidget {
 }
 
 class _PantallaLoginState extends State<PantallaLogin> {
-  final url = "http://localhost:8000/auth/login";
+  final url = "${AppConfig.baseUrl}/auth/login";
   final textController = TextEditingController();
   final passwordController = TextEditingController();
   bool remember = false;
