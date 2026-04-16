@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response
 from passlib.context import CryptContext
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.models.reservas import ReservaUsuario
+from app.schemas.user import UserCreate, UserLogin, UserResponse, UserProfile, UserUpdate
 from app.core.security import create_access_token, verify_token
 from app.core.config import APP_HOST, FORGET_PASSWORD_URL, MAIL_FROM_NAME, FORGET_PASSWORD_LINK_EXPIRE_MINUTES, FORGET_PWD_SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
@@ -51,6 +52,44 @@ def login_user(db: Session, user: UserLogin):
 def logout_user(response= Response):
     response.delete_cookie(key="access_token")
     return {"detail": "Usuario desconectado"}
+
+def get_user_profile(current_user: User, db: Session) -> UserProfile:
+    total_reservas = (
+        db.query(ReservaUsuario)
+        .filter(ReservaUsuario.user_id == current_user.id)
+        .count()
+    )
+    activas = (
+        db.query(ReservaUsuario)
+        .filter(
+            ReservaUsuario.user_id == current_user.id,
+            ReservaUsuario.estado == "pendiente",
+        ).count()
+    )
+    favoritos = 0
+
+    return UserProfile(
+        id=current_user.id,
+        nombre=current_user.name,
+        email=current_user.email,
+        total_reservas=total_reservas,
+        activas=activas,
+        favoritos=favoritos,
+    )
+
+def update_user_profile(datos: UserUpdate, current_user: User, db: Session) -> UserProfile:
+    if datos.email and datos.email != current_user.email:
+        existing = db.query(User).filter(User.email == datos.email).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="El email ya está en uso")
+        current_user.email = datos.email
+
+    if datos.nombre:
+        current_user.name = datos.nombre
+
+    db.commit()
+    db.refresh(current_user)
+    return get_user_profile(current_user, db)
 
 def decode_reset_password_token(token: str):
     try:

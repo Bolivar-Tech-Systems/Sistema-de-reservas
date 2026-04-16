@@ -3,9 +3,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserResponse, ForgetPasswordRequest, ResetForgottenPassword, SuccessMessage
+from app.schemas.user import UserCreate, UserLogin, UserResponse, ForgetPasswordRequest, ResetForgottenPassword, SuccessMessage, UserProfile, UserUpdate
 from app.schemas.token import Token
-from app.services.auth import create_user, login_user, logout_user
+from app.services.auth import create_user, login_user, logout_user, get_user_profile, update_user_profile
 from app.core.security import verify_token
 from fastapi_mail import FastMail, MessageSchema, MessageType
 from jose import jwt
@@ -44,6 +44,13 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 def logout(current_user: User = Depends(get_current_user)):
         return logout_user
 
+@router.get("/me/", response_model=UserProfile)
+def get_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
+     return get_user_profile(current_user, db)
+
+@router.patch("/me/", response_model=UserProfile)
+def update_profile(datos: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
+     return update_user_profile(datos, current_user, db)
 
 @router.post("/forget-password")
 async def forget_password(
