@@ -18,8 +18,8 @@ class _ResetPwdState extends State<ResetPwd> {
   bool code = false;
   String? _errorMessage;
 
-  Future<void> resetPwd() async{
-    if(textController.text.isEmpty){
+  Future<void> resetPwd() async {
+    if (textController.text.isEmpty) {
       setState(() {
         _errorMessage = 'Ingrese el correo';
       });
@@ -29,22 +29,16 @@ class _ResetPwdState extends State<ResetPwd> {
     try {
       final response = await http.post(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': textController.text,
-        }),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': textController.text}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 202) {
         // Registro exitoso — vuelve al login
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Correo enviado"),
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("Correo enviado")));
           setState(() {
             code = true;
           });
@@ -60,8 +54,7 @@ class _ResetPwdState extends State<ResetPwd> {
         _errorMessage = 'No se pudo conectar al servidor';
       });
     }
-
-  } 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,16 +123,19 @@ class _ResetPwdState extends State<ResetPwd> {
                       filled: true,
                     ),
                   ),
-                  
+
                   if (_errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colores.danger, fontSize: 13),
-                      textAlign: TextAlign.center,
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                          color: Colores.danger,
+                          fontSize: 13,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
 
                   const SizedBox(height: 25),
                   ElevatedButton(
@@ -239,7 +235,7 @@ class _ResetPwdState extends State<ResetPwd> {
                       style: TextStyle(color: Colores.text, fontSize: 14),
                     ),
                   ),
-                  SizedBox(height: 15,),
+                  SizedBox(height: 15),
                   GestureDetector(
                     onTap: () => setState(() {
                       code = false;
@@ -248,11 +244,17 @@ class _ResetPwdState extends State<ResetPwd> {
                       children: [
                         Text(
                           "Correo incorrecto?",
-                          style: TextStyle(color: Colores.textMuted, fontSize: 16),
+                          style: TextStyle(
+                            color: Colores.textMuted,
+                            fontSize: 16,
+                          ),
                         ),
                         Text(
                           " Corregir",
-                          style: TextStyle(color: Colores.primary, fontSize: 16),
+                          style: TextStyle(
+                            color: Colores.primary,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),

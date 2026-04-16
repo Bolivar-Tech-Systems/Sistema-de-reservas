@@ -168,12 +168,18 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colores.surface,
                             foregroundColor: Colores.text,
-                            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 5,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: Icon(Icons.arrow_back_ios_new_outlined, size: 20),
+                          child: Icon(
+                            Icons.arrow_back_ios_new_outlined,
+                            size: 20,
+                          ),
                         ),
                         SizedBox(width: 15),
                         Text(
@@ -186,11 +192,16 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                         ),
                         Spacer(),
                         IconButton(
-                          onPressed: () => setState(() => _editando = !_editando),
-                          icon: Icon(_editando ? Icons.close : Icons.edit_outlined),
+                          onPressed: () =>
+                              setState(() => _editando = !_editando),
+                          icon: Icon(
+                            _editando ? Icons.close : Icons.edit_outlined,
+                          ),
                           style: IconButton.styleFrom(
                             backgroundColor: Colores.surface,
-                            foregroundColor: _editando ? Colores.danger : Colores.icon,
+                            foregroundColor: _editando
+                                ? Colores.danger
+                                : Colores.icon,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -222,7 +233,11 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                                       color: Colores.primaryDark,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Icon(Icons.camera_alt_outlined, size: 14, color: Colores.text),
+                                    child: Icon(
+                                      Icons.camera_alt_outlined,
+                                      size: 14,
+                                      color: Colores.text,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -238,7 +253,10 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                           ),
                           Text(
                             usuario?['email'] ?? '',
-                            style: TextStyle(fontSize: 13, color: Colores.textSecondary),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colores.textSecondary,
+                            ),
                           ),
                         ],
                       ),
@@ -249,11 +267,29 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                     // Stats
                     Row(
                       children: [
-                        Expanded(child: _statCard('${usuario?['total_reservas'] ?? 0}', 'Reservas', Icons.date_range_outlined)),
+                        Expanded(
+                          child: _statCard(
+                            '${usuario?['total_reservas'] ?? 0}',
+                            'Reservas',
+                            Icons.date_range_outlined,
+                          ),
+                        ),
                         SizedBox(width: 10),
-                        Expanded(child: _statCard('${usuario?['activas'] ?? 0}', 'Activas', Icons.check_circle_outline)),
+                        Expanded(
+                          child: _statCard(
+                            '${usuario?['activas'] ?? 0}',
+                            'Activas',
+                            Icons.check_circle_outline,
+                          ),
+                        ),
                         SizedBox(width: 10),
-                        Expanded(child: _statCard('${usuario?['favoritos'] ?? 0}', 'Favoritos', Icons.star_outline)),
+                        Expanded(
+                          child: _statCard(
+                            '${usuario?['favoritos'] ?? 0}',
+                            'Favoritos',
+                            Icons.star_outline,
+                          ),
+                        ),
                       ],
                     ),
 
@@ -271,7 +307,10 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                           ),
                           labelText: "Nombre",
                           labelStyle: TextStyle(color: Colores.textSecondary),
-                          prefixIcon: Icon(Icons.person_outline, color: Colores.primary),
+                          prefixIcon: Icon(
+                            Icons.person_outline,
+                            color: Colores.primary,
+                          ),
                           fillColor: Colores.surface,
                           filled: true,
                         ),
@@ -287,7 +326,10 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                           ),
                           labelText: "Email",
                           labelStyle: TextStyle(color: Colores.textSecondary),
-                          prefixIcon: Icon(Icons.email_outlined, color: Colores.primary),
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                            color: Colores.primary,
+                          ),
                           fillColor: Colores.surface,
                           filled: true,
                         ),
@@ -298,7 +340,10 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                           padding: EdgeInsets.only(bottom: 8),
                           child: Text(
                             _errorMSG!,
-                            style: TextStyle(color: Colores.danger, fontSize: 13),
+                            style: TextStyle(
+                              color: Colores.danger,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ElevatedButton(
@@ -306,9 +351,14 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colores.primaryDark,
                           minimumSize: Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        child: Text("Guardar cambios", style: TextStyle(color: Colores.text)),
+                        child: Text(
+                          "Guardar cambios",
+                          style: TextStyle(color: Colores.text),
+                        ),
                       ),
                       SizedBox(height: 14),
                     ] else ...[
@@ -322,11 +372,23 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                         ),
                         child: Column(
                           children: [
-                            _infoRow(Icons.person_outline, "Nombre", usuario?['nombre'] ?? 'No disponible'),
+                            _infoRow(
+                              Icons.person_outline,
+                              "Nombre",
+                              usuario?['nombre'] ?? 'No disponible',
+                            ),
                             Divider(color: Colores.border, height: 20),
-                            _infoRow(Icons.email_outlined, "Email", usuario?['email'] ?? 'No disponible'),
+                            _infoRow(
+                              Icons.email_outlined,
+                              "Email",
+                              usuario?['email'] ?? 'No disponible',
+                            ),
                             Divider(color: Colores.border, height: 20),
-                            _infoRow(Icons.calendar_month_outlined, "Miembro desde", usuario?['fecha_registro'] ?? 'No disponible'),
+                            _infoRow(
+                              Icons.calendar_month_outlined,
+                              "Miembro desde",
+                              usuario?['fecha_registro'] ?? 'No disponible',
+                            ),
                           ],
                         ),
                       ),
@@ -348,9 +410,16 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.lock_outline, color: Colores.textSecondary, size: 18),
+                          Icon(
+                            Icons.lock_outline,
+                            color: Colores.textSecondary,
+                            size: 18,
+                          ),
                           SizedBox(width: 8),
-                          Text("Cambiar contraseña", style: TextStyle(color: Colores.textSecondary)),
+                          Text(
+                            "Cambiar contraseña",
+                            style: TextStyle(color: Colores.textSecondary),
+                          ),
                         ],
                       ),
                     ),
@@ -371,7 +440,10 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: TextStyle(color: Colores.textSecondary, fontSize: 11)),
+            Text(
+              label,
+              style: TextStyle(color: Colores.textSecondary, fontSize: 11),
+            ),
             Text(valor, style: TextStyle(color: Colores.text, fontSize: 14)),
           ],
         ),
