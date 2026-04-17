@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 class UserCreate(BaseModel):
     name: str
@@ -30,3 +31,18 @@ class SuccessMessage(BaseModel):
     success: bool
     status_code: int
     message: str
+
+class UserProfile(BaseModel):
+    id: int
+    nombre: str
+    email: str
+    total_reservas: int
+    activas: int
+    favoritos: int
+
+    class Config:
+        from_attributes = True
+
+class UserUpdate(BaseModel):
+    nombre: Optional[str] = None
+    email: Optional[EmailStr] = None
