@@ -23,7 +23,8 @@ class ForgetPasswordRequest(BaseModel):
     email: str
 
 class ResetForgottenPassword(BaseModel):
-    secret_token: str
+    email: str
+    code: str
     new_password: str
     confirm_password: str
 
