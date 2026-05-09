@@ -1,16 +1,16 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session 
 from fastapi import HTTPException, status, Response
 from passlib.context import CryptContext
 from app.models.user import User
 from app.models.reservas import ReservaUsuario
 from app.schemas.user import UserCreate, UserLogin, UserResponse, UserProfile, UserUpdate
 from app.core.security import create_access_token, verify_token
-from app.core.config import APP_HOST, FORGET_PASSWORD_URL, MAIL_FROM_NAME, FORGET_PASSWORD_LINK_EXPIRE_MINUTES, FORGET_PWD_SECRET_KEY, ALGORITHM
+from app.core.config import  FORGET_PWD_SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
-from app.core.config import FORGET_PWD_SECRET_KEY, ALGORITHM, APP_HOST
-from app.core.security import create_reset_password_token
+from app.core.config import FORGET_PWD_SECRET_KEY, ALGORITHM
 from fastapi.responses import JSONResponse
-
+import random, string
+from datetime import datetime, timedelta
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_user(email:str, db:Session):
@@ -99,48 +99,67 @@ def decode_reset_password_token(token: str):
         return email
     except JWTError:
         return None
-    
+
+def generate_reset_code():
+    return ''.join(random.choices(string.digits, k=6))
+
 def generate_forget_password_email(email: str, db: Session):
     user = get_user(email=email, db=db)
 
     if user is None:
-               raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                   detail="Correo invalido")
-    secret_token = create_reset_password_token(email=user.email)
-
-    forget_url_link = f"{APP_HOST}{FORGET_PASSWORD_URL}/{secret_token}"
-
-    email_body = {
-               "company_name": MAIL_FROM_NAME,
-               "link_expire_min": FORGET_PASSWORD_LINK_EXPIRE_MINUTES,
-               "reset_link": forget_url_link
-          }
-    return email_body
-
-def reset_user_password(rfp, db:Session):
-
-    info= decode_reset_password_token(token=rfp.secret_token)
-
-    if info is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Informacion para el reinicio de la contraseña no encontrada o link expirado"
+            detail="Correo inválido"
         )
-    if rfp.new_password != rfp.confirm_password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Las contraseñas no coinciden"
-        )
-    user = get_user(email=info, db=db)
+
+    code = generate_reset_code()
+    expire = datetime.utcnow() + timedelta(minutes=10)
+
+    user.reset_code = code
+    user.reset_code_expire = expire
+    db.commit()
+
+    email_body = {
+        "code": code,
+        "expire": "10 minutos"
+    }
+
+    return email_body
+
+def reset_user_password(rfp, db: Session):
+
+    user = get_user(email=rfp.email, db=db)
 
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Usuario no encontrado"
         )
+
+    if user.reset_code != rfp.code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código incorrecto"
+        )
+
+    if user.reset_code_expire < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código expirado"
+        )
+
+    if rfp.new_password != rfp.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Las contraseñas no coinciden"
+        )
+
     hashed_password = pwd_context.hash(rfp.new_password)
+
     try:
         user.password = hashed_password
+        user.reset_code = None
+        user.reset_code_expire = None
         db.add(user)
         db.commit()
     except Exception:
