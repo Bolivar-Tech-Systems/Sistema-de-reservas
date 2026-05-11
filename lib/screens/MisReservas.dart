@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 import 'DetalleReserva.dart';
 
 class PantallaMisReservas extends StatefulWidget {
@@ -37,7 +38,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
       final token = prefs.getString('access_token');
 
       final response = await http.get(
-        Uri.parse("http://127.0.0.1:8000/reservas/reservas_usuario/"),
+        Uri.parse("${AppConfig.baseUrl}/reservas/reservas_usuario/"),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -51,11 +52,13 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
             final ru = Map<String, dynamic>.from(ruRaw as Map);
             try {
               final detalle = await http.get(
-                Uri.parse("http://127.0.0.1:8000/reservas/${ru['reserva_id']}"),
+                Uri.parse("${AppConfig.baseUrl}/reservas/${ru['reserva_id']}"),
                 headers: {'Authorization': 'Bearer $token'},
               );
               if (detalle.statusCode == 200) {
-                final info = Map<String, dynamic>.from(jsonDecode(detalle.body) as Map);
+                final info = Map<String, dynamic>.from(
+                  jsonDecode(detalle.body) as Map,
+                );
                 return <String, dynamic>{
                   ...ru,
                   'name': info['name'],
@@ -78,7 +81,9 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
       } else {
         setState(() => _cargando = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error al cargar reservas: ${response.statusCode}")),
+          SnackBar(
+            content: Text("Error al cargar reservas: ${response.statusCode}"),
+          ),
         );
       }
     } catch (e) {
@@ -191,18 +196,27 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
                     child: GestureDetector(
                       onTap: () => setState(() => _filtro = f['value']!),
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: seleccionado ? Colores.primaryDark : Colores.surface,
+                          color: seleccionado
+                              ? Colores.primaryDark
+                              : Colores.surface,
                           borderRadius: BorderRadius.circular(30),
                           border: Border.all(
-                            color: seleccionado ? Colores.primary : Colores.border,
+                            color: seleccionado
+                                ? Colores.primary
+                                : Colores.border,
                           ),
                         ),
                         child: Text(
                           f['label']!,
                           style: TextStyle(
-                            color: seleccionado ? Colores.text : Colores.textSecondary,
+                            color: seleccionado
+                                ? Colores.text
+                                : Colores.textSecondary,
                             fontSize: 13,
                           ),
                         ),
@@ -218,112 +232,123 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
             // Lista
             Expanded(
               child: _cargando
-                  ? Center(child: CircularProgressIndicator(color: Colores.primary))
+                  ? Center(
+                      child: CircularProgressIndicator(color: Colores.primary),
+                    )
                   : reservasFiltradas.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.inbox_outlined, color: Colores.textMuted, size: 50),
-                              SizedBox(height: 12),
-                              Text(
-                                "No hay reservas",
-                                style: TextStyle(color: Colores.textSecondary, fontSize: 16),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inbox_outlined,
+                            color: Colores.textMuted,
+                            size: 50,
                           ),
-                        )
-                      : RefreshIndicator(
-                          color: Colores.primary,
-                          onRefresh: fetchMisReservas,
-                          child: ListView.separated(
-                            itemCount: reservasFiltradas.length,
-                            separatorBuilder: (_, __) => SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final reserva = reservasFiltradas[index];
-                              final estado = (reserva['estado'] ?? 'pendiente')
-                                  .toString()
-                                  .toLowerCase();
+                          SizedBox(height: 12),
+                          Text(
+                            "No hay reservas",
+                            style: TextStyle(
+                              color: Colores.textSecondary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      color: Colores.primary,
+                      onRefresh: fetchMisReservas,
+                      child: ListView.separated(
+                        itemCount: reservasFiltradas.length,
+                        separatorBuilder: (_, __) => SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final reserva = reservasFiltradas[index];
+                          final estado = (reserva['estado'] ?? 'pendiente')
+                              .toString()
+                              .toLowerCase();
 
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PantallaDetalleReserva(
-                                        reserva: reserva,
-                                      ),
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      PantallaDetalleReserva(reserva: reserva),
+                                ),
+                              ).then((value) {
+                                if (value == true) fetchMisReservas();
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(15),
+                              decoration: BoxDecoration(
+                                color: Colores.surface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colores.border),
+                              ),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.asset(
+                                      "assets/images/nitro.jpg",
+                                      height: 60,
+                                      width: 60,
+                                      fit: BoxFit.cover,
                                     ),
-                                  ).then((value) {
-                                    if (value == true) fetchMisReservas();
-                                  });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.all(15),
-                                  decoration: BoxDecoration(
-                                    color: Colores.surface,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: Colores.border),
                                   ),
-                                  child: Row(
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          reserva['name'] ??
+                                              'Reserva #${reserva['reserva_id']}',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colores.text,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          _formatearFechas(reserva),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colores.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Row(
                                     children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.asset(
-                                          "assets/images/nitro.jpg",
-                                          height: 60,
-                                          width: 60,
-                                          fit: BoxFit.cover,
-                                        ),
+                                      Icon(
+                                        _iconoEstado(estado),
+                                        color: _colorEstado(estado),
+                                        size: 16,
                                       ),
-                                      SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              reserva['name'] ?? 'Reserva #${reserva['reserva_id']}',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colores.text,
-                                              ),
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              _formatearFechas(reserva),
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colores.textSecondary,
-                                              ),
-                                            ),
-                                          ],
+                                      SizedBox(width: 4),
+                                      Text(
+                                        estado[0].toUpperCase() +
+                                            estado.substring(1),
+                                        style: TextStyle(
+                                          color: _colorEstado(estado),
+                                          fontSize: 12,
                                         ),
-                                      ),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            _iconoEstado(estado),
-                                            color: _colorEstado(estado),
-                                            size: 16,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            estado[0].toUpperCase() + estado.substring(1),
-                                            style: TextStyle(
-                                              color: _colorEstado(estado),
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
                                       ),
                                     ],
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),

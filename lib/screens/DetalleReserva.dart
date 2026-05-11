@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
+import '../util/app_config.dart';
 
 class PantallaDetalleReserva extends StatefulWidget {
   final Map<String, dynamic> reserva;
@@ -23,7 +24,9 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
       final token = prefs.getString('access_token');
 
       final response = await http.delete(
-        Uri.parse("http://127.0.0.1:8000/reservas/reserva_usuario/${widget.reserva['id']}"),
+        Uri.parse(
+          "${AppConfig.baseUrl}/reservas/reserva_usuario/${widget.reserva['id']}",
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -55,7 +58,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
         backgroundColor: Colores.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(
-          "¿Cancelar reserva?", 
+          "¿Cancelar reserva?",
           style: TextStyle(color: Colores.text),
         ),
         content: Text(
@@ -65,7 +68,10 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Volver", style: TextStyle(color: Colores.textSecondary)),
+            child: Text(
+              "Volver",
+              style: TextStyle(color: Colores.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -74,7 +80,9 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colores.danger,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: Text("Sí, cancelar", style: TextStyle(color: Colores.text)),
           ),
@@ -94,7 +102,10 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(color: Colores.textSecondary, fontSize: 12)),
+              Text(
+                label,
+                style: TextStyle(color: Colores.textSecondary, fontSize: 12),
+              ),
               Text(valor, style: TextStyle(color: Colores.text, fontSize: 14)),
             ],
           ),
@@ -170,7 +181,7 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
                 ],
               ),
 
-               SizedBox(height: 20),
+              SizedBox(height: 20),
 
               // Imagen del recurso
               ClipRRect(
@@ -192,15 +203,15 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
                   color: estado == 'activa'
                       ? Colores.primaryDark
                       : estado == 'cancelada'
-                          ? Colores.danger.withOpacity(0.2)
-                          : Colors.orange.withOpacity(0.2),
+                      ? Colores.danger.withOpacity(0.2)
+                      : Colors.orange.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(30),
                   border: Border.all(
                     color: estado == 'activa'
                         ? Colores.primary
                         : estado == 'cancelada'
-                            ? Colores.danger
-                            : Colors.orange,
+                        ? Colores.danger
+                        : Colors.orange,
                   ),
                 ),
                 child: Text(
@@ -210,8 +221,8 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
                     color: estado == 'activa'
                         ? Colores.text
                         : estado == 'cancelada'
-                            ? Colores.danger
-                            : Colors.orange,
+                        ? Colores.danger
+                        : Colors.orange,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -286,9 +297,16 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.edit_outlined, color: Colores.primary, size: 18),
+                        Icon(
+                          Icons.edit_outlined,
+                          color: Colores.primary,
+                          size: 18,
+                        ),
                         SizedBox(width: 8),
-                        Text("Modificar reserva", style: TextStyle(color: Colores.primary)),
+                        Text(
+                          "Modificar reserva",
+                          style: TextStyle(color: Colores.primary),
+                        ),
                       ],
                     ),
                   ),
@@ -314,9 +332,16 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.cancel_outlined, color: Colores.danger, size: 18),
+                              Icon(
+                                Icons.cancel_outlined,
+                                color: Colores.danger,
+                                size: 18,
+                              ),
                               SizedBox(width: 8),
-                              Text("Cancelar reserva", style: TextStyle(color: Colores.danger)),
+                              Text(
+                                "Cancelar reserva",
+                                style: TextStyle(color: Colores.danger),
+                              ),
                             ],
                           ),
                   ),

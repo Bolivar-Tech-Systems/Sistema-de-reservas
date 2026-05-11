@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from app.core.database import Base
 
 class User(Base):
@@ -8,3 +8,5 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     password = Column(String)
     role_id = Column(Integer, ForeignKey("roles.id"))
+    reset_code         = Column(String(10))
+    reset_code_expire  = Column(DateTime)
