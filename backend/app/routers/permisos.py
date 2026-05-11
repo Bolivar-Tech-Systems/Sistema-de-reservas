@@ -28,11 +28,11 @@ def delete_permiso_endpoint(permiso_id: int, db: Session = Depends(get_db)):
 def list_permisos_by_user_endpoint(user_id: int, db: Session = Depends(get_db)):
     return list_all_permisos_by_user(db, user_id)
 
-@router.post("/role/{role_id}", response_model=list[PermisoRoleResponse])
-def assing_permiso_to_role_endpoint(Permiso_role: PermisoRoleAssing, db: Session = Depends(get_db)):
-    return assing_permiso_to_role(db, Permiso_role.role_id, Permiso_role.permiso_id)
+@router.post("/role/{role_id}", response_model=PermisoRoleResponse)
+def assing_permiso_to_role_endpoint(role_id: int, Permiso_role: PermisoRoleAssing, db: Session = Depends(get_db)):
+    return assing_permiso_to_role(db, role_id, Permiso_role.permiso_id)
 
-@router.get("/role/list/{role_id}", response_model=list[PermisoRoleResponse])
+@router.get("/role/list/{role_id}", response_model=list[PermisoResponse])
 def list_permisos_by_role_get_endpoint(role_id: int, db: Session = Depends(get_db)):
     return list_permisos_by_role(db, role_id)
 

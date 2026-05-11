@@ -7,12 +7,10 @@ from app.schemas.user import UserCreate, UserLogin, UserResponse, ForgetPassword
 from app.schemas.token import Token
 from app.services.auth import create_user, login_user, logout_user, get_user_profile, update_user_profile
 from app.core.security import verify_token
-from fastapi_mail import FastMail, MessageSchema, MessageType
 from jose import jwt
 from starlette.background import BackgroundTasks
 from app.core.config import FORGET_PWD_SECRET_KEY, ALGORITHM
 from datetime import datetime, timedelta
-from app.core.mail import mail_conf
 from app.services.auth import generate_forget_password_email, reset_user_password
 
 
@@ -42,7 +40,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/logout")
 def logout(current_user: User = Depends(get_current_user)):
-        return logout_user
+        return logout_user()
 
 @router.get("/me/", response_model=UserProfile)
 def get_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
@@ -59,6 +57,11 @@ async def forget_password(
      db: Session = Depends(get_db)
 ):
      try:
+          from fastapi_mail import FastMail, MessageSchema, MessageType
+          from app.core.mail import mail_conf
+
+          if mail_conf is None:
+               raise HTTPException(status_code=500, detail="Servicio de correo no configurado")
 
           email_body = generate_forget_password_email(
                email=fpr.email,

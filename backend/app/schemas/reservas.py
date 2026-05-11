@@ -1,54 +1,115 @@
-from pydantic import BaseModel
-from datetime import date, time
+from datetime import date, datetime, time
 
-class ReservaCreate(BaseModel):
-    name: str
-    description: str
+from pydantic import BaseModel, ConfigDict, Field
 
-class ReservaResponse(BaseModel):
+
+class RecursoBase(BaseModel):
+    nombre: str = Field(alias="name")
+    descripcion: str | None = Field(default=None, alias="description")
+    precio_por_hora: float | None = None
+    foto_principal: str | None = None
+    categoria_id: int | None = None
+    capacidad: int | None = None
+    es_visible: bool = True
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    @property
+    def name(self) -> str:
+        return self.nombre
+
+    @property
+    def description(self) -> str | None:
+        return self.descripcion
+
+
+class RecursoCreate(RecursoBase):
+    pass
+
+
+class RecursoResponse(RecursoBase):
     id: int
-    name: str
-    description: str
     owner_id: int
+    calificacion_promedio: float | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
-class DisponibilidadCreate(BaseModel):
-    fecha_inicio: date    
+
+class DisponibilidadBase(BaseModel):
+    recurso_id: int = Field(alias="reserva_id")
+    fecha_inicio: date
     fecha_fin: date
-    hora_inicio: time  
+    hora_inicio: time
     hora_fin: time
-    reserva_id: int
+    cantidad_disponible: int = 1
+    precio_especial: float | None = None
+    es_disponible: bool = True
 
-class DisponibilidadResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    @property
+    def reserva_id(self) -> int:
+        return self.recurso_id
+
+
+class DisponibilidadCreate(DisponibilidadBase):
+    pass
+
+
+class DisponibilidadResponse(DisponibilidadBase):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReservaUsuarioBase(BaseModel):
+    recurso_id: int = Field(alias="reserva_id")
     fecha_inicio: date
     fecha_fin: date
     hora_inicio: time
     hora_fin: time
-    reserva_id: int
+    cantidad: int = 1
+    precio_total: float | None = None
+    estado: str = "Pendiente"
+    notas: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(populate_by_name=True)
 
-class ReservaUsuarioCreate(BaseModel):
-    reserva_id: int
-    fecha_inicio: date
-    fecha_fin: date
-    hora_inicio: time
-    hora_fin: time
-    estado : str 
+    @property
+    def reserva_id(self) -> int:
+        return self.recurso_id
 
-class ReservaUsuarioResponse(BaseModel):
+
+class ReservaUsuarioCreate(ReservaUsuarioBase):
+    pass
+
+
+class ReservaUsuarioResponse(ReservaUsuarioBase):
     id: int
-    reserva_id: int
-    user_id: int
-    fecha_inicio: date
-    fecha_fin: date
-    hora_inicio: time
-    hora_fin: time
-    estado: str
+    usuario_id: int
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+    @property
+    def user_id(self) -> int:
+        return self.usuario_id
+
+
+class ResenaCreate(BaseModel):
+    recurso_id: int
+    usuario_id: int
+    calificacion: int
+    comentario: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ResenaResponse(ResenaCreate):
+    id: int
+    created_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)

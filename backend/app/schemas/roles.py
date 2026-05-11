@@ -1,16 +1,14 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
 
 class RoleCreate(BaseModel):
     name_rol: str
-    description: str = None
-    user_id: int
-    
-    
+    description: str | None = None
+
+
 class RoleResponse(BaseModel):
     id: int
     name_rol: str
-    description: str = None
-    user_id: int
-     
-    class Config:
-        form_attributes = True
+    description: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
