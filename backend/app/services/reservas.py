@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 from app.models.reservas import Recurso, Disponibilidad, ReservaUsuario
 from app.schemas.reservas import RecursoCreate, DisponibilidadCreate, ReservaUsuarioCreate
 
-def create_recurso(db: Session, recurso: RecursoCreate, owner_id: int):
+def create_recurso_service(db: Session, recurso: RecursoCreate, owner_id: int):
     new_recurso = db.query(Recurso).filter(Recurso.nombre == recurso.nombre).first()
     if new_recurso:
         raise HTTPException(status_code=400, detail="Reserva already exists")
@@ -27,7 +27,7 @@ def create_recurso(db: Session, recurso: RecursoCreate, owner_id: int):
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         
-def update_recurso(db: Session, recurso_id: int, recurso: RecursoCreate, owner_id: int):
+def update_recurso_service(db: Session, recurso_id: int, recurso: RecursoCreate, owner_id: int):
     db_recurso = db.query(Recurso).filter(Recurso.id == recurso_id, Recurso.owner_id == owner_id).first()
     if not db_recurso:
         raise HTTPException(status_code=404, detail="Reserva not found")
@@ -47,7 +47,7 @@ def update_recurso(db: Session, recurso_id: int, recurso: RecursoCreate, owner_i
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         
-def delete_recurso(db: Session, recurso_id: int, owner_id: int):
+def delete_recurso_service(db: Session, recurso_id: int, owner_id: int):
     db_recurso = db.query(Recurso).filter(Recurso.id == recurso_id, Recurso.owner_id == owner_id).first()
     if not db_recurso:
         raise HTTPException(status_code=404, detail="Reserva not found")
@@ -60,7 +60,7 @@ def delete_recurso(db: Session, recurso_id: int, owner_id: int):
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         
-def show_recurso(db: Session, recurso_id: int):
+def show_recurso_service(db: Session, recurso_id: int):
     db_recurso = db.query(Recurso).filter(Recurso.id == recurso_id).first()
     if not db_recurso:
         raise HTTPException(status_code=404, detail="Reserva not found")
@@ -142,7 +142,7 @@ def show_disponibilidad(db: Session, disponibilidad_id: int):
     else:
         return db_disponibilidad
     
-def list_disponibilidades_by_recurso(db: Session, recurso_id: int):
+def list_disponibilidades_by_recurso_service(db: Session, recurso_id: int):
     return db.query(Disponibilidad).filter(
         Disponibilidad.recurso_id == recurso_id
     ).all()

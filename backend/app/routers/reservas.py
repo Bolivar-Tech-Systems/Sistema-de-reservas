@@ -2,27 +2,27 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.reservas import RecursoCreate, DisponibilidadCreate, ReservaUsuarioCreate, RecursoResponse, DisponibilidadResponse, ReservaUsuarioResponse
-from app.services.reservas import create_recurso, list_all_recursos, list_all_reservas_usuario, list_disponibilidades_by_recurso, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
+from app.services.reservas import create_recurso_service, update_recurso_service, show_recurso_service, delete_recurso_service, list_all_recursos, list_all_reservas_usuario, list_disponibilidades_by_recurso_service, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
 from app.routers.auth import get_current_user
 from app.models.user import User
 
 router = APIRouter(prefix="/reservas", tags=["reservas"])
 
 @router.post("/", response_model=RecursoResponse)
-def create_recurso(recurso: RecursoCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return create_recurso(db, recurso, current_user.id)
+def create_recurso(recurso: RecursoCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return create_recurso_service(db, recurso, current_user.id)
 
 @router.put("/{recurso_id}", response_model=RecursoResponse)
-def update_recurso(recurso_id: int, recurso: RecursoCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return update_recurso(db, recurso_id, recurso, current_user.id)
+def update_recurso(recurso_id: int, recurso: RecursoCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return update_recurso_service(db, recurso_id, recurso, current_user.id)
 
 @router.get("/{recurso_id}", response_model=RecursoResponse)
-def show_recurso(recurso_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return show_recurso(db, recurso_id)
+def show_recurso(recurso_id: int, db: Session = Depends(get_db)):
+    return show_recurso_service(db, recurso_id)
 
 @router.delete("/{recurso_id}")
-def delete_recurso(recurso_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return delete_recurso(db, recurso_id, current_user.id)
+def delete_recurso(recurso_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return delete_recurso_service(db, recurso_id, current_user.id)
 
 @router.post("/disponibilidad/", response_model=DisponibilidadResponse)
 def create_disponibilidad_endpoint(disponibilidad: DisponibilidadCreate, db: Session = Depends(get_db)):
@@ -38,7 +38,7 @@ def show_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(g
 
 @router.get("/disponibilidad/recurso/{recurso_id}", response_model=list[DisponibilidadResponse])
 def list_disponibilidades_by_recurso(recurso_id: int, db: Session = Depends(get_db)):
-    return list_disponibilidades_by_recurso(db, recurso_id)
+    return list_disponibilidades_by_recurso_service(db, recurso_id)
 
 @router.delete("/disponibilidad/{disponibilidad_id}")
 def delete_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db)):
