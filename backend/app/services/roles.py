@@ -2,7 +2,7 @@ from app.models.user import Role, User
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-def create_role(db:Session, name_rol:str, description: str = None):
+def create_role(db:Session, name_rol:str, description: str = ""):
     role = db.query(Role).filter(Role.name_rol == name_rol).first()
     if role:
         raise HTTPException(
@@ -19,7 +19,7 @@ def create_role(db:Session, name_rol:str, description: str = None):
             db.rollback()
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-def update_role(db:Session, role_id: int, name_rol:str, description: str = None):
+def update_role(db:Session, role_id: int, name_rol:str, description: str = ""):
     role = db.query(Role).filter(Role.id == role_id).first()
     if not role:
         raise HTTPException(
@@ -52,7 +52,7 @@ def delete_role(db:Session, role_id: int, user_id: int):
 
 def list_role_by_user(db:Session, user_id: int):
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.role_id:
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No se encontraron roles para este usuario"

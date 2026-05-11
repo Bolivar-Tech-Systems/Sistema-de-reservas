@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Date, Time, ForeignKey, Text, Float, DateTime, Boolean
 from sqlalchemy.orm import relationship
-from app.models.asociaciones import recurso_amenidades
+from app.models.asociaciones import recurso_amenidades, user_favorites
 from app.core.database import Base
 
 class Recurso(Base):
@@ -26,6 +26,7 @@ class Recurso(Base):
     amenidades = relationship("Amenidad", secondary=recurso_amenidades, back_populates="recursos")
     fotos = relationship("ImageRecurso", back_populates="recurso", cascade="all, delete-orphan")
     resenas = relationship("Resena", back_populates="recurso", cascade="all, delete-orphan")
+    favoritos = relationship("User", secondary=user_favorites, back_populates="favoritos")
 
 class Disponibilidad(Base):
     __tablename__ = "disponibilidad"
