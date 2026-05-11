@@ -2,8 +2,7 @@ from app.models.permisos import Permiso, PermisoRole
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from app.models.roles import Role
-from app.models.user import User
+from app.models.user import Role, User
 
 def create_permiso(db: Session, name_permiso: str, description: str = None):
     permiso = db.query(Permiso).filter(Permiso.name_permiso == name_permiso).first()

@@ -1,9 +1,8 @@
-from app.models.roles import Role
-from app.core.database import get_db
+from app.models.user import Role, User
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-def create_role(db:Session, user_id: int, name_rol:str, description: str = None):
+def create_role(db:Session, name_rol:str, description: str = None):
     role = db.query(Role).filter(Role.name_rol == name_rol).first()
     if role:
         raise HTTPException(
@@ -11,7 +10,7 @@ def create_role(db:Session, user_id: int, name_rol:str, description: str = None)
             detail="El rol ya existe"
         )
     try:
-        new_role = Role(name_rol=name_rol, user_id=user_id, description=description)
+        new_role = Role(name_rol=name_rol, description=description)
         db.add(new_role)
         db.commit()
         db.refresh(new_role)
@@ -32,12 +31,13 @@ def update_role(db:Session, role_id: int, name_rol:str, description: str = None)
         role.description = description
         db.commit()
         db.refresh(role)
+        return role
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
         
 def delete_role(db:Session, role_id: int, user_id: int):
-    role = db.query(Role).filter(Role.id == role_id, Role.user_id == user_id).first()
+    role = db.query(Role).filter(Role.id == role_id).first()
     if not role:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -51,13 +51,13 @@ def delete_role(db:Session, role_id: int, user_id: int):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 def list_role_by_user(db:Session, user_id: int):
-    roles= db.query(Role).filter(Role.user_id == user_id).all()
-    if not roles:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.role_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No se encontraron roles para este usuario"
         )
-    return roles
+    return db.query(Role).filter(Role.id == user.role_id).all()
 
 def list_roles(db:Session):
     roles = db.query(Role).all()

@@ -29,7 +29,14 @@ def create_user(db: Session, user: UserCreate):
     if user.password == user.password_confirmation:
         try:
             hashed_password = get_password_hash(user.password)
-            new_user = User(name=user.name, email=user.email, password=hashed_password,)
+            new_user = User(
+                nombre=user.nombre,
+                email=user.email,
+                password=hashed_password,
+                telefono=user.telefono,
+                foto_perfil=user.foto_perfil,
+                role_id=user.role_id,
+            )
             db.add(new_user)
             db.commit()
             db.refresh(new_user) 
@@ -47,7 +54,13 @@ def login_user(db: Session, user: UserLogin):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contraseña incorrecta")
     
     access_token = create_access_token(data={"sub": db_user.email})
-    return {"access_token": access_token, "token_type": "bearer", "id": db_user.id,"name": db_user.name, "email": db_user.email}  
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "id": db_user.id,
+        "name": db_user.nombre,
+        "email": db_user.email,
+    }
 
 def logout_user(response= Response):
     response.delete_cookie(key="access_token")
@@ -56,13 +69,13 @@ def logout_user(response= Response):
 def get_user_profile(current_user: User, db: Session) -> UserProfile:
     total_reservas = (
         db.query(ReservaUsuario)
-        .filter(ReservaUsuario.user_id == current_user.id)
+        .filter(ReservaUsuario.usuario_id == current_user.id)
         .count()
     )
     activas = (
         db.query(ReservaUsuario)
         .filter(
-            ReservaUsuario.user_id == current_user.id,
+            ReservaUsuario.usuario_id == current_user.id,
             ReservaUsuario.estado == "pendiente",
         ).count()
     )
@@ -70,7 +83,7 @@ def get_user_profile(current_user: User, db: Session) -> UserProfile:
 
     return UserProfile(
         id=current_user.id,
-        nombre=current_user.name,
+        nombre=current_user.nombre,
         email=current_user.email,
         total_reservas=total_reservas,
         activas=activas,
@@ -85,7 +98,7 @@ def update_user_profile(datos: UserUpdate, current_user: User, db: Session) -> U
         current_user.email = datos.email
 
     if datos.nombre:
-        current_user.name = datos.nombre
+        current_user.nombre = datos.nombre
 
     db.commit()
     db.refresh(current_user)
