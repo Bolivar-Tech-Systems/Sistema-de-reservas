@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Date, Time, ForeignKey, Text, Float, DateTime, Boolean
 from sqlalchemy.orm import relationship
-from app.models.asociaciones import recurso_amenidades
+from app.models.asociaciones import recurso_amenidades, user_favorites
 from app.core.database import Base
 
 class Recurso(Base):
