@@ -4,6 +4,7 @@ from app.core.database import Base
 
 class Categoria(Base):
     __tablename__ = "categoria"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(100), unique=True, index=True)
     descripcion = Column(String)

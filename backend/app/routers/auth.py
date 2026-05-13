@@ -1,11 +1,13 @@
+from app.services.auth import get_all_users
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from typing import List
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserResponse, ForgetPasswordRequest, ResetForgottenPassword, SuccessMessage, UserProfile, UserUpdate
+from app.schemas.user import UserCreate, UserLogin, UserResponse, ForgetPasswordRequest, ResetForgottenPassword, SuccessMessage, UserProfile, UserUpdate, UpdatePasswordRequest
 from app.schemas.token import Token
-from app.services.auth import create_user, login_user, logout_user, get_user_profile, update_user_profile
+from app.services.auth import create_user, login_user, logout_user, get_user_profile, update_user_profile, delete_user
 from app.core.security import verify_token
 from jose import jwt
 from starlette.background import BackgroundTasks
@@ -50,6 +52,11 @@ def get_profile(current_user: User = Depends(get_current_user), db: Session = De
 def update_profile(datos: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
      return update_user_profile(datos, current_user, db)
 
+@router.patch("/update-password", response_model=SuccessMessage)
+def update_password_route(data: UpdatePasswordRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.services.auth import update_user_password
+    return update_user_password(data, current_user, db)
+
 @router.post("/forget-password")
 async def forget_password(
      background_tasks: BackgroundTasks,
@@ -90,3 +97,13 @@ async def reset_password(
 ):
      return reset_user_password(rfp,db)
 
+
+@router.get("/ListUsers", response_model=List[UserResponse])
+async def user(current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
+     return get_all_users(db)
+
+@router.delete("/DeleteUser/{user_id}")
+async def delete_user_route(user_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role_id != 1:
+        raise HTTPException(status_code=403, detail="No autorizado para eliminar usuarios")
+    return delete_user(user_id, db)

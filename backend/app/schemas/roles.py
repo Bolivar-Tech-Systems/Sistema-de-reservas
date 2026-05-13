@@ -12,3 +12,6 @@ class RoleResponse(BaseModel):
     description: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserRoleUpdate(BaseModel):
+    role_id: int

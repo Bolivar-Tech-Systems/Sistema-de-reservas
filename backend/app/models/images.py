@@ -4,12 +4,14 @@ from app.core.database import Base
 
 class ImageProfile(Base):
     __tablename__ = "ImageProfile"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     url_image_profile = Column(String)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
 class ImageRecurso(Base):
     __tablename__ = "ImageRecurso"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     recurso_id = Column(Integer, ForeignKey("recurso.id", ondelete="CASCADE"))
     url = Column(String)

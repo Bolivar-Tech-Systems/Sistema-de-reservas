@@ -5,6 +5,7 @@ from app.core.database import Base
 
 class Amenidad(Base):
     __tablename__ = "amenidad"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(100), unique=True, index=True)  # WiFi, Parking, AC, etc
     icono = Column(String)

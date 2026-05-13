@@ -67,3 +67,16 @@ def list_roles(db:Session):
             detail="No se encontraron roles"
         )
     return roles
+
+def update_user_role(db: Session, user_id: int, new_role_id: int):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    try:
+        user.role_id = new_role_id
+        db.commit()
+        db.refresh(user)
+        return user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

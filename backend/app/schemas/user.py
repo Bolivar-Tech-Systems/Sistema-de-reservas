@@ -57,6 +57,8 @@ class UserProfile(BaseModel):
     id: int
     nombre: str
     email: str
+    telefono: Optional[str] = None
+    foto_perfil: Optional[str] = None
     total_reservas: int
     activas: int
     favoritos: int
@@ -73,3 +75,7 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     telefono: Optional[str] = None
     foto_perfil: Optional[str] = None
+
+class UpdatePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str

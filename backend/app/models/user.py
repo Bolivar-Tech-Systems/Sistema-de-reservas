@@ -6,8 +6,9 @@ from app.core.database import Base
 
 class User(Base):
     __tablename__ = "users"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, index=True)
+    nombre = Column("name", String, index=True)
     email = Column(String, unique=True, index=True)
     password = Column(String)
     telefono = Column(String, nullable=True)
@@ -25,6 +26,7 @@ class User(Base):
 
 class Role(Base):
     __tablename__ = "roles"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     name_rol = Column(String, unique=True, index=True, default="user")
     description = Column(String)

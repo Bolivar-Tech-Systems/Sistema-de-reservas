@@ -6,6 +6,7 @@ from app.core.database import Base
 
 class Recurso(Base):
     __tablename__ = "recurso"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(200), index=True)
     descripcion = Column(Text)
@@ -26,10 +27,11 @@ class Recurso(Base):
     amenidades = relationship("Amenidad", secondary=recurso_amenidades, back_populates="recursos")
     fotos = relationship("ImageRecurso", back_populates="recurso", cascade="all, delete-orphan")
     resenas = relationship("Resena", back_populates="recurso", cascade="all, delete-orphan")
-    favoritos = relationship("User", secondary=user_favorites, back_populates="favoritos")
+    favoritos = relationship("User", secondary="user_favorites", back_populates="favoritos")
 
 class Disponibilidad(Base):
     __tablename__ = "disponibilidad"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     recurso_id = Column(Integer, ForeignKey("recurso.id", ondelete="CASCADE"))
     fecha_inicio = Column(Date)
@@ -44,6 +46,7 @@ class Disponibilidad(Base):
     
 class ReservaUsuario(Base):
     __tablename__ = "ReservaUsuario"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     recurso_id = Column(Integer, ForeignKey("recurso.id", ondelete="CASCADE"))
     usuario_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
@@ -64,6 +67,7 @@ class ReservaUsuario(Base):
 
 class Resena(Base):
     __tablename__ = "resena"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     recurso_id = Column(Integer, ForeignKey("recurso.id", ondelete="CASCADE"))
     usuario_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))

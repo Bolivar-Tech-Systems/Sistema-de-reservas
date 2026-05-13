@@ -5,6 +5,7 @@ from app.core.database import Base
 
 class Pago(Base):
     __tablename__ = "pago"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     reserva_id = Column(Integer, ForeignKey("ReservaUsuario.id", ondelete="CASCADE"), unique=True)
     monto = Column(Float)
