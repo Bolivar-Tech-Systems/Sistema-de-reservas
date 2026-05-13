@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_de_reservas/screens/DetalleReserva.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'CreateReservas.dart';
 import 'horario_disponible.dart';
 import 'CreateReservas.dart';
@@ -20,13 +21,35 @@ class PantallaHome extends StatefulWidget {
 class _PantallaHomeState extends State<PantallaHome> {
   int _currentIndex = 0;
 
-  final List<Map<String, dynamic>> _categories = const [
-    {'label': 'Gym', 'icon': Icons.fitness_center, 'color': Color(0xFF4F8CFF)},
-    {'label': 'Pool', 'icon': Icons.pool, 'color': Color(0xFF27C1D9)},
-    {'label': 'Meeting', 'icon': Icons.groups_2, 'color': Color(0xFF6A63FF)},
-    {'label': 'Lounge', 'icon': Icons.weekend, 'color': Color(0xFF17B978)},
-    {'label': 'Events', 'icon': Icons.event, 'color': Color(0xFFFF9F1C)},
-  ];
+  List<Map<String, dynamic>> _categories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCategories();
+  }
+
+  Future<void> fetchCategories() async {
+    final response = await http.get(
+      Uri.parse('http://localhost:8000/categorias/list/'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      setState(() {
+        _categories = List<Map<String, dynamic>>.from(
+          data.map(
+            (item) => {
+              'label': item['nombre'],
+              'icon': Icons.abc_rounded,
+              'color': const Color(0xFF4F8CFF), // temporal
+            },
+          ),
+        );
+      });
+    }
+  }
 
   final List<Map<String, dynamic>> _featuredFacilities = const [
     {
@@ -80,7 +103,7 @@ class _PantallaHomeState extends State<PantallaHome> {
     BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
   ];
 
-  late final List<Widget> _pages = [
+  List<Widget> get _pages => [
     _HomeTab(
       categories: _categories,
       featuredFacilities: _featuredFacilities,

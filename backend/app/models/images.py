@@ -1,15 +1,20 @@
-from sqlalchemy import Column, Integer, String, Date, Time, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class ImageProfile(Base):
     __tablename__ = "ImageProfile"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
     url_image_profile = Column(String)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
-class ImageReserva(Base):
-    __tablename__ = "ImageReserva"
+class ImageRecurso(Base):
+    __tablename__ = "ImageRecurso"
+    __versioned__ = {}
     id = Column(Integer, primary_key=True, index=True)
-    url_image_reserva = Column(String)
-    file_name = Column(String)
-    reserva_id = Column(Integer, ForeignKey("Reservas.id"))
+    recurso_id = Column(Integer, ForeignKey("recurso.id", ondelete="CASCADE"))
+    url = Column(String)
+    orden = Column(Integer, default=0)
+    
+    recurso = relationship("Recurso", back_populates="fotos")

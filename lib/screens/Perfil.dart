@@ -163,25 +163,6 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                     // Header
                     Row(
                       children: [
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colores.surface,
-                            foregroundColor: Colores.text,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 5,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.arrow_back_ios_new_outlined,
-                            size: 20,
-                          ),
-                        ),
-                        SizedBox(width: 15),
                         Text(
                           "Mi Perfil",
                           style: TextStyle(

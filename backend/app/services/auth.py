@@ -1,9 +1,10 @@
+from app.models.user import Role
 from sqlalchemy.orm import Session 
 from fastapi import HTTPException, status, Response
 from passlib.context import CryptContext
 from app.models.user import User
 from app.models.reservas import ReservaUsuario
-from app.schemas.user import UserCreate, UserLogin, UserResponse, UserProfile, UserUpdate
+from app.schemas.user import UserCreate, UserLogin, UserResponse, UserProfile, UserUpdate,UpdatePasswordRequest
 from app.core.security import create_access_token, verify_token
 from app.core.config import  FORGET_PWD_SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
@@ -29,7 +30,14 @@ def create_user(db: Session, user: UserCreate):
     if user.password == user.password_confirmation:
         try:
             hashed_password = get_password_hash(user.password)
-            new_user = User(name=user.name, email=user.email, password=hashed_password,)
+            new_user = User(
+                nombre=user.nombre,
+                email=user.email,
+                password=hashed_password,
+                telefono=user.telefono,
+                foto_perfil=user.foto_perfil,
+                role_id=user.role_id if user.role_id is not None else 2,
+            )
             db.add(new_user)
             db.commit()
             db.refresh(new_user) 
@@ -47,7 +55,14 @@ def login_user(db: Session, user: UserLogin):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contraseña incorrecta")
     
     access_token = create_access_token(data={"sub": db_user.email})
-    return {"access_token": access_token, "token_type": "bearer", "id": db_user.id,"name": db_user.name, "email": db_user.email}  
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "id": db_user.id,
+        "name": db_user.nombre,
+        "email": db_user.email,
+        "role_id": db_user.role_id,
+    }
 
 def logout_user(response= Response):
     response.delete_cookie(key="access_token")
@@ -56,13 +71,13 @@ def logout_user(response= Response):
 def get_user_profile(current_user: User, db: Session) -> UserProfile:
     total_reservas = (
         db.query(ReservaUsuario)
-        .filter(ReservaUsuario.user_id == current_user.id)
+        .filter(ReservaUsuario.usuario_id == current_user.id)
         .count()
     )
     activas = (
         db.query(ReservaUsuario)
         .filter(
-            ReservaUsuario.user_id == current_user.id,
+            ReservaUsuario.usuario_id == current_user.id,
             ReservaUsuario.estado == "pendiente",
         ).count()
     )
@@ -70,8 +85,10 @@ def get_user_profile(current_user: User, db: Session) -> UserProfile:
 
     return UserProfile(
         id=current_user.id,
-        nombre=current_user.name,
+        nombre=current_user.nombre,
         email=current_user.email,
+        telefono=current_user.telefono,
+        foto_perfil=current_user.foto_perfil,
         total_reservas=total_reservas,
         activas=activas,
         favoritos=favoritos,
@@ -85,11 +102,32 @@ def update_user_profile(datos: UserUpdate, current_user: User, db: Session) -> U
         current_user.email = datos.email
 
     if datos.nombre:
-        current_user.name = datos.nombre
+        current_user.nombre = datos.nombre
+
+    if datos.telefono is not None:
+        current_user.telefono = datos.telefono
+        
+    if datos.foto_perfil is not None:
+        current_user.foto_perfil = datos.foto_perfil
 
     db.commit()
     db.refresh(current_user)
     return get_user_profile(current_user, db)
+
+def update_user_password(data: UserUpdate, current_user: User, db: Session):
+    
+    if not verify_password(data.current_password, current_user.password):
+        raise HTTPException(status_code=400, detail="La contraseña actual es incorrecta")
+        
+    hashed_password = get_password_hash(data.new_password)
+    current_user.password = hashed_password
+    db.commit()
+    
+    return {
+        "success": True,
+        "status_code": 200,
+        "message": "Contraseña actualizada exitosamente"
+    }
 
 def decode_reset_password_token(token: str):
     try:
@@ -174,3 +212,14 @@ def reset_user_password(rfp, db: Session):
 
 def logout_user():
     return JSONResponse({"message": "Logout exitoso"}, status_code=status.HTTP_200_OK)
+
+def get_all_users(db: Session):
+    return db.query(User).all()
+    
+def delete_user(user_id: int, db: Session):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    db.delete(user)
+    db.commit()
+    return {"message": "Usuario eliminado correctamente"}

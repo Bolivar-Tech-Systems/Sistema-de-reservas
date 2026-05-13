@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form 
-from httpx import post
+from fastapi import APIRouter, Depends, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from app.services.images import list_all_images, list_images_by_reserva, list_images_by_user, upload_image
-from app.core.database import get_db
 from app.core.database import get_db
 from app.schemas.images import ImageCreate, ImageResponse
 from app.routers.auth import get_current_user

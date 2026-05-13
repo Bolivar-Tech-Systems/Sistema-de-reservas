@@ -1,18 +1,18 @@
+from app.services.auth import get_all_users
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from typing import List
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserResponse, ForgetPasswordRequest, ResetForgottenPassword, SuccessMessage, UserProfile, UserUpdate
+from app.schemas.user import UserCreate, UserLogin, UserResponse, ForgetPasswordRequest, ResetForgottenPassword, SuccessMessage, UserProfile, UserUpdate, UpdatePasswordRequest
 from app.schemas.token import Token
-from app.services.auth import create_user, login_user, logout_user, get_user_profile, update_user_profile
+from app.services.auth import create_user, login_user, logout_user, get_user_profile, update_user_profile, delete_user
 from app.core.security import verify_token
-from fastapi_mail import FastMail, MessageSchema, MessageType
 from jose import jwt
 from starlette.background import BackgroundTasks
 from app.core.config import FORGET_PWD_SECRET_KEY, ALGORITHM
 from datetime import datetime, timedelta
-from app.core.mail import mail_conf
 from app.services.auth import generate_forget_password_email, reset_user_password
 
 
@@ -42,7 +42,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/logout")
 def logout(current_user: User = Depends(get_current_user)):
-        return logout_user
+        return logout_user()
 
 @router.get("/me/", response_model=UserProfile)
 def get_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
@@ -52,6 +52,11 @@ def get_profile(current_user: User = Depends(get_current_user), db: Session = De
 def update_profile(datos: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
      return update_user_profile(datos, current_user, db)
 
+@router.patch("/update-password", response_model=SuccessMessage)
+def update_password_route(data: UpdatePasswordRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.services.auth import update_user_password
+    return update_user_password(data, current_user, db)
+
 @router.post("/forget-password")
 async def forget_password(
      background_tasks: BackgroundTasks,
@@ -59,6 +64,12 @@ async def forget_password(
      db: Session = Depends(get_db)
 ):
      try:
+          from fastapi_mail import FastMail, MessageSchema, MessageType
+          from app.core.mail import mail_conf
+
+          if mail_conf is None:
+               raise HTTPException(status_code=500, detail="Servicio de correo no configurado")
+
           email_body = generate_forget_password_email(
                email=fpr.email,
                db=db
@@ -86,3 +97,13 @@ async def reset_password(
 ):
      return reset_user_password(rfp,db)
 
+
+@router.get("/ListUsers", response_model=List[UserResponse])
+async def user(current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
+     return get_all_users(db)
+
+@router.delete("/DeleteUser/{user_id}")
+async def delete_user_route(user_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role_id != 1:
+        raise HTTPException(status_code=403, detail="No autorizado para eliminar usuarios")
+    return delete_user(user_id, db)

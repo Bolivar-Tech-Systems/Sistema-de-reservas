@@ -1,29 +1,28 @@
 from fastapi import APIRouter, Depends
-from langcodes import get
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.schemas.reservas import ReservaCreate, DisponibilidadCreate, ReservaUsuarioCreate, ReservaResponse, DisponibilidadResponse, ReservaUsuarioResponse
-from app.services.reservas import create_reserva, list_all_reservas, list_all_reservas_usuario, list_disponibilidades_by_reserva, update_reserva, delete_reserva, show_reserva, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
+from app.schemas.reservas import RecursoCreate, DisponibilidadCreate, ReservaUsuarioCreate, RecursoResponse, DisponibilidadResponse, ReservaUsuarioResponse
+from app.services.reservas import create_recurso, list_all_recursos, list_all_reservas_usuario, list_disponibilidades_by_recurso, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
 from app.routers.auth import get_current_user
 from app.models.user import User
 
 router = APIRouter(prefix="/reservas", tags=["reservas"])
 
-@router.post("/", response_model=ReservaResponse)
-def create_reserva_endpoint(reserva: ReservaCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return create_reserva(db, reserva, current_user.id)
+@router.post("/", response_model=RecursoResponse)
+def create_recurso(recurso: RecursoCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    return create_recurso(db, recurso, current_user.id)
 
-@router.put("/{reserva_id}", response_model=ReservaResponse)
-def update_reserva_endpoint(reserva_id: int, reserva: ReservaCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return update_reserva(db, reserva_id, reserva, current_user.id)
+@router.put("/{recurso_id}", response_model=RecursoResponse)
+def update_recurso(recurso_id: int, recurso: RecursoCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    return update_recurso(db, recurso_id, recurso, current_user.id)
 
-@router.get("/{reserva_id}", response_model=ReservaResponse)
-def show_reserva_endpoint(reserva_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return show_reserva(db, reserva_id)
+@router.get("/{recurso_id}", response_model=RecursoResponse)
+def show_recurso(recurso_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    return show_recurso(db, recurso_id)
 
-@router.delete("/{reserva_id}")
-def delete_reserva_endpoint(reserva_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    return delete_reserva(db, reserva_id, current_user)
+@router.delete("/{recurso_id}")
+def delete_recurso(recurso_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    return delete_recurso(db, recurso_id, current_user.id)
 
 @router.post("/disponibilidad/", response_model=DisponibilidadResponse)
 def create_disponibilidad_endpoint(disponibilidad: DisponibilidadCreate, db: Session = Depends(get_db)):
@@ -37,9 +36,9 @@ def update_disponibilidad_endpoint(disponibilidad_id: int, disponibilidad: Dispo
 def show_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db)):
     return show_disponibilidad(db, disponibilidad_id)
 
-@router.get("/disponibilidad/{reserva_id}", response_model=list[DisponibilidadResponse])
-def list_disponibilidades_by_reserva_endpoint(reserva_id: int, db: Session = Depends(get_db)):
-    return list_disponibilidades_by_reserva(db, reserva_id)
+@router.get("/disponibilidad/recurso/{recurso_id}", response_model=list[DisponibilidadResponse])
+def list_disponibilidades_by_recurso(recurso_id: int, db: Session = Depends(get_db)):
+    return list_disponibilidades_by_recurso(db, recurso_id)
 
 @router.delete("/disponibilidad/{disponibilidad_id}")
 def delete_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db)):
@@ -50,12 +49,12 @@ def create_reserva_usuario_endpoint(reserva_usuario: ReservaUsuarioCreate, db: S
     return create_reserva_usuario(db, reserva_usuario, user_id.id)
 
 @router.put("/reserva_usuario/{reserva_usuario_id}", response_model=ReservaUsuarioResponse)
-def update_reserva_usuario_endpoint(reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate, db: Session = Depends(get_db)):
-    return update_reserva_usuario(db, reserva_usuario_id, reserva_usuario)  
+def update_reserva_usuario_endpoint(reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return update_reserva_usuario(db, reserva_usuario_id, reserva_usuario, user.id)  
 
 @router.get("/reserva_usuario/{reserva_usuario_id}", response_model=ReservaUsuarioResponse)
-def show_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db)):
-    return show_reserva_usuario(db, reserva_usuario_id)
+def show_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return show_reserva_usuario(db, reserva_usuario_id, user.id)
 
 @router.delete("/reserva_usuario/{reserva_usuario_id}")
 def delete_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
@@ -65,6 +64,6 @@ def delete_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depen
 def list_reservas_usuario_endpoint(user_id: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return list_all_reservas_usuario(db, user_id.id)
 
-@router.get("/list/", response_model=list[ReservaResponse])
-def list_reservas_endpoint(db: Session = Depends(get_db)):
-    return list_all_reservas(db)
+@router.get("/list/", response_model=list[RecursoResponse])
+def list_recursos(db: Session = Depends(get_db)):
+    return list_all_recursos(db)
