@@ -53,3 +53,5 @@ app.*.map.json
 #Migrations
 alembic/
 alembic.ini
+keystore-base64.txt
+release-keystore.jks
