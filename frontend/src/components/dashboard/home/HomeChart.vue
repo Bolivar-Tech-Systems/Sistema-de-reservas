@@ -20,7 +20,7 @@ const GetReservas = async () => {
   }
 
   try{
-    const response = await fetch('https://129.80.171.141/api/reservas/list/', {
+    const response = await fetch('https://129-80-171-141.nip.io/api/reservas/list/', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

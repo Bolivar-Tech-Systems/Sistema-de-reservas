@@ -17,7 +17,7 @@ const Register = async () => {
     return
   }
   try {
-    const response = await fetch('https://129.80.171.141/api/auth/register', {
+    const response = await fetch('https://129-80-171-141.nip.io/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name.value, email: email.value, password: password.value, password_confirmation: confirmPassword.value })

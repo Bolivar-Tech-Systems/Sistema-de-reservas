@@ -27,7 +27,7 @@ const GetRoles = async () => {
   }
 
   try {
-    const response = await fetch('https://129.80.171.141/api/roles/all', {
+    const response = await fetch('https://129-80-171-141.nip.io/api/roles/all', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ const CreateRole = async () => {
   if (!token) return
 
   try {
-    const response = await fetch('https://129.80.171.141/api/roles/create', {
+    const response = await fetch('https://129-80-171-141.nip.io/api/roles/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ const UpdateRole = async () => {
   if (!token) return
 
   try {
-    const response = await fetch(`https://129.80.171.141/api/roles/update/${editRoleData.value.id}`, {
+    const response = await fetch(`https://129-80-171-141.nip.io/api/roles/update/${editRoleData.value.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ const DeleteRole = async () => {
   if (!token) return
 
   try {
-    const response = await fetch(`https://129.80.171.141/api/roles/delete/${roleToDelete.value.id}`, {
+    const response = await fetch(`https://129-80-171-141.nip.io/api/roles/delete/${roleToDelete.value.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

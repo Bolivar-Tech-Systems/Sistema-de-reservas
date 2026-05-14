@@ -31,7 +31,7 @@ class _PantallaHomeState extends State<PantallaHome> {
 
   Future<void> fetchCategories() async {
     final response = await http.get(
-      Uri.parse('https://129.80.171.141/api/categorias/list/'),
+      Uri.parse('https://129-80-171-141.nip.io/api/categorias/list/'),
     );
 
     if (response.statusCode == 200) {

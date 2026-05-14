@@ -17,7 +17,7 @@ onMounted(async () => {
   const token = localStorage.getItem('token')
   if (token) {
     try {
-      const response = await fetch('https://129.80.171.141/api/auth/me/', {
+      const response = await fetch('https://129-80-171-141.nip.io/api/auth/me/', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (response.ok) {

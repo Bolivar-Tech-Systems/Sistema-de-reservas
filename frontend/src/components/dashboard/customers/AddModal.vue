@@ -17,7 +17,7 @@ const AddUser = async () => {
   if (!token) return
   
   try {
-    const response = await fetch('https://129.80.171.141/api/auth/register', {
+    const response = await fetch('https://129-80-171-141.nip.io/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ 

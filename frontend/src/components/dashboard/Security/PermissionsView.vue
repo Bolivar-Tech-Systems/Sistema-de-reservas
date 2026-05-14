@@ -27,7 +27,7 @@ const GetPermisos = async () => {
   }
 
   try {
-    const response = await fetch('https://129.80.171.141/api/permisos/all', {
+    const response = await fetch('https://129-80-171-141.nip.io/api/permisos/all', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ const CreatePermiso = async () => {
   if (!token) return
 
   try {
-    const response = await fetch('https://129.80.171.141/api/permisos/create', {
+    const response = await fetch('https://129-80-171-141.nip.io/api/permisos/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ const UpdatePermiso = async () => {
   if (!token) return
 
   try {
-    const response = await fetch(`https://129.80.171.141/api/permisos/update/${editPermisoData.value.id}`, {
+    const response = await fetch(`https://129-80-171-141.nip.io/api/permisos/update/${editPermisoData.value.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ const DeletePermiso = async () => {
   if (!token) return
 
   try {
-    const response = await fetch(`https://129.80.171.141/api/permisos/delete/${permisoToDelete.value.id}`, {
+    const response = await fetch(`https://129-80-171-141.nip.io/api/permisos/delete/${permisoToDelete.value.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
