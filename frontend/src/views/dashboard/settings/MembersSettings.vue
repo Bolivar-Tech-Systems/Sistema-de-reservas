@@ -12,7 +12,7 @@ const loadUsers = async () => {
   if (!token) return
   
   try {
-    const response = await fetch('http://127.0.0.1:8000/auth/ListUsers', {
+    const response = await fetch('https://129.80.171.141/api/auth/ListUsers', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     if (response.ok) {
