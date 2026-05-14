@@ -19,7 +19,7 @@ const customersList = ref([])
 const changeRole = async (userId, newRoleId) => {
   const token = localStorage.getItem('token')
   try {
-    const response = await fetch(`http://127.0.0.1:8000/roles/update-role/${userId}`, {
+    const response = await fetch(`https://129.80.171.141/api/roles/update-role/${userId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ role_id: newRoleId })
@@ -43,7 +43,7 @@ const GetUsers = async () => {
   }
   
   try {
-    const response = await fetch('http://127.0.0.1:8000/auth/ListUsers', {
+    const response = await fetch('https://129.80.171.141/api/auth/ListUsers', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
     })
