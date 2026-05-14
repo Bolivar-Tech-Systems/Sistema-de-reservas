@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 
 from app.models.user import Role, User
 
-def create_permiso(db: Session, name_permiso: str, description: str = None):
+def create_permiso(db: Session, name_permiso: str, description: str = ""):
     permiso = db.query(Permiso).filter(Permiso.name_permiso == name_permiso).first()
     if permiso:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Permiso already exists")
@@ -14,7 +14,7 @@ def create_permiso(db: Session, name_permiso: str, description: str = None):
     db.refresh(new_permiso)
     return new_permiso
 
-def update_permiso(db: Session, name_permiso: str, permiso_id: int, description: str = None,):
+def update_permiso(db: Session, name_permiso: str, permiso_id: int, description: str = ""):
     permiso = db.query(Permiso).filter(Permiso.name_permiso == name_permiso, Permiso.id == permiso_id).first()
     if not permiso:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Permiso not found")

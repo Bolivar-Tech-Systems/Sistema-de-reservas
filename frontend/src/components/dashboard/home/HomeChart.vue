@@ -20,7 +20,7 @@ const GetReservas = async () => {
   }
 
   try{
-    const response = await fetch('http://127.0.0.1:8000/reservas/list/', {
+    const response = await fetch('https://129.80.171.141/api/reservas/list/', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

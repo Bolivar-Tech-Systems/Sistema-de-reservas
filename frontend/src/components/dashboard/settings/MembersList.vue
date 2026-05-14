@@ -16,7 +16,7 @@ const revokeAdmin = async (userId) => {
 
   try {
     // Le asignamos el rol de cliente (2) para quitarle el de admin (1)
-    const response = await fetch(`http://127.0.0.1:8000/roles/update-role/${userId}`, {
+    const response = await fetch(`https://129.80.171.141/api/roles/update-role/${userId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

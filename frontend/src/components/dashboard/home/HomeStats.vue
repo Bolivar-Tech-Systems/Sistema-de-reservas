@@ -11,7 +11,7 @@ const recursosCount = ref(0)
 
 const GetUser = async () => {
   try{
-    const response = await fetch('http://127.0.0.1:8000/auth/ListUsers', {
+    const response = await fetch('https://129.80.171.141/api/auth/ListUsers', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ const listReservas = async () => {
     // Nota: El backend actualmente no tiene un endpoint list_all_reservas general para el admin,
     // usaremos reservas_usuario por ahora o un valor por defecto si es necesario.
     // Asumimos que quieres usar las reservas del usuario actual o simplemente lo dejamos en 0.
-    const response = await fetch('http://127.0.0.1:8000/reservas/reservas_usuario/', {
+    const response = await fetch('https://129.80.171.141/api/reservas/reservas_usuario/', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ const listReservas = async () => {
 const listRecursos = async () => {
   try{
     // El endpoint /reservas/list/ devuelve los recursos según tu router actual
-    const response = await fetch('http://127.0.0.1:8000/reservas/list/', {
+    const response = await fetch('https://129.80.171.141/api/reservas/list/', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, File, UploadFile, Form
 from sqlalchemy.orm import Session
+from app.models.user import User
 from app.services.images import list_all_images, list_images_by_reserva, list_images_by_user, upload_image
 from app.core.database import get_db
 from app.schemas.images import ImageCreate, ImageResponse
@@ -8,7 +9,7 @@ from app.routers.auth import get_current_user
 router = APIRouter(prefix="/images", tags=["images"])
 
 @router.post("/upload")
-async def upload_image_endpoint(db: Session = Depends(get_db), current_user: int = Depends(get_current_user), file: UploadFile = File(...), file_name: str = Form(...), reserva_id: int = Form(...)):
+async def upload_image_endpoint(db: Session = Depends(get_db), current_user: User = Depends(get_current_user), file: UploadFile = File(...), file_name: str = Form(...), reserva_id: int = Form(...)):
     image = ImageCreate(file_name=file_name)
     return await upload_image(db, image, current_user.id, file, reserva_id)
 

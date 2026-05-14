@@ -17,7 +17,7 @@ async function onDelete() {
   if (!token) return
 
   try {
-    const response = await fetch(`http://127.0.0.1:8000/auth/DeleteUser/${props.userId}`, {
+    const response = await fetch(`https://129.80.171.141/api/auth/DeleteUser/${props.userId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })

@@ -20,7 +20,7 @@ async function onSubmit() {
 
   isLoading.value = true
   try {
-    const response = await fetch('http://127.0.0.1:8000/auth/update-password', {
+    const response = await fetch('https://129.80.171.141/api/auth/update-password', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
