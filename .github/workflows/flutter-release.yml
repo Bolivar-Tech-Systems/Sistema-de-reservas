@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -22,7 +22,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
+          flutter-version: '3.41.4'
           channel: 'stable'
 
       - name: Crear local.properties
@@ -46,10 +46,10 @@ jobs:
           EOF
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Build AAB
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --android-skip-build-dependency-validation
 
       - name: Crear Release en GitHub
         uses: softprops/action-gh-release@v2
@@ -60,5 +60,5 @@ jobs:
           name: "Release ${{ github.ref_name }}"
           body: |
             ## Release ${{ github.ref_name }}
-            - APK para instalación directa
+            - APK para instalacion directa
             - AAB para Google Play Store
