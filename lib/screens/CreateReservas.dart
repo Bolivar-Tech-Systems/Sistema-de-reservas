@@ -12,7 +12,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 class PantallaCreateReserva extends StatefulWidget {
-  PantallaCreateReserva({super.key});
+  const PantallaCreateReserva({super.key});
 
   @override
   State<PantallaCreateReserva> createState() => _PantallaCreateReservaState();

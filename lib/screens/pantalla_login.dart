@@ -198,7 +198,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 controller: passwordController,
                 hint: '••••••••',
                 icon: Icons.lock_outline,
-                obscure: true,
+                obscure: true
               ),
               const SizedBox(height: 28),
 

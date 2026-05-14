@@ -4,12 +4,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'CreateReservas.dart';
 import 'horario_disponible.dart';
-import 'CreateReservas.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'MisReservas.dart';
 import 'Perfil.dart';
+import '../services/notificacion_services.dart';
+import '../screens/Notificaciones.dart';
 
 class PantallaHome extends StatefulWidget {
   const PantallaHome({super.key});
@@ -20,6 +21,7 @@ class PantallaHome extends StatefulWidget {
 
 class _PantallaHomeState extends State<PantallaHome> {
   int _currentIndex = 0;
+   String _idUsuario = '';
 
   List<Map<String, dynamic>> _categories = [];
 
@@ -27,8 +29,15 @@ class _PantallaHomeState extends State<PantallaHome> {
   void initState() {
     super.initState();
     fetchCategories();
+    _cargarUsuario();
   }
-
+ Future<void> _cargarUsuario() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _idUsuario = prefs.getString('id_usuario') ?? '';
+    });
+    print('ID USUARIO: $_idUsuario');
+  }
   Future<void> fetchCategories() async {
     final response = await http.get(
       Uri.parse('http://localhost:8000/categorias/list/'),
@@ -108,6 +117,7 @@ class _PantallaHomeState extends State<PantallaHome> {
       categories: _categories,
       featuredFacilities: _featuredFacilities,
       availableNow: _availableNow,
+      idUsuario: _idUsuario,
     ),
     PantallaHorario(),
     PantallaMisReservas(),
@@ -167,11 +177,13 @@ class _HomeTab extends StatelessWidget {
   final List<Map<String, dynamic>> categories;
   final List<Map<String, dynamic>> featuredFacilities;
   final List<Map<String, dynamic>> availableNow;
+  final String idUsuario;
 
   const _HomeTab({
     required this.categories,
     required this.featuredFacilities,
     required this.availableNow,
+    required this.idUsuario,
   });
 
   @override
@@ -229,7 +241,7 @@ class _HomeTab extends StatelessWidget {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: categories.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 16),
+                  separatorBuilder: (_, _) => const SizedBox(width: 16),
                   itemBuilder: (context, index) {
                     final item = categories[index];
                     return _CategoryItem(
@@ -255,7 +267,7 @@ class _HomeTab extends StatelessWidget {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: featuredFacilities.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
                   itemBuilder: (context, index) {
                     final item = featuredFacilities[index];
                     return _FeaturedCard(
@@ -302,7 +314,7 @@ class _HomeTab extends StatelessWidget {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: availableNow.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
                   itemBuilder: (context, index) {
                     final item = availableNow[index];
                     return _AvailableCard(
@@ -352,10 +364,24 @@ class _HomeTab extends StatelessWidget {
             letterSpacing: 0.2,
           ),
         ),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.notifications_none_rounded),
-          color: Colors.white,
+        StreamBuilder<int>(
+          stream: NotificacionService().contarNoLeidas(idUsuario),
+          builder: (context, snap) {
+            final count = snap.data ?? 0;
+            return Badge(
+              isLabelVisible: count > 0,
+              label: Text('$count'),
+              child: IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => NotificacionesScreen(idUsuario: idUsuario),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -579,7 +605,7 @@ class _FeaturedCard extends StatelessWidget {
             Image.network(
               imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) {
+              errorBuilder: (_, _, _) {
                 return Container(
                   color: const Color(0xFF2B333B),
                   child: const Center(
@@ -706,7 +732,7 @@ class _AvailableCard extends StatelessWidget {
                   Image.network(
                     imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) {
+                    errorBuilder: (_, _, _) {
                       return Container(
                         color: const Color(0xFF2A3138),
                         child: const Center(
