@@ -17,7 +17,7 @@ async function onDelete() {
   if (!token) return
 
   try {
-    const response = await fetch(`https://129.80.171.141/api/auth/DeleteUser/${props.userId}`, {
+    const response = await fetch(`https://129-80-171-141.nip.io/api/auth/DeleteUser/${props.userId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
