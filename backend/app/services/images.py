@@ -7,6 +7,7 @@ from app.schemas.images import ImageCreate
 from sqlalchemy.orm import Session
 from typing import Any
 import uuid
+from app.services.notificaciones_services import crear_notificacion
 
 
 def get_supabase_client() -> Any:
@@ -67,9 +68,18 @@ async def upload_profile_image(db: Session, user: User, file: UploadFile) -> str
         db.commit()
         db.refresh(user)
 
+        # Notificar al usuario que su foto fue actualizada
+        try:
+            crear_notificacion(
+                id_usuario=str(user.id),
+                titulo="Foto actualizada",
+                mensaje="Tu foto de perfil fue actualizada",
+                tipo="perfil",
+            )
+        except Exception:
+            pass
+
         return image_url
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

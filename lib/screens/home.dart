@@ -125,7 +125,7 @@ class _PantallaHomeState extends State<PantallaHome> {
 ),
 
   PantallaMisReservas(),
-  PantallaDetalleReserva(reserva: {}),
+  NotificacionesScreen(idUsuario: _idUsuario),
   PantallaPerfil(),
 ];
 

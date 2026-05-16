@@ -8,7 +8,7 @@ from sqlalchemy.orm import configure_mappers
 # Configurar mappers para sqlalchemy-continuum
 configure_mappers()
 
-from app.routers import auth, reservas, images, roles, permisos, categorias, audit, casbin_policies
+from app.routers import auth, reservas, images, roles, permisos, categorias, audit, casbin_policies, notificaciones
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.security import verify_token
 from app.models.user import User
@@ -20,9 +20,14 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+origins = [
+    "https://129-80-171-141.nip.io",
+    "http://129-80-171-141.nip.io",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -63,3 +68,4 @@ app.include_router(permisos.router)
 app.include_router(categorias.router)
 app.include_router(audit.router)
 app.include_router(casbin_policies.router)
+app.include_router(notificaciones.router)
