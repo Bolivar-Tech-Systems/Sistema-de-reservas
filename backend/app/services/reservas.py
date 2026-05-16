@@ -149,57 +149,67 @@ def list_disponibilidades_by_recurso_service(db: Session, recurso_id: int):
     ).all()
         
 def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, user_id: int):
-    new_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.recurso_id == reserva_usuario.recurso_id, ReservaUsuario.usuario_id == user_id).first()
-    if new_reserva_usuario:
-        raise HTTPException(status_code=400, detail="ReservaUsuario already exists")
-    else:
-        try:
-            new_reserva_usuario = ReservaUsuario(
-                recurso_id=reserva_usuario.recurso_id,
-                usuario_id=user_id,
-                fecha_inicio=reserva_usuario.fecha_inicio,
-                fecha_fin=reserva_usuario.fecha_fin,
-                hora_inicio=reserva_usuario.hora_inicio,
-                hora_fin=reserva_usuario.hora_fin,
-                cantidad=reserva_usuario.cantidad,
-                precio_total=reserva_usuario.precio_total,
-                estado=reserva_usuario.estado,
-                notas=reserva_usuario.notas,
-            )
-            # disponible = db.query(Disponibilidad).filter(
-            #     Disponibilidad.recurso_id == reserva_usuario.recurso_id,
+    # ── Verificar solapamiento de reservas ──
+    # Evita que un usuario reserve el mismo recurso si las fechas y horas 
+    # de su nueva reserva se cruzan con una reserva activa existente.
+    existing = db.query(ReservaUsuario).filter(
+        ReservaUsuario.recurso_id == reserva_usuario.recurso_id,
+        ReservaUsuario.usuario_id == user_id,
+        ReservaUsuario.estado.notin_(["Cancelada"]),
+        # Solapamiento de fechas
+        ReservaUsuario.fecha_inicio <= reserva_usuario.fecha_fin,
+        ReservaUsuario.fecha_fin >= reserva_usuario.fecha_inicio,
+        # Solapamiento de horas (estricto: < y > para permitir reservas consecutivas)
+        ReservaUsuario.hora_inicio < reserva_usuario.hora_fin,
+        ReservaUsuario.hora_fin > reserva_usuario.hora_inicio,
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya tienes una reserva en ese horario para este recurso")
 
-            #     # fechas se cruzan
-            #     Disponibilidad.fecha_inicio <= new_reserva_usuario.fecha_fin,
-            #     Disponibilidad.fecha_fin >= new_reserva_usuario.fecha_inicio,
+    # Validar que el horario solicitado esté dentro de una ventana de disponibilidad
+    disponible = db.query(Disponibilidad).filter(
+        Disponibilidad.recurso_id == reserva_usuario.recurso_id,
+        Disponibilidad.es_disponible == True,
+        Disponibilidad.fecha_inicio <= reserva_usuario.fecha_inicio,
+        Disponibilidad.fecha_fin >= reserva_usuario.fecha_fin,
+        Disponibilidad.hora_inicio <= reserva_usuario.hora_inicio,
+        Disponibilidad.hora_fin >= reserva_usuario.hora_fin,
+    ).first()
+    if not disponible:
+        raise HTTPException(status_code=400, detail="El horario seleccionado no está disponible")
 
-            #     # horas se cruzan
-            #     Disponibilidad.hora_inicio < new_reserva_usuario.hora_fin,
-            #     Disponibilidad.hora_fin > new_reserva_usuario.hora_inicio
-            # ).first()
-            # if not disponible:
-            #     raise HTTPException(status_code=400, detail="No disponible")
-            db.add(new_reserva_usuario)
-            db.commit()
-            db.refresh(new_reserva_usuario)
-
-        except Exception as e:
-            db.rollback()
-            raise HTTPException(status_code=500, detail=str(e))
-        
-        try:
-            print(f"Enviando notificación a usuario: {user_id}")
-            crear_notificacion(
-            id_usuario=str(user_id),
-            titulo="Reserva creada",
-            mensaje="Tu reserva fue registrada exitosamente",
-            tipo="confirmada",
+    try:
+        new_reserva_usuario = ReservaUsuario(
+            recurso_id=reserva_usuario.recurso_id,
+            usuario_id=user_id,
+            fecha_inicio=reserva_usuario.fecha_inicio,
+            fecha_fin=reserva_usuario.fecha_fin,
+            hora_inicio=reserva_usuario.hora_inicio,
+            hora_fin=reserva_usuario.hora_fin,
+            cantidad=reserva_usuario.cantidad,
+            precio_total=reserva_usuario.precio_total,
+            estado=reserva_usuario.estado,
+            notas=reserva_usuario.notas,
         )
-            print("Notificación enviada OK")
-        except Exception as e:
-            print(f"ERROR notificación: {e}")
+        db.add(new_reserva_usuario)
+        db.commit()
+        db.refresh(new_reserva_usuario)
 
-    return new_reserva_usuario
+        # Notificar al usuario que su reserva fue creada
+        try:
+            crear_notificacion(
+                id_usuario=str(user_id),
+                titulo="Reserva creada",
+                mensaje="Tu reserva fue registrada exitosamente",
+                tipo="confirmada",
+            )
+        except Exception:
+            pass  # Si falla Firestore, no afectar la reserva
+
+        return new_reserva_usuario
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
         
 def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate,user_id: int):
     db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.usuario_id == user_id).first()
@@ -219,18 +229,22 @@ def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario
             db.commit()
             db.refresh(db_reserva_usuario)
 
+            # Notificar al usuario sobre el cambio de estado
             mensajes = {
                 "confirmada": "Tu reserva fue confirmada",
                 "cancelada": "Tu reserva fue cancelada",
                 "pendiente": "Tu reserva está en revisión",
             }
             estado = reserva_usuario.estado
-            crear_notificacion(
-                id_usuario=str(user_id),
-                titulo=f"Reserva {estado}",
-                mensaje=mensajes.get(estado, f"El estado de tu reserva cambió a {estado}"),
-                tipo=estado,
-            )
+            try:
+                crear_notificacion(
+                    id_usuario=str(user_id),
+                    titulo=f"Reserva {estado}",
+                    mensaje=mensajes.get(estado, f"El estado de tu reserva cambió a {estado}"),
+                    tipo=estado,
+                )
+            except Exception:
+                pass
             
             return db_reserva_usuario
         except Exception as e:
@@ -245,6 +259,17 @@ def delete_reserva_usuario(db: Session, reserva_usuario_id: int, user_id: int):
         try:
             db.delete(db_reserva_usuario)
             db.commit()
+
+            # Notificar al usuario que su reserva fue eliminada
+            try:
+                crear_notificacion(
+                    id_usuario=str(user_id),
+                    titulo="Reserva eliminada",
+                    mensaje="Tu reserva fue eliminada",
+                    tipo="cancelada",
+                )
+            except Exception:
+                pass
             return {"detail": "ReservaUsuario deleted"}
         except Exception as e:
             db.rollback()

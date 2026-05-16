@@ -12,6 +12,7 @@ from app.core.config import FORGET_PWD_SECRET_KEY, ALGORITHM
 from fastapi.responses import JSONResponse
 import random, string
 from datetime import datetime, timedelta
+from app.services.notificaciones_services import crear_notificacion
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_user(email:str, db:Session):
@@ -40,7 +41,19 @@ def create_user(db: Session, user: UserCreate):
             )
             db.add(new_user)
             db.commit()
-            db.refresh(new_user) 
+            db.refresh(new_user)
+
+            # Notificación de bienvenida
+            try:
+                crear_notificacion(
+                    id_usuario=str(new_user.id),
+                    titulo="Bienvenido",
+                    mensaje="Tu cuenta fue creada exitosamente",
+                    tipo="bienvenida",
+                )
+            except Exception:
+                pass
+
             return new_user
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -122,6 +135,17 @@ def update_user_password(data: UserUpdate, current_user: User, db: Session):
     hashed_password = get_password_hash(data.new_password)
     current_user.password = hashed_password
     db.commit()
+
+    # Notificar cambio de contraseña
+    try:
+        crear_notificacion(
+            id_usuario=str(current_user.id),
+            titulo="Contraseña actualizada",
+            mensaje="Tu contraseña fue cambiada exitosamente",
+            tipo="seguridad",
+        )
+    except Exception:
+        pass
     
     return {
         "success": True,

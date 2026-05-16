@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useDashboard } from '@/composables/useDashboard'
 import NotificationsSlideover from '@/components/dashboard/NotificationsSlideover.vue'
@@ -12,6 +12,8 @@ const mobileOpen = ref(false)
 const userMenuOpen = ref(false)
 
 const currentUser = ref({ name: 'Administrador', foto_perfil: null })
+const unreadCount = ref(0)
+let unsubFirestore = null
 
 onMounted(async () => {
   const token = localStorage.getItem('token')
@@ -29,11 +31,17 @@ onMounted(async () => {
       console.error('Error fetching user', e)
     }
   }
+
+  // Escuchar conteo de no leídas en tiempo real
+  const { firestoreDb } = await import('@/lib/firebase')
+  const { collection, query, where, onSnapshot } = await import('firebase/firestore')
+  const q = query(collection(firestoreDb, 'notificaciones'), where('leida', '==', false))
+  unsubFirestore = onSnapshot(q, (snap) => { unreadCount.value = snap.size })
 })
 
 const navLinks = [
   { label: 'Inicio', icon: House, to: '/dashboard' },
-  { label: 'Bandeja', icon: Inbox, to: '/dashboard/inbox', badge: '4' },
+  { label: 'Bandeja', icon: Inbox, to: '/dashboard/inbox', badge: unreadCount },
   { label: 'Usuarios', icon: Users, to: '/dashboard/users' },
   { label: 'Roles', icon: UserCog, to: '/dashboard/roles' },
   { label: 'Permisos', icon: Key, to: '/dashboard/permissions' },
@@ -72,6 +80,8 @@ function handleLogout() {
 function comingSoon() {
   addToast({ title: 'Próximamente', description: 'El módulo de facturación está en desarrollo', color: 'primary' })
 }
+
+onUnmounted(() => { if (unsubFirestore) unsubFirestore() })
 </script>
 
 <template>
@@ -100,7 +110,7 @@ function comingSoon() {
         >
           <component :is="link.icon" :size="20" />
           <span v-if="!isSidebarCollapsed" class="nav-label">{{ link.label }}</span>
-          <span v-if="link.badge && !isSidebarCollapsed" class="nav-badge">{{ link.badge }}</span>
+          <span v-if="link.badge && !isSidebarCollapsed" class="nav-badge">{{ typeof link.badge === 'object' ? link.badge.value : link.badge }}</span>
         </RouterLink>
       </nav>
 

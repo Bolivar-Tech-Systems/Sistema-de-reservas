@@ -17,3 +17,4 @@ sqlalchemy-continuum>=1.4.2
 fastapi-audit-log>=1.4.0
 casbin
 casbin-sqlalchemy-adapter
+firebase-admin==7.4.0

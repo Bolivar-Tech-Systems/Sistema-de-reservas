@@ -25,11 +25,11 @@ def delete_recurso(recurso_id: int, db: Session = Depends(get_db), current_user:
     return delete_recurso_service(db, recurso_id, current_user.id)
 
 @router.post("/disponibilidad/", response_model=DisponibilidadResponse)
-def create_disponibilidad_endpoint(disponibilidad: DisponibilidadCreate, db: Session = Depends(get_db)):
+def create_disponibilidad_endpoint(disponibilidad: DisponibilidadCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return create_disponibilidad(db, disponibilidad)
 
 @router.put("/disponibilidad/{disponibilidad_id}", response_model=DisponibilidadResponse)
-def update_disponibilidad_endpoint(disponibilidad_id: int, disponibilidad: DisponibilidadCreate, db: Session = Depends(get_db)):
+def update_disponibilidad_endpoint(disponibilidad_id: int, disponibilidad: DisponibilidadCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return update_disponibilidad(db, disponibilidad_id, disponibilidad)
 
 @router.get("/disponibilidad/{disponibilidad_id}", response_model=DisponibilidadResponse)
@@ -41,7 +41,7 @@ def list_disponibilidades_by_recurso(recurso_id: int, db: Session = Depends(get_
     return list_disponibilidades_by_recurso_service(db, recurso_id)
 
 @router.delete("/disponibilidad/{disponibilidad_id}")
-def delete_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db)):
+def delete_disponibilidad_endpoint(disponibilidad_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return delete_disponibilidad(db, disponibilidad_id)
 
 @router.post("/reserva_usuario/", response_model=ReservaUsuarioResponse)

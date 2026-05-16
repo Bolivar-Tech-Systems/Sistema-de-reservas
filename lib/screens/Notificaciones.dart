@@ -16,6 +16,9 @@ class NotificacionesScreen extends StatelessWidget {
       case 'disponible':  return Icons.inventory;
       case 'devuelto':    return Icons.assignment_return;
       case 'dano':        return Icons.warning;
+      case 'bienvenida':  return Icons.celebration;
+      case 'perfil':      return Icons.account_circle;
+      case 'seguridad':   return Icons.lock;
       default:            return Icons.notifications;
     }
   }
@@ -28,6 +31,9 @@ class NotificacionesScreen extends StatelessWidget {
       case 'disponible':  return Colors.blue;
       case 'devuelto':    return Colors.purple;
       case 'dano':        return Colors.red[800]!;
+      case 'bienvenida':  return Colors.teal;
+      case 'perfil':      return Colors.indigo;
+      case 'seguridad':   return Colors.amber[800]!;
       default:            return Colors.grey;
     }
   }
