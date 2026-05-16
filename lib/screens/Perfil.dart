@@ -1,6 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
@@ -16,6 +21,10 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
   Map<String, dynamic>? usuario;
   bool _cargando = true;
   bool _editando = false;
+  bool _subiendoFoto = false;
+
+  String? _fotoPerfilUrl;
+  final ImagePicker _picker = ImagePicker();
 
   final nombreController = TextEditingController();
   final emailController = TextEditingController();
@@ -45,6 +54,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
           usuario = data;
           nombreController.text = data['nombre'] ?? '';
           emailController.text = data['email'] ?? '';
+          _fotoPerfilUrl = data['foto_perfil'];
           _cargando = false;
         });
       } else {
@@ -55,6 +65,69 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("No se pudo conectar al servidor")),
       );
+    }
+  }
+
+  Future<void> _subirFotoPerfil() async {
+    final XFile? picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    setState(() => _subiendoFoto = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+      if (token == null) return;
+
+      final bytes = await picked.readAsBytes();
+      final fileName = picked.path.split('/').last;
+      final ext = fileName.split('.').last.toLowerCase();
+      final mimeType = ext == 'png' ? 'png' : 'jpeg';
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse("${AppConfig.baseUrl}/images/upload-profile"),
+      );
+      request.headers["Authorization"] = "Bearer $token";
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: fileName,
+          contentType: MediaType('image', mimeType),
+        ),
+      );
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(responseBody);
+        setState(() {
+          _fotoPerfilUrl = data['foto_perfil'];
+          if (usuario != null) usuario!['foto_perfil'] = _fotoPerfilUrl;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Foto de perfil actualizada")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al subir foto: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error de conexión al subir foto")),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _subiendoFoto = false);
     }
   }
 
@@ -197,31 +270,59 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                     Center(
                       child: Column(
                         children: [
-                          Stack(
-                            children: [
-                              Icon(
-                                Icons.account_circle_rounded,
-                                size: 90,
-                                color: Colores.iconActive,
-                              ),
-                              if (_editando)
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: Colores.primaryDark,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.camera_alt_outlined,
-                                      size: 14,
-                                      color: Colores.text,
+                          GestureDetector(
+                            onTap: _editando && !_subiendoFoto
+                                ? _subirFotoPerfil
+                                : null,
+                            child: Stack(
+                              children: [
+                                _subiendoFoto
+                                    ? Container(
+                                        width: 90,
+                                        height: 90,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colores.surface,
+                                        ),
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colores.primary,
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      )
+                                    : _fotoPerfilUrl != null &&
+                                            _fotoPerfilUrl!.isNotEmpty
+                                        ? CircleAvatar(
+                                            radius: 45,
+                                            backgroundImage:
+                                                NetworkImage(_fotoPerfilUrl!),
+                                            backgroundColor: Colores.surface,
+                                          )
+                                        : Icon(
+                                            Icons.account_circle_rounded,
+                                            size: 90,
+                                            color: Colores.iconActive,
+                                          ),
+                                if (_editando && !_subiendoFoto)
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colores.primaryDark,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.camera_alt_outlined,
+                                        size: 14,
+                                        color: Colores.text,
+                                      ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                           SizedBox(height: 10),
                           Text(

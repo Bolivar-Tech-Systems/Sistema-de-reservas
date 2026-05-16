@@ -6,6 +6,7 @@ const { addToast } = useDashboard()
 const fileRef = ref(null)
 const profile = reactive({ name: '', email: '', telefono: '', avatar: '' })
 const isLoading = ref(true)
+const isUploadingAvatar = ref(false)
 
 const loadProfile = async () => {
   const token = localStorage.getItem('token')
@@ -48,7 +49,6 @@ async function onSubmit() {
         nombre: profile.name,
         email: profile.email,
         telefono: profile.telefono,
-        foto_perfil: profile.avatar
       })
     })
 
@@ -68,15 +68,64 @@ async function onSubmit() {
   }
 }
 
-function onFileChange(e) { 
-  if (e.target.files?.length) {
-    // Por simplicidad, usando FileReader para convertir a Base64 y guardarlo como string
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      profile.avatar = event.target.result
+async function onFileChange(e) { 
+  if (!e.target.files?.length) return
+
+  const file = e.target.files[0]
+  const token = localStorage.getItem('token')
+  if (!token) return
+
+  isUploadingAvatar.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch('https://129-80-171-141.nip.io/api/images/upload-profile', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      profile.avatar = data.foto_perfil
+      addToast({ title: 'Éxito', description: 'Foto de perfil actualizada.', color: 'success' })
+      window.dispatchEvent(new Event('profile-updated'))
+    } else {
+      const errorData = await response.json()
+      addToast({ title: 'Error', description: errorData.detail || 'Error al subir imagen', color: 'error' })
     }
-    reader.readAsDataURL(e.target.files[0])
-  } 
+  } catch (error) {
+    console.error('Error subiendo avatar:', error)
+    addToast({ title: 'Error', description: 'Error de red al subir la imagen', color: 'error' })
+  } finally {
+    isUploadingAvatar.value = false
+    // Resetear el input de archivo para poder seleccionar el mismo archivo nuevamente
+    if (fileRef.value) fileRef.value.value = ''
+  }
+}
+
+async function removeAvatar() {
+  const token = localStorage.getItem('token')
+  if (!token) return
+
+  try {
+    const response = await fetch('https://129-80-171-141.nip.io/api/auth/me/', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ foto_perfil: '' })
+    })
+    if (response.ok) {
+      profile.avatar = ''
+      addToast({ title: 'Éxito', description: 'Foto de perfil eliminada.', color: 'success' })
+      window.dispatchEvent(new Event('profile-updated'))
+    }
+  } catch (error) {
+    console.error('Error eliminando avatar:', error)
+  }
 }
 </script>
 
@@ -118,13 +167,16 @@ function onFileChange(e) {
         <div class="setting-row">
           <div><label class="font-medium text-sm">Avatar</label><p class="text-xs text-muted">JPG, GIF o PNG. Máximo 1MB.</p></div>
           <div class="flex items-center gap-3">
-            <img v-if="profile.avatar" :src="profile.avatar" class="avatar avatar-lg" alt="Avatar" style="object-fit: cover;">
+            <div v-if="isUploadingAvatar" class="avatar avatar-lg" style="display: flex; align-items: center; justify-content: center; background: var(--surface-alt); border-radius: 50%;">
+              <span class="text-muted text-xs">Subiendo…</span>
+            </div>
+            <img v-else-if="profile.avatar" :src="profile.avatar" class="avatar avatar-lg" alt="Avatar" style="object-fit: cover;">
             <div v-else class="avatar avatar-lg avatar-placeholder" style="display: flex; align-items: center; justify-content: center; background: var(--primary); color: white; border-radius: 50%;">
               {{ profile.name ? profile.name[0].toUpperCase() : 'U' }}
             </div>
-            <button type="button" class="btn btn-neutral btn-sm" @click="fileRef?.click()">Elegir foto</button>
+            <button type="button" class="btn btn-neutral btn-sm" @click="fileRef?.click()" :disabled="isUploadingAvatar">{{ isUploadingAvatar ? 'Subiendo...' : 'Elegir foto' }}</button>
             <input ref="fileRef" type="file" hidden accept=".jpg,.jpeg,.png,.gif" @change="onFileChange">
-            <button v-if="profile.avatar" type="button" class="btn btn-ghost btn-sm text-error" @click="profile.avatar = ''">Quitar</button>
+            <button v-if="profile.avatar && !isUploadingAvatar" type="button" class="btn btn-ghost btn-sm text-error" @click="removeAvatar">Quitar</button>
           </div>
         </div>
         

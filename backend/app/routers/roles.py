@@ -21,11 +21,11 @@ def delete_role_endpoint(role_id: int, db: Session = Depends(get_db), current_us
     return delete_role(db, role_id, current_user.id)
 
 @router.get("/user/{user_id}", response_model = list[RoleResponse])
-def list_role_by_user_endpoint(user_id: int, db: Session = Depends(get_db)):
+def list_role_by_user_endpoint(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return list_role_by_user(db, user_id)
 
 @router.get("/all", response_model = list[RoleResponse])
-def list_all_roles_endpoint(db: Session = Depends(get_db)):
+def list_all_roles_endpoint(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return list_roles(db)
 
 @router.put("/update-role/{user_id}")
