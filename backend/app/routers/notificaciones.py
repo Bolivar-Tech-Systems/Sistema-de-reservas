@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.core.security import get_current_user
+from app.routers.auth import get_current_user
 from app.models.user import User
 from app.schemas.notificaciones import NotificacionCreate, NotificacionMasiva
 from app.services.notificaciones_services import (crear_notificacion,enviar_a_todos,listar_todas,listar_por_usuario,marcar_leida,marcar_todas_leidas,eliminar_notificacion, )
