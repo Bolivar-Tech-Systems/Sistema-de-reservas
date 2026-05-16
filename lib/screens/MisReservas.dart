@@ -261,7 +261,7 @@ class _PantallaMisReservasState extends State<PantallaMisReservas> {
                       onRefresh: fetchMisReservas,
                       child: ListView.separated(
                         itemCount: reservasFiltradas.length,
-                        separatorBuilder: (_, __) => SizedBox(height: 12),
+                        separatorBuilder: (_, _) => SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final reserva = reservasFiltradas[index];
                           final estado = (reserva['estado'] ?? 'pendiente')
