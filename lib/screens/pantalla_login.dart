@@ -44,9 +44,17 @@ class _PantallaLoginState extends State<PantallaLogin> {
         'access_token',
         responseBody['access_token'],
       );
-      navigator.push(
-        MaterialPageRoute(builder: (context) => const PantallaHome()),
-      );
+       await sharedPreferences?.setString(
+    'id_usuario',
+    responseBody['id'].toString(),
+  );
+      navigator.pushReplacement(
+  MaterialPageRoute(
+    builder: (context) => PantallaHome(
+      idUsuario: responseBody['id'].toString(),
+    ),
+  ),
+);
     } else if (result.statusCode == 400) {
       scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Correo o contraseña incorrectos')),

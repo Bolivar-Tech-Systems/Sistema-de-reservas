@@ -4,13 +4,17 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
+import '../services/notificacion_services.dart';
 
 class PantallaHorario extends StatefulWidget {
-  // final String recurso;
-  // final String imagen;
-  // final int reservaId; // <-- nuevo parámetro
+  final int recursoId;
+  final String idUsuario;
 
-  const PantallaHorario({super.key});
+  const PantallaHorario({
+    super.key,
+    required this.recursoId,
+    required this.idUsuario,
+  });
 
   @override
   State<PantallaHorario> createState() => _PantallaHorarioState();
@@ -102,7 +106,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          // "reserva_id": widget.reservaId,
+          "reserva_id": widget.recursoId,
           "fecha_inicio": _formatearFecha(_fecha!),
           "fecha_fin": _formatearFecha(_fecha!),
           "hora_inicio": _formatearHora(_horaInicio!),
@@ -112,17 +116,49 @@ class _PantallaHorarioState extends State<PantallaHorario> {
       );
 
       if (!mounted) return;
+      print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Reserva creada correctamente")));
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error al reservar: ${response.statusCode}")),
-        );
-      }
+  final data = jsonDecode(response.body);
+
+  print("RESERVA CREADA:");
+  print(data);
+
+  print("CREANDO NOTIFICACION...");
+  print(widget.idUsuario);
+
+  await NotificacionService().crearNotificacion(
+    idUsuario: widget.idUsuario,
+    titulo: 'Reserva confirmada',
+    mensaje: 'Tu reserva fue creada exitosamente',
+    tipo: 'confirmada',
+  );
+
+  print("NOTIFICACION CREADA");
+
+  if (!mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text("Reserva creada correctamente"),
+    ),
+  );
+
+  Navigator.pop(context, true);
+
+}else {
+
+  print("ERROR BACKEND:");
+  print(response.body);
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        "Error al reservar: ${response.body}",
+      ),
+    ),
+  );
+}
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("No se pudo conectar al servidor")),

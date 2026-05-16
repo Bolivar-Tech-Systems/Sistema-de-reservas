@@ -45,53 +45,59 @@ class NotificacionesScreen extends StatelessWidget {
           )
         ],
       ),
-      body: StreamBuilder<List<Notificacion>>(
+body: idUsuario.isEmpty
+    ? const Center(child: CircularProgressIndicator())
+    : StreamBuilder<List<Notificacion>>(
         stream: _service.getNotificaciones(idUsuario),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('Sin notificaciones'));
           }
           final notifs = snapshot.data!;
           return ListView.builder(
-            itemCount: notifs.length,
-            itemBuilder: (context, i) {
-              final n = notifs[i];
-              return Dismissible(
-                key: Key(n.id),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  color: Colors.red,
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 16),
-                  child: const Icon(Icons.delete, color: Colors.white),
-                ),
-                onDismissed: (_) => _service.eliminarNotificacion(n.id),
-                child: ListTile(
-                  tileColor: n.leida ? null : Colors.blue[50],
-                  leading: CircleAvatar(
-                    backgroundColor: _color(n.tipo),
-                    child: Icon(_icono(n.tipo), color: Colors.white, size: 20),
-                  ),
-                  title: Text(n.titulo,
-                      style: TextStyle(
-                          fontWeight: n.leida
-                              ? FontWeight.normal
-                              : FontWeight.bold)),
-                  subtitle: Text(n.mensaje),
-                  trailing: Text(
-                    '${n.fecha.day}/${n.fecha.month}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                  onTap: () => _service.marcarLeida(n.id),
-                ),
-              );
-            },
-          );
-        },
+  itemCount: notifs.length,
+  itemBuilder: (context, i) {
+    final n = notifs[i];
+    return Dismissible(
+      key: Key(n.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 16),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
+      onDismissed: (_) => _service.eliminarNotificacion(n.id),
+      child: ListTile(
+        tileColor: n.leida ? null : Colors.blue[50],
+        leading: CircleAvatar(
+          backgroundColor: _color(n.tipo),
+          child: Icon(_icono(n.tipo), color: Colors.white, size: 20),
+        ),
+        title: Text(
+          n.titulo,
+          style: TextStyle(
+            fontWeight: n.leida ? FontWeight.normal : FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(n.mensaje),
+        trailing: Text(
+          '${n.fecha.day}/${n.fecha.month}',
+          style: const TextStyle(color: Colors.grey, fontSize: 12),
+        ),
+        onTap: () => _service.marcarLeida(n.id),
+      ),
+    );
+  },
+);
+        }
+    )
     );
   }
 }

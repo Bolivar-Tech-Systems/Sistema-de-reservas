@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.reservas import Recurso, Disponibilidad, ReservaUsuario
 from app.schemas.reservas import RecursoCreate, DisponibilidadCreate, ReservaUsuarioCreate
+from app.services.notificaciones_services import crear_notificacion
 
 def create_recurso_service(db: Session, recurso: RecursoCreate, owner_id: int):
     new_recurso = db.query(Recurso).filter(Recurso.nombre == recurso.nombre).first()
@@ -181,10 +182,24 @@ def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, u
             db.add(new_reserva_usuario)
             db.commit()
             db.refresh(new_reserva_usuario)
-            return new_reserva_usuario
+
         except Exception as e:
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
+        
+        try:
+            print(f"Enviando notificación a usuario: {user_id}")
+            crear_notificacion(
+            id_usuario=str(user_id),
+            titulo="Reserva creada",
+            mensaje="Tu reserva fue registrada exitosamente",
+            tipo="confirmada",
+        )
+            print("Notificación enviada OK")
+        except Exception as e:
+            print(f"ERROR notificación: {e}")
+
+    return new_reserva_usuario
         
 def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate,user_id: int):
     db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.usuario_id == user_id).first()
@@ -203,6 +218,20 @@ def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario
             db_reserva_usuario.notas = reserva_usuario.notas
             db.commit()
             db.refresh(db_reserva_usuario)
+
+            mensajes = {
+                "confirmada": "Tu reserva fue confirmada",
+                "cancelada": "Tu reserva fue cancelada",
+                "pendiente": "Tu reserva está en revisión",
+            }
+            estado = reserva_usuario.estado
+            crear_notificacion(
+                id_usuario=str(user_id),
+                titulo=f"Reserva {estado}",
+                mensaje=mensajes.get(estado, f"El estado de tu reserva cambió a {estado}"),
+                tipo=estado,
+            )
+            
             return db_reserva_usuario
         except Exception as e:
             db.rollback()

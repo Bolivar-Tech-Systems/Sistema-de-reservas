@@ -38,7 +38,7 @@ class Notificacion {
       'tipo':       tipo,
       'id_usuario': idUsuario,
       'leida':      leida,
-      'fecha':      FieldValue.serverTimestamp(),
+      'fecha':      Timestamp.now(),
     };
   }
 }
