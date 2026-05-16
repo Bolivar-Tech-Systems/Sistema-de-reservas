@@ -12,7 +12,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 class PantallaCreateReserva extends StatefulWidget {
-  PantallaCreateReserva({super.key});
+  const PantallaCreateReserva({super.key});
 
   @override
   State<PantallaCreateReserva> createState() => _PantallaCreateReservaState();
@@ -87,42 +87,40 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
       final int reservaId = reservaData["id"];
 
       if (_imagenSeleccionada != null) {
-        final fileName = _imagenSeleccionada!.path.split('/').last;
-        final ext = fileName.split('.').last.toLowerCase();
-        final mimeType = ext == 'png' ? 'png' : 'jpeg';
+  try {
+    final fileName = _imagenSeleccionada!.path.split('/').last;
+    final ext = fileName.split('.').last.toLowerCase();
+    final mimeType = ext == 'png' ? 'png' : 'jpeg';
 
-        final uploadRequest = http.MultipartRequest(
-          'POST',
-          Uri.parse("$baseUrl/images/upload"),
-        );
+    final uploadRequest = http.MultipartRequest(
+      'POST',
+      Uri.parse("$baseUrl/images/upload"),
+    );
 
-        uploadRequest.headers["Authorization"] = "Bearer $token";
+    uploadRequest.headers["Authorization"] = "Bearer $token";
 
-        uploadRequest.files.add(
-          http.MultipartFile.fromBytes(
-            'file',
-            _imagenBytes!,
-            filename: fileName,
-            contentType: MediaType('image', mimeType),
-          ),
-        );
+    uploadRequest.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        _imagenBytes!,
+        filename: fileName,
+        contentType: MediaType('image', mimeType),
+      ),
+    );
 
-        uploadRequest.fields['file_name'] = fileName;
-        uploadRequest.fields['reserva_id'] = reservaId.toString();
+    uploadRequest.fields['file_name'] = fileName;
+    uploadRequest.fields['reserva_id'] = reservaId.toString();
 
-        final uploadResponse = await uploadRequest.send();
+    final uploadResponse = await uploadRequest.send();
+    final responseBody = await uploadResponse.stream.bytesToString();
+    print('STATUS IMAGEN: ${uploadResponse.statusCode}');
+    print('RESPUESTA IMAGEN: $responseBody');
+  } catch (e) {
+    print('EXCEPCION IMAGEN: $e');
+  }
+}
 
-        if (uploadResponse.statusCode != 200 &&
-            uploadResponse.statusCode != 201) {
-          setState(
-            () => _errorMSG =
-                "Reserva creada, pero falló la imagen (${uploadResponse.statusCode})",
-          );
-          return;
-        }
-      }
-
-      if (mounted) Navigator.pop(context, true);
+if (mounted) Navigator.pop(context, true);
     } catch (e) {
       setState(() => _errorMSG = "No se pudo conectar al servidor");
     } finally {

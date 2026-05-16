@@ -4,15 +4,20 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'CreateReservas.dart';
 import 'horario_disponible.dart';
-import 'CreateReservas.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'MisReservas.dart';
 import 'Perfil.dart';
+import '../services/notificacion_services.dart';
+import '../screens/Notificaciones.dart';
+import '../models/notificacion_model.dart';
+import 'ExplorarRecursos.dart';
 
 class PantallaHome extends StatefulWidget {
-  const PantallaHome({super.key});
+  final String idUsuario;
+  const PantallaHome({super.key, required this.idUsuario});
+
 
   @override
   State<PantallaHome> createState() => _PantallaHomeState();
@@ -20,14 +25,17 @@ class PantallaHome extends StatefulWidget {
 
 class _PantallaHomeState extends State<PantallaHome> {
   int _currentIndex = 0;
+  String _idUsuario = '';
 
   List<Map<String, dynamic>> _categories = [];
 
   @override
   void initState() {
     super.initState();
+    _idUsuario = widget.idUsuario;
     fetchCategories();
   }
+
 
   Future<void> fetchCategories() async {
     final response = await http.get(
@@ -36,14 +44,13 @@ class _PantallaHomeState extends State<PantallaHome> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-
       setState(() {
         _categories = List<Map<String, dynamic>>.from(
           data.map(
             (item) => {
               'label': item['nombre'],
               'icon': Icons.abc_rounded,
-              'color': const Color(0xFF4F8CFF), // temporal
+              'color': const Color(0xFF4F8CFF),
             },
           ),
         );
@@ -103,17 +110,24 @@ class _PantallaHomeState extends State<PantallaHome> {
     BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
   ];
 
-  List<Widget> get _pages => [
-    _HomeTab(
-      categories: _categories,
-      featuredFacilities: _featuredFacilities,
-      availableNow: _availableNow,
-    ),
-    PantallaHorario(),
-    PantallaMisReservas(),
-    PantallaDetalleReserva(reserva: {}),
-    PantallaPerfil(),
-  ];
+ List<Widget> get _pages => [
+  _HomeTab(
+    categories: _categories,
+    featuredFacilities: _featuredFacilities,
+    availableNow: _availableNow,
+    idUsuario: _idUsuario,
+  ),
+
+
+
+  PantallaExplorarRecursos(
+  idUsuario: _idUsuario,
+),
+
+  PantallaMisReservas(),
+  PantallaDetalleReserva(reserva: {}),
+  PantallaPerfil(),
+];
 
   void _openCreateReserva() {
     Navigator.push(
@@ -167,11 +181,13 @@ class _HomeTab extends StatelessWidget {
   final List<Map<String, dynamic>> categories;
   final List<Map<String, dynamic>> featuredFacilities;
   final List<Map<String, dynamic>> availableNow;
+  final String idUsuario;
 
   const _HomeTab({
     required this.categories,
     required this.featuredFacilities,
     required this.availableNow,
+    required this.idUsuario,
   });
 
   @override
@@ -195,12 +211,12 @@ class _HomeTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTopBar(),
+              _buildTopBar(context),
               const SizedBox(height: 18),
-              Text(
+              const Text(
                 'Hi, Resident! 👋',
                 style: TextStyle(
-                  color: textMain,
+                  color: Colors.white,
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                   height: 1.0,
@@ -210,7 +226,7 @@ class _HomeTab extends StatelessWidget {
               const Text(
                 'What would you like to reserve today?',
                 style: TextStyle(
-                  color: textSecondary,
+                  color: Color(0xFF94A3B8),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -244,7 +260,7 @@ class _HomeTab extends StatelessWidget {
               const Text(
                 'Featured Facilities',
                 style: TextStyle(
-                  color: textMain,
+                  color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                 ),
@@ -277,7 +293,7 @@ class _HomeTab extends StatelessWidget {
                       Text(
                         'Available Now',
                         style: TextStyle(
-                          color: textMain,
+                          color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                         ),
@@ -289,7 +305,7 @@ class _HomeTab extends StatelessWidget {
                   Text(
                     'Filter',
                     style: TextStyle(
-                      color: textSecondary,
+                      color: Color(0xFF94A3B8),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -327,7 +343,7 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -352,10 +368,26 @@ class _HomeTab extends StatelessWidget {
             letterSpacing: 0.2,
           ),
         ),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.notifications_none_rounded),
-          color: Colors.white,
+        StreamBuilder<int>(
+          stream: idUsuario.isEmpty 
+    ? const Stream.empty() 
+    : NotificacionService().contarNoLeidas(idUsuario),
+          builder: (context, snap) {
+            final count = snap.data ?? 0;
+            return Badge(
+              isLabelVisible: count > 0,
+              label: Text('$count'),
+              child: IconButton(
+                icon: const Icon(Icons.notifications, color: Colors.white),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => NotificacionesScreen(idUsuario: idUsuario),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -419,11 +451,7 @@ class _HomeTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 2),
-              const Icon(
-                Icons.chevron_right,
-                color: Color(0xFF8FA3B8),
-                size: 20,
-              ),
+              const Icon(Icons.chevron_right, color: Color(0xFF8FA3B8), size: 20),
             ],
           ),
         ),
@@ -609,10 +637,7 @@ class _FeaturedCard extends StatelessWidget {
               top: 12,
               left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: const Color(0xFF5DA9FF),
                   borderRadius: BorderRadius.circular(999),
@@ -736,10 +761,7 @@ class _AvailableCard extends StatelessWidget {
                     top: 10,
                     left: 10,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                       decoration: BoxDecoration(
                         color: statusColor,
                         borderRadius: BorderRadius.circular(999),

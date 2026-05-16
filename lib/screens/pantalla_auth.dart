@@ -53,12 +53,14 @@ class _PantallaAuthState extends State<PantallaAuth> {
           'password': _passwordController.text,
         }),
       );
+      print(result.statusCode);
+      print(result.body);
       if (result.statusCode == 200) {
         final body = jsonDecode(result.body);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('access_token', body['access_token']);
         navigator.pushReplacement(
-          MaterialPageRoute(builder: (_) => const PantallaHome()),
+          MaterialPageRoute(builder: (_) =>  PantallaHome(idUsuario: body['id'].toString())),
         );
       } else if (result.statusCode == 400) {
         setState(() => _errorMessage = 'Correo o contraseña incorrectos');
