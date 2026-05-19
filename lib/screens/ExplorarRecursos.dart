@@ -12,10 +12,10 @@ class PantallaExplorarRecursos extends StatefulWidget {
 
   @override
   State<PantallaExplorarRecursos> createState() =>
-      _PantallaExplorarRecursosState();
+      PantallaExplorarRecursosState();
 }
 
-class _PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
+class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
   List<Map<String, dynamic>> _recursos = [];
   List<Map<String, dynamic>> _recursosFiltrados = [];
   bool _cargando = true;
@@ -26,7 +26,7 @@ class _PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
   @override
   void initState() {
     super.initState();
-    _fetchRecursos();
+    fetchRecursos();
     _searchController.addListener(_aplicarFiltros);
   }
 
@@ -36,7 +36,7 @@ class _PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
     super.dispose();
   }
 
-  Future<void> _fetchRecursos() async {
+  Future<void> fetchRecursos() async {
     setState(() => _cargando = true);
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -179,7 +179,7 @@ class _PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
                       )
                     : RefreshIndicator(
                         color: Colores.primary,
-                        onRefresh: _fetchRecursos,
+                        onRefresh: fetchRecursos,
                         child: ListView.separated(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
