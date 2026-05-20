@@ -154,7 +154,6 @@ def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, u
     # de su nueva reserva se cruzan con una reserva activa existente.
     existing = db.query(ReservaUsuario).filter(
         ReservaUsuario.recurso_id == reserva_usuario.recurso_id,
-        ReservaUsuario.usuario_id == user_id,
         ReservaUsuario.estado.notin_(["Cancelada"]),
         # Solapamiento de fechas
         ReservaUsuario.fecha_inicio <= reserva_usuario.fecha_fin,
@@ -164,7 +163,10 @@ def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, u
         ReservaUsuario.hora_fin > reserva_usuario.hora_inicio,
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Ya tienes una reserva en ese horario para este recurso")
+        if existing.usuario_id == user_id:
+            raise HTTPException(status_code=400, detail="Ya tienes una reserva en ese horario para este recurso")
+        else:
+            raise HTTPException(status_code=400, detail="El recurso ya está reservado en ese horario por otro usuario")
 
     # Validar que el horario solicitado esté dentro de una ventana de disponibilidad
     disponible = db.query(Disponibilidad).filter(
@@ -211,8 +213,12 @@ def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, u
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
         
-def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate,user_id: int):
-    db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.usuario_id == user_id).first()
+def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate, user_id: int, is_admin: bool = False):
+    if is_admin:
+        db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id).first()
+    else:
+        db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.usuario_id == user_id).first()
+        
     if not db_reserva_usuario:
         raise HTTPException(status_code=404, detail="ReservaUsuario not found")
     else:
@@ -238,7 +244,7 @@ def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario
             estado = reserva_usuario.estado
             try:
                 crear_notificacion(
-                    id_usuario=str(user_id),
+                    id_usuario=str(db_reserva_usuario.usuario_id),
                     titulo=f"Reserva {estado}",
                     mensaje=mensajes.get(estado, f"El estado de tu reserva cambió a {estado}"),
                     tipo=estado,
@@ -251,19 +257,24 @@ def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         
-def delete_reserva_usuario(db: Session, reserva_usuario_id: int, user_id: int):
-    db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.usuario_id == user_id).first()
+def delete_reserva_usuario(db: Session, reserva_usuario_id: int, user_id: int, is_admin: bool = False):
+    if is_admin:
+        db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id).first()
+    else:
+        db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.usuario_id == user_id).first()
+        
     if not db_reserva_usuario:
         raise HTTPException(status_code=404, detail="ReservaUsuario not found")
     else:
         try:
+            creator_id = db_reserva_usuario.usuario_id
             db.delete(db_reserva_usuario)
             db.commit()
 
             # Notificar al usuario que su reserva fue eliminada
             try:
                 crear_notificacion(
-                    id_usuario=str(user_id),
+                    id_usuario=str(creator_id),
                     titulo="Reserva eliminada",
                     mensaje="Tu reserva fue eliminada",
                     tipo="cancelada",
@@ -275,13 +286,25 @@ def delete_reserva_usuario(db: Session, reserva_usuario_id: int, user_id: int):
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
 
-def show_reserva_usuario(db: Session, reserva_usuario_id: int, user_id: int):
-    db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.usuario_id == user_id).first()
+def show_reserva_usuario(db: Session, reserva_usuario_id: int, user_id: int, is_admin: bool = False):
+    if is_admin:
+        db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id).first()
+    else:
+        db_reserva_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.id == reserva_usuario_id, ReservaUsuario.usuario_id == user_id).first()
+        
     if not db_reserva_usuario:
         raise HTTPException(status_code=404, detail="ReservaUsuario not found")
     else:
         return db_reserva_usuario
 
-def list_all_reservas_usuario(db: Session, user_id: int):
-    db_reservas_usuario = db.query(ReservaUsuario).filter(ReservaUsuario.usuario_id == user_id).all()
-    return db_reservas_usuario
+def list_all_reservas_usuario(db: Session, user_id: int, is_admin: bool = False):
+    if is_admin:
+        return db.query(ReservaUsuario).all()
+    else:
+        return db.query(ReservaUsuario).filter(ReservaUsuario.usuario_id == user_id).all()
+
+def list_reservas_by_recurso(db: Session, recurso_id: int):
+    return db.query(ReservaUsuario).filter(
+        ReservaUsuario.recurso_id == recurso_id,
+        ReservaUsuario.estado.notin_(["Cancelada"])
+    ).all()

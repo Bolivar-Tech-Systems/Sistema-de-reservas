@@ -8,7 +8,7 @@ from sqlalchemy.orm import configure_mappers
 # Configurar mappers para sqlalchemy-continuum
 configure_mappers()
 
-from app.routers import auth, reservas, images, roles, permisos, categorias, audit, casbin_policies, notificaciones
+from app.routers import auth, reservas, images, roles, permisos, categorias, audit, casbin_policies, notificaciones, amenidades, resenas, favoritos, pago
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.security import verify_token
 from app.models.user import User
@@ -19,6 +19,35 @@ from app.core.config import DATABASE_URL
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+@app.on_event("startup")
+def seed_categories():
+    db = SessionLocal()
+    try:
+        from app.models.categoria import Categoria
+        count = db.query(Categoria).count()
+        if count == 0:
+            default_categories = [
+                {"nombre": "Sala de Reuniones", "descripcion": "Salas equipadas para juntas y conferencias", "icono": "meeting_room"},
+                {"nombre": "Auditorio", "descripcion": "Espacios amplios para conferencias y eventos", "icono": "theater_comedy"},
+                {"nombre": "Cancha", "descripcion": "Instalaciones deportivas para recreación", "icono": "sports_soccer"},
+                {"nombre": "Oficina", "descripcion": "Espacios individuales y coworking", "icono": "work"},
+                {"nombre": "Laboratorio", "descripcion": "Instalaciones especializadas para experimentación", "icono": "science"},
+            ]
+            for cat_data in default_categories:
+                cat = Categoria(
+                    nombre=cat_data["nombre"],
+                    descripcion=cat_data["descripcion"],
+                    icono=cat_data["icono"]
+                )
+                db.add(cat)
+            db.commit()
+            print("Categorias sembradas en la db.")
+    except Exception as e:
+        db.rollback()
+        print(f"Error al sembrar categorias: {e}")
+    finally:
+        db.close()
 
 origins = [
     "https://129-80-171-141.nip.io",
@@ -71,3 +100,8 @@ app.include_router(categorias.router)
 app.include_router(audit.router)
 app.include_router(casbin_policies.router)
 app.include_router(notificaciones.router)
+app.include_router(amenidades.router)
+app.include_router(resenas.router)
+app.include_router(favoritos.router)
+app.include_router(pago.router)
+

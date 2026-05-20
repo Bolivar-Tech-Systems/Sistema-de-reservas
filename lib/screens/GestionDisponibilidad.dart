@@ -25,17 +25,27 @@ class _PantallaGestionDisponibilidadState
   List<Map<String, dynamic>> _disponibilidades = [];
   bool _cargando = true;
   bool _creando = false;
+  bool _eliminandoRecurso = false;
   String _error = '';
+  int? _roleId;
 
   @override
   void initState() {
     super.initState();
+    _cargarRoleId();
     _cargar();
   }
 
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('access_token') ?? '';
+  }
+
+  Future<void> _cargarRoleId() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() => _roleId = prefs.getInt('role_id'));
+    }
   }
 
   // ── Cargar disponibilidades existentes ──────────────────────────────
@@ -128,6 +138,79 @@ class _PantallaGestionDisponibilidadState
       );
       if (mounted) _cargar();
     } catch (_) {}
+  }
+
+  // ── Eliminar recurso completo (solo admin) ─────────────────────────
+  Future<void> _eliminarRecurso() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colores.surfaceAlt,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+        title: const Text('¿Eliminar recurso?',
+            style: TextStyle(
+                color: Colores.text, fontWeight: FontWeight.w700)),
+        content: const Text(
+            'Esta acción es irreversible. Se eliminará el recurso y toda su disponibilidad.',
+            style:
+                TextStyle(color: Colores.textSecondary, fontSize: 14)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar',
+                style: TextStyle(color: Colores.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colores.danger,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text('Eliminar',
+                style: TextStyle(
+                    color: Colores.text, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    setState(() => _eliminandoRecurso = true);
+    try {
+      final token = await _getToken();
+      final res = await http.delete(
+        Uri.parse('${AppConfig.baseUrl}/reservas/${widget.recursoId}'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (!mounted) return;
+      if (res.statusCode == 200 || res.statusCode == 204) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Recurso eliminado')),
+        );
+        Navigator.pop(context, true);
+      } else {
+        String msg = 'Error al eliminar recurso';
+        try {
+          final err = jsonDecode(res.body);
+          msg = err['detail'] ?? msg;
+        } catch (_) {}
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sin conexión')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _eliminandoRecurso = false);
+    }
   }
 
   // ── Formateo ───────────────────────────────────────────────────────
@@ -497,6 +580,43 @@ class _PantallaGestionDisponibilidadState
                         ? _buildVacio()
                         : _buildLista(),
               ),
+
+              // Botón eliminar recurso (solo admin)
+              if (_roleId == 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: _eliminandoRecurso ? null : _eliminarRecurso,
+                      icon: _eliminandoRecurso
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colores.text))
+                          : const Icon(Icons.delete_forever_rounded,
+                              color: Colores.text, size: 20),
+                      label: Text(
+                        _eliminandoRecurso
+                            ? 'Eliminando...'
+                            : 'Eliminar recurso',
+                        style: const TextStyle(
+                          color: Colores.text,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colores.danger,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

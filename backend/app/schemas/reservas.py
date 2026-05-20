@@ -27,12 +27,17 @@ class RecursoCreate(RecursoBase):
     pass
 
 
+from app.schemas.images import ImageResponse
+from app.schemas.amenidad import AmenidadResponse
+
 class RecursoResponse(RecursoBase):
     id: int
     owner_id: int
     calificacion_promedio: float | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    fotos: list[ImageResponse] = []
+    amenidades: list[AmenidadResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
 

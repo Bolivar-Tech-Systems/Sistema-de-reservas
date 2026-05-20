@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.reservas import RecursoCreate, DisponibilidadCreate, ReservaUsuarioCreate, RecursoResponse, DisponibilidadResponse, ReservaUsuarioResponse
-from app.services.reservas import create_recurso_service, update_recurso_service, show_recurso_service, delete_recurso_service, list_all_recursos, list_all_reservas_usuario, list_disponibilidades_by_recurso_service, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario
+from app.services.reservas import create_recurso_service, update_recurso_service, show_recurso_service, delete_recurso_service, list_all_recursos, list_all_reservas_usuario, list_disponibilidades_by_recurso_service, create_disponibilidad, update_disponibilidad, delete_disponibilidad, show_disponibilidad, create_reserva_usuario, update_reserva_usuario, delete_reserva_usuario, show_reserva_usuario, list_reservas_by_recurso
 from app.routers.auth import get_current_user
 from app.models.user import User
 
@@ -50,19 +50,27 @@ def create_reserva_usuario_endpoint(reserva_usuario: ReservaUsuarioCreate, db: S
 
 @router.put("/reserva_usuario/{reserva_usuario_id}", response_model=ReservaUsuarioResponse)
 def update_reserva_usuario_endpoint(reserva_usuario_id: int, reserva_usuario: ReservaUsuarioCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    return update_reserva_usuario(db, reserva_usuario_id, reserva_usuario, user.id)  
+    is_admin = (user.role_id == 1)
+    return update_reserva_usuario(db, reserva_usuario_id, reserva_usuario, user.id, is_admin=is_admin)  
 
 @router.get("/reserva_usuario/{reserva_usuario_id}", response_model=ReservaUsuarioResponse)
 def show_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    return show_reserva_usuario(db, reserva_usuario_id, user.id)
+    is_admin = (user.role_id == 1)
+    return show_reserva_usuario(db, reserva_usuario_id, user.id, is_admin=is_admin)
 
 @router.delete("/reserva_usuario/{reserva_usuario_id}")
 def delete_reserva_usuario_endpoint(reserva_usuario_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    return delete_reserva_usuario(db, reserva_usuario_id, user.id)
+    is_admin = (user.role_id == 1)
+    return delete_reserva_usuario(db, reserva_usuario_id, user.id, is_admin=is_admin)
 
 @router.get("/reservas_usuario/", response_model=list[ReservaUsuarioResponse])
 def list_reservas_usuario_endpoint(user_id: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    return list_all_reservas_usuario(db, user_id.id)
+    is_admin = (user_id.role_id == 1)
+    return list_all_reservas_usuario(db, user_id.id, is_admin=is_admin)
+
+@router.get("/recurso/{recurso_id}/reservas", response_model=list[ReservaUsuarioResponse])
+def list_reservas_by_recurso_endpoint(recurso_id: int, db: Session = Depends(get_db)):
+    return list_reservas_by_recurso(db, recurso_id)
 
 @router.get("/list/", response_model=list[RecursoResponse])
 def list_recursos(db: Session = Depends(get_db)):

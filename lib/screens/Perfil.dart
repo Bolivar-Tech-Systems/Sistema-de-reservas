@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
+import 'pantalla_auth.dart';
 
 class PantallaPerfil extends StatefulWidget {
   const PantallaPerfil({super.key});
@@ -25,6 +26,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
 
   final nombreController = TextEditingController();
   final emailController = TextEditingController();
+  final telefonoController = TextEditingController();
   String? _errorMSG;
 
   @override
@@ -51,6 +53,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
           usuario = data;
           nombreController.text = data['nombre'] ?? '';
           emailController.text = data['email'] ?? '';
+          telefonoController.text = data['telefono'] ?? '';
           _fotoPerfilUrl = data['foto_perfil'];
           _cargando = false;
         });
@@ -156,6 +159,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
         body: jsonEncode({
           'nombre': nombreController.text,
           'email': emailController.text,
+          'telefono': telefonoController.text,
         }),
       );
 
@@ -387,6 +391,13 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                           icon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                         ),
+                        const SizedBox(height: 12),
+                        _inputField(
+                          controller: telefonoController,
+                          label: 'Teléfono',
+                          icon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
+                        ),
                         const SizedBox(height: 14),
                         if (_errorMSG != null)
                           Padding(
@@ -452,6 +463,16 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                                 thickness: 1,
                               ),
                               _infoRow(
+                                Icons.phone_outlined,
+                                'Teléfono',
+                                usuario?['telefono'] ?? 'No disponible',
+                              ),
+                              const Divider(
+                                color: Colores.border,
+                                height: 22,
+                                thickness: 1,
+                              ),
+                              _infoRow(
                                 Icons.calendar_month_outlined,
                                 'Miembro desde',
                                 usuario?['fecha_registro'] ?? 'No disponible',
@@ -459,16 +480,14 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                             ],
                           ),
                         ),
-                      ],
-
-                      const SizedBox(height: 16),
+                      ],                      const SizedBox(height: 16),
 
                       // Cambiar contraseña
                       SizedBox(
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: _dialogoCambiarPassword,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colores.surface,
                             shape: RoundedRectangleBorder(
@@ -497,9 +516,176 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                           ),
                         ),
                       ),
+
+                      const SizedBox(height: 12),
+
+                      // Cerrar sesión
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: cerrarSesion,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colores.danger.withOpacity(0.15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              side: const BorderSide(color: Colores.danger),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.logout_rounded,
+                                color: Colores.danger,
+                                size: 18,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Cerrar sesión',
+                                style: TextStyle(
+                                  color: Colores.danger,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> cerrarSesion() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('access_token');
+    await prefs.remove('id_usuario');
+    await prefs.remove('role_id');
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const PantallaAuth()),
+        (route) => false,
+      );
+    }
+  }
+
+  Future<void> _dialogoCambiarPassword() async {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    String? dialogError;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colores.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Cambiar contraseña', style: TextStyle(color: Colores.text)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (dialogError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(dialogError!, style: const TextStyle(color: Colores.danger, fontSize: 13)),
+                  ),
+                TextField(
+                  controller: currentPasswordController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colores.text),
+                  decoration: const InputDecoration(
+                    labelText: 'Contraseña actual',
+                    labelStyle: TextStyle(color: Colores.textSecondary),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colores.border)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: newPasswordController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colores.text),
+                  decoration: const InputDecoration(
+                    labelText: 'Nueva contraseña',
+                    labelStyle: TextStyle(color: Colores.textSecondary),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colores.border)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: confirmPasswordController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colores.text),
+                  decoration: const InputDecoration(
+                    labelText: 'Confirmar nueva contraseña',
+                    labelStyle: TextStyle(color: Colores.textSecondary),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colores.border)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar', style: TextStyle(color: Colores.textSecondary)),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (currentPasswordController.text.isEmpty ||
+                    newPasswordController.text.isEmpty ||
+                    confirmPasswordController.text.isEmpty) {
+                  setDialogState(() => dialogError = 'Por favor completa todos los campos');
+                  return;
+                }
+                if (newPasswordController.text != confirmPasswordController.text) {
+                  setDialogState(() => dialogError = 'Las contraseñas nuevas no coinciden');
+                  return;
+                }
+
+                try {
+                  final prefs = await SharedPreferences.getInstance();
+                  final token = prefs.getString('access_token');
+                  final res = await http.patch(
+                    Uri.parse('${AppConfig.baseUrl}/auth/update-password'),
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': 'Bearer $token',
+                    },
+                    body: jsonEncode({
+                      'current_password': currentPasswordController.text,
+                      'new_password': newPasswordController.text,
+                    }),
+                  );
+
+                  if (res.statusCode == 200) {
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Contraseña cambiada con éxito')),
+                      );
+                    }
+                  } else {
+                    String msg = 'Error al cambiar contraseña';
+                    try {
+                      final body = jsonDecode(res.body);
+                      msg = body['detail'] ?? msg;
+                    } catch (_) {}
+                    setDialogState(() => dialogError = msg);
+                  }
+                } catch (_) {
+                  setDialogState(() => dialogError = 'Sin conexión al servidor');
+                }
+              },
+              child: const Text('Guardar', style: TextStyle(color: Colores.primary)),
+            ),
+          ],
         ),
       ),
     );
