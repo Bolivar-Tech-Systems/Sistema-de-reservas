@@ -283,7 +283,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                                           ? ClipOval(
                                               child: Image.network(
                                                 _fotoPerfilUrl!.contains('googleusercontent.com')
-                                                    ? 'https://corsproxy.io/?${Uri.encodeComponent(_fotoPerfilUrl!)}'
+                                                    ? 'https://api.allorigins.win/raw?url=${Uri.encodeComponent(_fotoPerfilUrl!)}'
                                                     : _fotoPerfilUrl!,
                                                 width: 90,
                                                 height: 90,

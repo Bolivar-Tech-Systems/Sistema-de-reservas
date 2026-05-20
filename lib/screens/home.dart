@@ -245,6 +245,57 @@ class _HomeTabState extends State<_HomeTab> {
   List<Map<String, dynamic>> _resultadosBusqueda = [];
   bool _buscando = false;
 
+  // ── Typewriter greeting ──
+  String _displayText = '';
+  String _userName = '';
+  bool _typingDone = false;
+
+  static const _phase1 = 'Hola, ¿qué tal?';
+
+  static const _charDelay = Duration(milliseconds: 60);
+  static const _eraseDelay = Duration(milliseconds: 35);
+  static const _pauseDelay = Duration(milliseconds: 700);
+
+  Future<void> _runTypewriter() async {
+    // 1. Cargar nombre del usuario
+    final prefs = await SharedPreferences.getInstance();
+    final nombre = prefs.getString('user_name') ?? '';
+    if (mounted) setState(() => _userName = nombre);
+
+    // Determine greeting phase2
+    final phase2 = nombre.isNotEmpty ? 'Hola, $nombre' : 'Hola, ¿qué tal?';
+
+    // 2. Escribir fase 1
+    for (int i = 0; i <= _phase1.length; i++) {
+      if (!mounted) return;
+      setState(() => _displayText = _phase1.substring(0, i));
+      await Future.delayed(_charDelay);
+    }
+
+    // 3. Pausa
+    await Future.delayed(_pauseDelay);
+
+    // 4. Borrar
+    for (int i = _phase1.length; i >= 0; i--) {
+      if (!mounted) return;
+      setState(() => _displayText = _phase1.substring(0, i));
+      await Future.delayed(_eraseDelay);
+    }
+
+    // 5. Pausa breve
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // 6. Escribir fase 2 (nombre real) y quedar fijo
+    for (int i = 0; i <= phase2.length; i++) {
+      if (!mounted) return;
+      setState(() => _displayText = phase2.substring(0, i));
+      await Future.delayed(_charDelay);
+    }
+
+    if (mounted) setState(() => _typingDone = true);
+  }
+  // ─────────────────────────
+
   void _onSearch(String texto) {
     if (texto.isEmpty) {
       setState(() {
@@ -269,6 +320,7 @@ class _HomeTabState extends State<_HomeTab> {
     super.initState();
     _fetchRecursos();
     _fetchReservas();
+    _runTypewriter();
   }
 
   Future<void> _fetchRecursos() async {
@@ -360,14 +412,21 @@ class _HomeTabState extends State<_HomeTab> {
             children: [
               _buildTopBar(context),
               const SizedBox(height: 18),
-              const Text(
-                'Hola, que tal! 👋',
-                style: TextStyle(
-                  color: Colores.text,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                ),
+              Row(
+                children: [
+                  Text(
+                    _displayText,
+                    style: const TextStyle(
+                      color: Colores.text,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      height: 1.0,
+                    ),
+                  ),
+                  // Cursor parpadeante mientras anima
+                  if (!_typingDone)
+                    _BlinkingCursor(),
+                ],
               ),
               const SizedBox(height: 8),
               const Text(
@@ -448,19 +507,22 @@ class _HomeTabState extends State<_HomeTab> {
               const SizedBox(height: 18),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Row(
                     children: [
-                      Text(
-                        'Disponible ahora',
-                        style: TextStyle(
-                          color: Colores.text,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
+                      GestureDetector(
+                        onTap: widget.onGoToReservas,
+                        child: const Text(
+                          'Disponible ahora',
+                          style: TextStyle(
+                            color: Colores.text,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
-                      SizedBox(width: 6),
-                      Icon(Icons.circle, size: 8, color: Colores.primary),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.circle, size: 8, color: Colores.primary),
                     ],
                   ),
                   // Filtro por horas - comentado hasta tener horarios en BD
@@ -1302,6 +1364,45 @@ class _AlertsPage extends StatelessWidget {
             fontSize: 22,
             fontWeight: FontWeight.w800,
           ),
+        ),
+      ),
+    );
+  }
+}
+class _BlinkingCursor extends StatefulWidget {
+  const _BlinkingCursor({Key? key}) : super(key: key);
+
+  @override
+  State<_BlinkingCursor> createState() => _BlinkingCursorState();
+}
+
+class _BlinkingCursorState extends State<_BlinkingCursor> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _controller,
+      child: const Text(
+        '|',
+        style: TextStyle(
+          fontSize: 26,
+          color: Colores.text,
         ),
       ),
     );
