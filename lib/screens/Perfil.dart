@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
 import 'pantalla_auth.dart';
+import 'RecursosFavoritos.dart';
 
 class PantallaPerfil extends StatefulWidget {
   const PantallaPerfil({super.key});
@@ -518,6 +519,48 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                       ),
 
                       const SizedBox(height: 12),
+// Favoritos
+SizedBox(
+  width: double.infinity,
+  height: 50,
+  child: ElevatedButton(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const PantallaFavoritos(),
+        ),
+      );
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colores.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Colores.border),
+      ),
+      elevation: 0,
+    ),
+    child: const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.favorite_border_rounded,
+          color: Colores.primary,
+          size: 18,
+        ),
+        SizedBox(width: 8),
+        Text(
+          'Mis favoritos',
+          style: TextStyle(
+            color: Colores.text,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+const SizedBox(height: 12),
 
                       // Cerrar sesión
                       SizedBox(

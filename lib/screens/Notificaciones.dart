@@ -36,31 +36,51 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
 
   IconData _icono(String tipo) {
     switch (tipo) {
-      case 'confirmada':   return Icons.check_circle_outline_rounded;
-      case 'cancelada':    return Icons.cancel_outlined;
-      case 'pendiente':    return Icons.hourglass_empty_rounded;
-      case 'disponible':   return Icons.inventory_2_outlined;
-      case 'devuelto':     return Icons.assignment_return_outlined;
-      case 'dano':         return Icons.warning_amber_rounded;
-      case 'bienvenida':   return Icons.celebration_outlined;
-      case 'perfil':       return Icons.account_circle_outlined;
-      case 'seguridad':    return Icons.lock_outline_rounded;
-      default:             return Icons.notifications_outlined;
+      case 'confirmada':
+        return Icons.check_circle_outline_rounded;
+      case 'cancelada':
+        return Icons.cancel_outlined;
+      case 'pendiente':
+        return Icons.hourglass_empty_rounded;
+      case 'disponible':
+        return Icons.inventory_2_outlined;
+      case 'devuelto':
+        return Icons.assignment_return_outlined;
+      case 'dano':
+        return Icons.warning_amber_rounded;
+      case 'bienvenida':
+        return Icons.celebration_outlined;
+      case 'perfil':
+        return Icons.account_circle_outlined;
+      case 'seguridad':
+        return Icons.lock_outline_rounded;
+      default:
+        return Icons.notifications_outlined;
     }
   }
 
   Color _color(String tipo) {
     switch (tipo) {
-      case 'confirmada':   return Colores.success;
-      case 'cancelada':    return Colores.danger;
-      case 'pendiente':    return Colores.warning;
-      case 'disponible':   return Colores.info;
-      case 'devuelto':     return Colores.primaryDark;
-      case 'dano':         return Colores.danger;
-      case 'bienvenida':   return Colores.primary;
-      case 'perfil':       return Colores.primary;
-      case 'seguridad':    return Colores.warning;
-      default:             return Colores.textSecondary;
+      case 'confirmada':
+        return Colores.success;
+      case 'cancelada':
+        return Colores.danger;
+      case 'pendiente':
+        return Colores.warning;
+      case 'disponible':
+        return Colores.info;
+      case 'devuelto':
+        return Colores.primaryDark;
+      case 'dano':
+        return Colores.danger;
+      case 'bienvenida':
+        return Colores.primary;
+      case 'perfil':
+        return Colores.primary;
+      case 'seguridad':
+        return Colores.warning;
+      default:
+        return Colores.textSecondary;
     }
   }
 
@@ -96,6 +116,24 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
                 child: Row(
                   children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colores.surfaceAlt,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colores.border),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colores.icon,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 14),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,15 +160,20 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                     ),
                     if (_idResuelto.isNotEmpty)
                       TextButton.icon(
-                        onPressed: () => _service.marcarTodasLeidas(_idResuelto),
-                        icon: const Icon(Icons.done_all_rounded,
-                            size: 16, color: Colores.primary),
+                        onPressed: () =>
+                            _service.marcarTodasLeidas(_idResuelto),
+                        icon: const Icon(
+                          Icons.done_all_rounded,
+                          size: 16,
+                          color: Colores.primary,
+                        ),
                         label: const Text(
                           'Leídas',
                           style: TextStyle(
-                              color: Colores.primary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600),
+                            color: Colores.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                   ],
@@ -141,7 +184,9 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
               Expanded(
                 child: _idResuelto.isEmpty
                     ? const Center(
-                        child: CircularProgressIndicator(color: Colores.primary),
+                        child: CircularProgressIndicator(
+                          color: Colores.primary,
+                        ),
                       )
                     : StreamBuilder<List<Notificacion>>(
                         stream: _service.getNotificaciones(_idResuelto),
@@ -149,7 +194,8 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                           if (snap.connectionState == ConnectionState.waiting) {
                             return const Center(
                               child: CircularProgressIndicator(
-                                  color: Colores.primary),
+                                color: Colores.primary,
+                              ),
                             );
                           }
 
@@ -173,19 +219,19 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                           }
 
                           // Separar leídas y no leídas
-                          final noLeidas =
-                              lista.where((n) => !n.leida).toList();
-                          final leidas =
-                              lista.where((n) => n.leida).toList();
+                          final noLeidas = lista
+                              .where((n) => !n.leida)
+                              .toList();
+                          final leidas = lista.where((n) => n.leida).toList();
 
                           return ListView(
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 0, 16, 30),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 30),
                             children: [
                               if (noLeidas.isNotEmpty) ...[
                                 _seccionHeader(
-                                    '${noLeidas.length} sin leer',
-                                    Colores.primary),
+                                  '${noLeidas.length} sin leer',
+                                  Colores.primary,
+                                ),
                                 const SizedBox(height: 8),
                                 ...noLeidas.map((n) => _buildItem(n)),
                                 const SizedBox(height: 16),
@@ -238,8 +284,11 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
           ),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 18),
-          child: const Icon(Icons.delete_outline_rounded,
-              color: Colors.white, size: 22),
+          child: const Icon(
+            Icons.delete_outline_rounded,
+            color: Colors.white,
+            size: 22,
+          ),
         ),
         onDismissed: (_) => _service.eliminarNotificacion(n.id),
         child: GestureDetector(
@@ -354,16 +403,20 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
             child: Icon(icon, color: Colores.textMuted, size: 44),
           ),
           const SizedBox(height: 16),
-          Text(titulo,
-              style: const TextStyle(
-                  color: Colores.text,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700)),
+          Text(
+            titulo,
+            style: const TextStyle(
+              color: Colores.text,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(subtitulo,
-              style: const TextStyle(
-                  color: Colores.textSecondary, fontSize: 13),
-              textAlign: TextAlign.center),
+          Text(
+            subtitulo,
+            style: const TextStyle(color: Colores.textSecondary, fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );

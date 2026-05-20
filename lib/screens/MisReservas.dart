@@ -191,44 +191,73 @@ class PantallaMisReservasState extends State<PantallaMisReservas> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 16, 0),
       child: Row(
+  children: [
+    GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colores.surfaceAlt,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colores.border),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: Colores.icon,
+          size: 18,
+        ),
+      ),
+    ),
+
+    const SizedBox(width: 14),
+
+    Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Mis Reservas',
-                  style: TextStyle(
-                    color: Colores.text,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _cargando
-                      ? 'Cargando...'
-                      : '${reservas.length} reserva${reservas.length != 1 ? 's' : ''} registradas',
-                  style: const TextStyle(color: Colores.textSecondary, fontSize: 13),
-                ),
-              ],
+          const Text(
+            'Mis Reservas',
+            style: TextStyle(
+              color: Colores.text,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
             ),
           ),
-          GestureDetector(
-            onTap: fetchMisReservas,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colores.surfaceAlt,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colores.border),
-              ),
-              child: const Icon(Icons.refresh_rounded, color: Colores.icon, size: 20),
+
+          const SizedBox(height: 2),
+
+          Text(
+            _cargando
+                ? 'Cargando...'
+                : '${reservas.length} reserva${reservas.length != 1 ? 's' : ''} registradas',
+            style: const TextStyle(
+              color: Colores.textSecondary,
+              fontSize: 13,
             ),
           ),
         ],
       ),
+    ),
+
+    GestureDetector(
+      onTap: fetchMisReservas,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colores.surfaceAlt,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colores.border),
+        ),
+        child: const Icon(
+          Icons.refresh_rounded,
+          color: Colores.icon,
+          size: 20,
+        ),
+      ),
+    ),
+  ],
+)
     );
   }
 

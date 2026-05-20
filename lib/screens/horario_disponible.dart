@@ -221,18 +221,6 @@ class _PantallaHorarioState extends State<PantallaHorario> {
       if (!mounted) return;
 
       if (res.statusCode == 200 || res.statusCode == 201) {
-        // Notificación Firestore
-        final idUsuario = widget.idUsuario.isNotEmpty
-            ? widget.idUsuario
-            : (prefs.getString('id_usuario') ?? '');
-        if (idUsuario.isNotEmpty) {
-          await NotificacionService().crearNotificacion(
-            idUsuario: idUsuario,
-            titulo: 'Reserva creada',
-            mensaje: 'Tu reserva fue registrada y está pendiente de confirmación.',
-            tipo: 'confirmada',
-          );
-        }
 
         if (!mounted) return;
         Navigator.pop(context, true);
