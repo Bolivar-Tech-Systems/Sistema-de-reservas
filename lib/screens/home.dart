@@ -584,16 +584,13 @@ class _HomeTabState extends State<_HomeTab> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colores.surface,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(
-            Icons.flash_on_rounded,
-            color: Colores.icon,
-            size: 18,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.asset(
+            'assets/images/logo_resibook.png',
+            width: 34,
+            height: 34,
+            fit: BoxFit.cover,
           ),
         ),
         const Text(
