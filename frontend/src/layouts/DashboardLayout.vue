@@ -118,8 +118,8 @@ onUnmounted(() => { if (unsubFirestore) unsubFirestore() })
       <div class="sidebar-footer">
         <div class="user-menu-wrap" style="position: relative;">
           <button class="sidebar-user" @click.stop="userMenuOpen = !userMenuOpen">
-            <img v-if="currentUser.foto_perfil" :src="currentUser.foto_perfil" class="avatar avatar-sm" style="object-fit: cover;" :alt="currentUser.name">
-            <div v-else class="avatar avatar-sm" style="background: var(--primary); color: white;">{{ currentUser.name[0]?.toUpperCase() || 'U' }}</div>
+            <img v-if="currentUser.foto_perfil && currentUser.foto_perfil !== 'null' && currentUser.foto_perfil !== 'undefined' && currentUser.foto_perfil.trim() !== ''" :src="currentUser.foto_perfil" class="avatar avatar-sm" style="object-fit: cover;" :alt="currentUser.name" @error="currentUser.foto_perfil = null">
+            <div v-else class="avatar avatar-sm" style="background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">{{ currentUser.name[0]?.toUpperCase() || 'U' }}</div>
             <span v-if="!isSidebarCollapsed" class="nav-label truncate" style="max-width: 140px; text-align: left;">{{ currentUser.name }}</span>
             <ChevronDown v-if="!isSidebarCollapsed" :size="16" style="margin-left: auto; opacity: 0.5;" />
           </button>
