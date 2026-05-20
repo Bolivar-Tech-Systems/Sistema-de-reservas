@@ -39,7 +39,7 @@ class _PantallaHomeState extends State<PantallaHome> {
 
   Future<void> fetchCategories() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/categorias/list/'),
+      Uri.parse('https://129-80-171-141.nip.io/api/categorias/list/'),
     );
 
     if (response.statusCode == 200) {
@@ -50,7 +50,7 @@ class _PantallaHomeState extends State<PantallaHome> {
             (item) => {
               'label': item['nombre'],
               'icon': Icons.abc_rounded,
-              'color': const Color(0xFF4F8CFF),
+              'color': Colores.primary,
             },
           ),
         );
@@ -73,10 +73,7 @@ class _PantallaHomeState extends State<PantallaHome> {
   ];
 
   List<Widget> get _pages => [
-    _HomeTab(
-      categories: _categories,
-      idUsuario: _idUsuario,
-    ),
+    _HomeTab(categories: _categories, idUsuario: _idUsuario),
 
     PantallaExplorarRecursos(key: _explorarKey, idUsuario: _idUsuario),
 
@@ -85,29 +82,29 @@ class _PantallaHomeState extends State<PantallaHome> {
     PantallaPerfil(),
   ];
 
-void _openCreateReserva() async {
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => PantallaCreateReserva()),
-  );
+  void _openCreateReserva() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => PantallaCreateReserva()),
+    );
 
-  if (result == true) {
-    _explorarKey.currentState?.fetchRecursos();
-    // Refresca el home también
-    setState(() {});
+    if (result == true) {
+      _explorarKey.currentState?.fetchRecursos();
+      // Refresca el home también
+      setState(() {});
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF4AA3FF);
+    const accent = Colores.primary;
 
     return Scaffold(
       backgroundColor: const Color(0xFF111417),
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
               elevation: 8,
-              backgroundColor: accent,
+              backgroundColor: Colores.background,
               onPressed: _openCreateReserva,
               child: const Icon(Icons.add, color: Colors.white, size: 30),
             )
@@ -121,10 +118,10 @@ void _openCreateReserva() async {
           });
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF12161A),
+        backgroundColor: Colores.surface,
         elevation: 0,
-        selectedItemColor: accent,
-        unselectedItemColor: const Color(0xFF758396),
+        selectedItemColor: Colores.primary,
+        unselectedItemColor: Colores.textSecondary,
         selectedFontSize: 11,
         unselectedFontSize: 11,
         iconSize: 26,
@@ -143,10 +140,7 @@ class _HomeTab extends StatefulWidget {
   final List<Map<String, dynamic>> categories;
   final String idUsuario;
 
-  const _HomeTab({
-    required this.categories,
-    required this.idUsuario,
-  });
+  const _HomeTab({required this.categories, required this.idUsuario});
 
   @override
   State<_HomeTab> createState() => _HomeTabState();
@@ -156,54 +150,60 @@ class _HomeTabState extends State<_HomeTab> {
   List<Map<String, dynamic>> _recursos = [];
   bool _cargando = true;
 
-final TextEditingController _searchController = TextEditingController();
-List<Map<String, dynamic>> _resultadosBusqueda = [];
-bool _buscando = false;
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _resultadosBusqueda = [];
+  bool _buscando = false;
 
-void _onSearch(String texto) {
-  if (texto.isEmpty) {
-    setState(() { _resultadosBusqueda = []; _buscando = false; });
-    return;
+  void _onSearch(String texto) {
+    if (texto.isEmpty) {
+      setState(() {
+        _resultadosBusqueda = [];
+        _buscando = false;
+      });
+      return;
+    }
+    setState(() {
+      _buscando = true;
+      _resultadosBusqueda = _recursos.where((r) {
+        final nombre = (r['name'] ?? r['nombre'] ?? '')
+            .toString()
+            .toLowerCase();
+        return nombre.contains(texto.toLowerCase());
+      }).toList();
+    });
   }
-  setState(() {
-    _buscando = true;
-    _resultadosBusqueda = _recursos.where((r) {
-      final nombre = (r['name'] ?? r['nombre'] ?? '').toString().toLowerCase();
-      return nombre.contains(texto.toLowerCase());
-    }).toList();
-  });
-}
+
   @override
   void initState() {
     super.initState();
     _fetchRecursos();
   }
 
-Future<void> _fetchRecursos() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access_token');
-    print('TOKEN: $token'); // ← agrega esto
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/reservas/list/'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    print('STATUS: ${response.statusCode}'); // ← agrega esto
-    print('BODY: ${response.body}'); // ← agrega esto
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      setState(() {
-        _recursos = data.map((r) => Map<String, dynamic>.from(r as Map)).toList();
-        _cargando = false;
-      });
-    } else {
+  Future<void> _fetchRecursos() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/reservas/list/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _recursos = data
+              .map((r) => Map<String, dynamic>.from(r as Map))
+              .toList();
+          _cargando = false;
+        });
+      } else {
+        setState(() => _cargando = false);
+      }
+    } catch (e) {
       setState(() => _cargando = false);
     }
-  } catch (e) {
-    print('ERROR: $e'); // ← agrega esto
-    setState(() => _cargando = false);
   }
-}
 
   List<Map<String, dynamic>> get _disponibles =>
       _recursos.where((r) => r['es_visible'] == true).toList();
@@ -224,8 +224,8 @@ Future<void> _fetchRecursos() async {
 
   @override
   Widget build(BuildContext context) {
-    const textMain = Colors.white;
-    const textSecondary = Color(0xFF94A3B8);
+    const textMain = Colores.text;
+    const textSecondary = Colores.textSecondary;
 
     return Stack(
       children: [
@@ -234,7 +234,7 @@ Future<void> _fetchRecursos() async {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFF111417), Color(0xFF0F1418), Color(0xFF111417)],
+              colors: [Colores.background, Colores.surface, Colores.background],
             ),
           ),
         ),
@@ -246,9 +246,9 @@ Future<void> _fetchRecursos() async {
               _buildTopBar(context),
               const SizedBox(height: 18),
               const Text(
-                'Hi, Resident! 👋',
+                'Hola, que tal! 👋',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colores.text,
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                   height: 1.0,
@@ -256,9 +256,9 @@ Future<void> _fetchRecursos() async {
               ),
               const SizedBox(height: 8),
               const Text(
-                'What would you like to reserve today?',
+                '¿Que te gustaria reservar el dia de hoy?',
                 style: TextStyle(
-                  color: Color(0xFF94A3B8),
+                  color: Colores.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -292,14 +292,18 @@ Future<void> _fetchRecursos() async {
               const Text(
                 'Featured Facilities',
                 style: TextStyle(
-                  color: Colors.white,
+                  color:Colores.text,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 12),
               _cargando
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF4AA3FF)))
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: (Colores.primary)
+                      ),
+                    )
                   : SizedBox(
                       height: 190,
                       child: ListView.separated(
@@ -311,9 +315,12 @@ Future<void> _fetchRecursos() async {
                           return _FeaturedCard(
                             width: 270,
                             imageUrl: r['foto_principal'] ?? '',
-                            tag: r['es_visible'] == true ? 'Disponible' : 'No disponible',
+                            tag: r['es_visible'] == true
+                                ? 'Disponible'
+                                : 'No disponible',
                             title: r['name'] ?? r['nombre'] ?? 'Recurso',
-                            subtitle: r['description'] ?? r['descripcion'] ?? '',
+                            subtitle:
+                                r['description'] ?? r['descripcion'] ?? '',
                             recursoId: r['id'] as int,
                             idUsuario: widget.idUsuario,
                           );
@@ -329,13 +336,13 @@ Future<void> _fetchRecursos() async {
                       Text(
                         'Available Now',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colores.text,
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       SizedBox(width: 6),
-                      Icon(Icons.circle, size: 8, color: Color(0xFF22C55E)),
+                      Icon(Icons.circle, size: 8, color: Colores.primary),
                     ],
                   ),
                   // Filtro por horas - comentado hasta tener horarios en BD
@@ -391,19 +398,19 @@ Future<void> _fetchRecursos() async {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: const Color(0xFF20262C),
+            color: Colores.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(
             Icons.flash_on_rounded,
-            color: Colors.white,
+            color: Colores.icon,
             size: 18,
           ),
         ),
         const Text(
           'ResiBook',
           style: TextStyle(
-            color: Colors.white,
+            color: Colores.text,
             fontSize: 15,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
@@ -419,11 +426,12 @@ Future<void> _fetchRecursos() async {
               isLabelVisible: count > 0,
               label: Text('$count'),
               child: IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.white),
+                icon: const Icon(Icons.notifications, color: Colores.icon),
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => NotificacionesScreen(idUsuario: widget.idUsuario),
+                    builder: (_) =>
+                        NotificacionesScreen(idUsuario: widget.idUsuario),
                   ),
                 ),
               ),
@@ -434,116 +442,147 @@ Future<void> _fetchRecursos() async {
     );
   }
 
-Widget _buildSearchBar() {
-  return Column(
-    children: [
-      Container(
-        height: 54,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A2026),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF232B33)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.search, color: Color(0xFF8E9BAA), size: 22),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearch,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                decoration: const InputDecoration(
-                  hintText: 'Search facilities or equipment...',
-                  hintStyle: TextStyle(color: Color(0xFF73808E), fontSize: 14),
-                  border: InputBorder.none,
+  Widget _buildSearchBar() {
+    return Column(
+      children: [
+        Container(
+          height: 54,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colores.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colores.border),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.search, color: Colores.icon, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _onSearch,
+                  style: const TextStyle(color: Colores.text, fontSize: 14),
+                  decoration: const InputDecoration(
+                    hintText: 'Buscar recursos...',
+                    hintStyle: TextStyle(
+                      color: Colores.textMuted,
+                      fontSize: 14,
+                    ),
+                    border: InputBorder.none,
+                  ),
                 ),
+              ),
+              if (_buscando)
+                GestureDetector(
+                  onTap: () {
+                    _searchController.clear();
+                    _onSearch('');
+                  },
+                  child: const Icon(
+                    Icons.close,
+                    color: Colores.icon,
+                    size: 20,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (_buscando && _resultadosBusqueda.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              color: Colores.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colores.border),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _resultadosBusqueda.length,
+              separatorBuilder: (_, __) =>
+                  const Divider(color: Colores.border, height: 1),
+              itemBuilder: (context, index) {
+                final r = _resultadosBusqueda[index];
+                final imagen = r['foto_principal'];
+                return ListTile(
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: imagen != null && imagen.isNotEmpty
+                        ? Image.network(
+                            imagen,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.image_outlined,
+                              color: Colores.icon,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.image_outlined,
+                            color: Colores.icon,
+                          ),
+                  ),
+                  title: Text(
+                    r['nombre'] ?? 'Recurso',
+                    style: const TextStyle(
+                      color: Colores.text,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: Text(
+                    r['descripcion'] ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colores.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: Colores.primaryDark,
+                  ),
+                  onTap: () async {
+                    _searchController.clear();
+                    _onSearch('');
+                    final prefs = await SharedPreferences.getInstance();
+                    final userId = prefs.getString('id_usuario');
+                    if (!context.mounted) return;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PantallaHorario(
+                          recursoId: r['id'] as int,
+                          idUsuario: userId ?? widget.idUsuario,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        if (_buscando && _resultadosBusqueda.isEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colores.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colores.border),
+            ),
+            child: const Center(
+              child: Text(
+                'No se encontraron recursos',
+                style: TextStyle(color: Colores.textSecondary, fontSize: 13),
               ),
             ),
-            if (_buscando)
-              GestureDetector(
-                onTap: () {
-                  _searchController.clear();
-                  _onSearch('');
-                },
-                child: const Icon(Icons.close, color: Color(0xFF8E9BAA), size: 20),
-              ),
-          ],
-        ),
-      ),
-      if (_buscando && _resultadosBusqueda.isNotEmpty)
-        Container(
-          margin: const EdgeInsets.only(top: 4),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A2026),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF232B33)),
           ),
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _resultadosBusqueda.length,
-            separatorBuilder: (_, __) => const Divider(color: Color(0xFF232B33), height: 1),
-            itemBuilder: (context, index) {
-              final r = _resultadosBusqueda[index];
-              final imagen = r['foto_principal'];
-              return ListTile(
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: imagen != null && imagen.isNotEmpty
-                      ? Image.network(imagen, width: 40, height: 40, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.image_outlined, color: Colors.white54))
-                      : const Icon(Icons.image_outlined, color: Colors.white54),
-                ),
-                title: Text(
-                  r['nombre'] ?? 'Recurso',
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  r['descripcion'] ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFF758396), fontSize: 12),
-                ),
-                trailing: const Icon(Icons.chevron_right, color: Color(0xFF4AA3FF)),
-                onTap: () async {
-                  _searchController.clear();
-                  _onSearch('');
-                  final prefs = await SharedPreferences.getInstance();
-                  final userId = prefs.getString('id_usuario');
-                  if (!context.mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PantallaHorario(
-                        recursoId: r['id'] as int,
-                        idUsuario: userId ?? widget.idUsuario,
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      if (_buscando && _resultadosBusqueda.isEmpty)
-        Container(
-          margin: const EdgeInsets.only(top: 4),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A2026),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF232B33)),
-          ),
-          child: const Center(
-            child: Text('No se encontraron recursos',
-                style: TextStyle(color: Color(0xFF758396), fontSize: 13)),
-          ),
-        ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   Widget _buildSectionHeader({
     required String title,
@@ -556,7 +595,7 @@ Widget _buildSearchBar() {
         Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colores.text,
             fontSize: 18,
             fontWeight: FontWeight.w800,
           ),
@@ -568,7 +607,7 @@ Widget _buildSearchBar() {
               Text(
                 actionText,
                 style: const TextStyle(
-                  color: Color(0xFF8FA3B8),
+                  color: Colores.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -576,7 +615,7 @@ Widget _buildSearchBar() {
               const SizedBox(width: 2),
               const Icon(
                 Icons.chevron_right,
-                color: Color(0xFF8FA3B8),
+                color: Colores.icon,
                 size: 20,
               ),
             ],
@@ -591,7 +630,7 @@ Widget _buildSearchBar() {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0E3552),
+        color: Colores.border,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -600,12 +639,12 @@ Widget _buildSearchBar() {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFF11486E),
+              color: Colores.border,
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
               Icons.access_time_rounded,
-              color: Color(0xFF7FC8FF),
+              color: Colores.icon,
               size: 22,
             ),
           ),
@@ -627,7 +666,7 @@ Widget _buildSearchBar() {
                 Text(
                   '3 Reservations confirmed',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Colores.text,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
@@ -636,7 +675,7 @@ Widget _buildSearchBar() {
                 Text(
                   'Next: Rooftop Pool today at 4:00 PM',
                   style: TextStyle(
-                    color: Color(0xFFC5D3E2),
+                    color: Colores.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -686,13 +725,13 @@ class _CategoryItem extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 26),
+            child: Icon(icon, color: Colores.icon, size: 26),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             style: const TextStyle(
-              color: Color(0xFFB8C4D1),
+              color: Colores.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -743,7 +782,7 @@ class _FeaturedCard extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
-          color: const Color(0xFF1B2127),
+          color: Colores.border,
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
@@ -755,18 +794,24 @@ class _FeaturedCard extends StatelessWidget {
                       imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFF2B333B),
+                        color: Colores.border,
                         child: const Center(
-                          child: Icon(Icons.image_not_supported_outlined,
-                              color: Colors.white54, size: 34),
+                          child: Icon(
+                            Icons.image_not_supported_outlined,
+                            color: Colores.textSecondary,
+                            size: 34,
+                          ),
                         ),
                       ),
                     )
                   : Container(
-                      color: const Color(0xFF2B333B),
+                      color: Colores.border,
                       child: const Center(
-                        child: Icon(Icons.image_not_supported_outlined,
-                            color: Colors.white54, size: 34),
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Colores.textSecondary,
+                          size: 34,
+                        ),
                       ),
                     ),
               Container(
@@ -786,7 +831,10 @@ class _FeaturedCard extends StatelessWidget {
                 top: 12,
                 left: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF5DA9FF),
                     borderRadius: BorderRadius.circular(999),
@@ -794,7 +842,7 @@ class _FeaturedCard extends StatelessWidget {
                   child: Text(
                     tag,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colores.text,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -813,7 +861,7 @@ class _FeaturedCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colores.text,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
@@ -824,7 +872,7 @@ class _FeaturedCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFFE6EDF5),
+                        color: Colores.text,
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
                       ),
@@ -883,9 +931,9 @@ class _AvailableCard extends StatelessWidget {
       child: Container(
         width: width,
         decoration: BoxDecoration(
-          color: const Color(0xFF191E23),
+          color: Colores.surface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF262D35)),
+          border: Border.all(color: Colores.border),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
@@ -902,18 +950,24 @@ class _AvailableCard extends StatelessWidget {
                             imageUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
-                              color: const Color(0xFF2A3138),
+                              color: Colores.border,
                               child: const Center(
-                                child: Icon(Icons.image_outlined,
-                                    color: Colors.white54, size: 32),
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  color: Colores.textSecondary,
+                                  size: 32,
+                                ),
                               ),
                             ),
                           )
                         : Container(
-                            color: const Color(0xFF2A3138),
+                            color: Colores.border,
                             child: const Center(
-                              child: Icon(Icons.image_outlined,
-                                  color: Colors.white54, size: 32),
+                              child: Icon(
+                                Icons.image_outlined,
+                                color: Colores.textSecondary,
+                                size: 32,
+                              ),
                             ),
                           ),
                     Container(
@@ -933,7 +987,10 @@ class _AvailableCard extends StatelessWidget {
                       top: 10,
                       left: 10,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: statusColor,
                           borderRadius: BorderRadius.circular(999),
@@ -941,7 +998,7 @@ class _AvailableCard extends StatelessWidget {
                         child: Text(
                           status,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colores.text,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                           ),
@@ -969,7 +1026,7 @@ class _AvailableCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colores.text,
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         height: 1.08,
@@ -979,7 +1036,7 @@ class _AvailableCard extends StatelessWidget {
                     Text(
                       capacity,
                       style: const TextStyle(
-                        color: Color(0xFF98A6B5),
+                        color: Colores.textSecondary,
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1013,7 +1070,7 @@ class _AlertsIcon extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFFF5A5F),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: const Color(0xFF12161A), width: 1.5),
+              border: Border.all(color: Colores.border, width: 1.5),
             ),
           ),
         ),
@@ -1028,12 +1085,12 @@ class _AlertsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF111417),
+      color: Colores.surface,
       child: const Center(
         child: Text(
           'Alerts',
           style: TextStyle(
-            color: Colors.white,
+            color: Colores.text,
             fontSize: 22,
             fontWeight: FontWeight.w800,
           ),
