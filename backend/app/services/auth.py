@@ -253,13 +253,21 @@ def delete_user(user_id: int, db: Session):
 def verify_google_id_token(id_token: str) -> dict:
     import urllib.request
     import json
-    url = f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
-    try:
+    
+    if id_token.startswith("ya29"):
+        url = "https://www.googleapis.com/oauth2/v3/userinfo"
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {id_token}", "User-Agent": "Mozilla/5.0"})
+    else:
+        url = f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        
+    try:
         with urllib.request.urlopen(req) as response:
             data = json.loads(response.read().decode())
             if "error_description" in data:
                 raise ValueError(data["error_description"])
+            if "error" in data:
+                raise ValueError(str(data["error"]))
             return data
     except Exception as e:
         raise ValueError(f"Error al validar el token de Google: {e}")

@@ -215,9 +215,9 @@ class _PantallaAuthState extends State<PantallaAuth> {
         return;
       }
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final String? idToken = googleAuth.idToken;
+      final String? token = googleAuth.idToken ?? googleAuth.accessToken;
       
-      if (idToken == null) {
+      if (token == null) {
         setState(() {
           _errorMessage = 'No se pudo obtener el token de Google.';
           _isLoading = false;
@@ -229,7 +229,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
         Uri.parse("${AppConfig.baseUrl}/auth/google"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'id_token': idToken,
+          'id_token': token,
         }),
       );
 
