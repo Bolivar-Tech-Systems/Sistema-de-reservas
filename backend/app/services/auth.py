@@ -105,6 +105,7 @@ def get_user_profile(current_user: User, db: Session) -> UserProfile:
         total_reservas=total_reservas,
         activas=activas,
         favoritos=favoritos,
+        role_id=current_user.role_id,
     )
 
 def update_user_profile(datos: UserUpdate, current_user: User, db: Session) -> UserProfile:

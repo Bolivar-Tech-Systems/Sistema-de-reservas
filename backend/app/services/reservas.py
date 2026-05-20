@@ -48,8 +48,11 @@ def update_recurso_service(db: Session, recurso_id: int, recurso: RecursoCreate,
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         
-def delete_recurso_service(db: Session, recurso_id: int, owner_id: int):
-    db_recurso = db.query(Recurso).filter(Recurso.id == recurso_id, Recurso.owner_id == owner_id).first()
+def delete_recurso_service(db: Session, recurso_id: int, owner_id: int, is_admin: bool = False):
+    query = db.query(Recurso).filter(Recurso.id == recurso_id)
+    if not is_admin:
+        query = query.filter(Recurso.owner_id == owner_id)
+    db_recurso = query.first()
     if not db_recurso:
         raise HTTPException(status_code=404, detail="Reserva not found")
     else:

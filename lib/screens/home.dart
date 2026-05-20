@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'CreateReservas.dart';
 import 'horario_disponible.dart';
 import 'AdminUsuarios.dart';
+import 'AdminPanel.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,7 +42,31 @@ class _PantallaHomeState extends State<PantallaHome> {
 
   Future<void> _loadRole() async {
     final prefs = await SharedPreferences.getInstance();
-    if (mounted) setState(() => _roleId = prefs.getInt('role_id') ?? 0);
+    if (mounted) {
+      setState(() {
+        _roleId = prefs.getInt('role_id') ?? 0;
+      });
+    }
+
+    try {
+      final token = prefs.getString('access_token');
+      if (token != null && token.isNotEmpty) {
+        final response = await http.get(
+          Uri.parse("${AppConfig.baseUrl}/auth/me/"),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final int backendRoleId = data['role_id'] ?? 0;
+          await prefs.setInt('role_id', backendRoleId);
+          if (mounted && backendRoleId != _roleId) {
+            setState(() {
+              _roleId = backendRoleId;
+            });
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   IconData _getIconData(String? iconName) {
@@ -103,6 +128,7 @@ class _PantallaHomeState extends State<PantallaHome> {
     _HomeTab(
       categories: _categories,
       idUsuario: _idUsuario,
+      roleId: _roleId,
       onCategorySelected: (catId) {
         setState(() {
           _currentIndex = 1;
@@ -177,11 +203,13 @@ class _HomeTab extends StatefulWidget {
   final List<Map<String, dynamic>> categories;
   final String idUsuario;
   final Function(int?) onCategorySelected;
+  final int roleId;
 
   const _HomeTab({
     required this.categories,
     required this.idUsuario,
     required this.onCategorySelected,
+    required this.roleId,
   });
 
   @override
@@ -434,73 +462,68 @@ class _HomeTabState extends State<_HomeTab> {
   }
 
   Widget _buildTopBar(BuildContext context) {
-    return FutureBuilder<int>(
-      future: SharedPreferences.getInstance().then((p) => p.getInt('role_id') ?? 0),
-      builder: (context, snap) {
-        final isAdmin = (snap.data ?? 0) == 1;
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final isAdmin = widget.roleId == 1;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colores.surface,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(
+            Icons.flash_on_rounded,
+            color: Colores.icon,
+            size: 18,
+          ),
+        ),
+        const Text(
+          'ResiBook',
+          style: TextStyle(
+            color: Colores.text,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colores.surface,
-                borderRadius: BorderRadius.circular(10),
+            if (isAdmin)
+              IconButton(
+                icon: const Icon(Icons.admin_panel_settings_outlined, color: Colores.primary),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PantallaAdminPanel()),
+                ),
+                tooltip: 'Panel administrativo',
               ),
-              child: const Icon(
-                Icons.flash_on_rounded,
-                color: Colores.icon,
-                size: 18,
-              ),
-            ),
-            const Text(
-              'ResiBook',
-              style: TextStyle(
-                color: Colores.text,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isAdmin)
-                  IconButton(
-                    icon: const Icon(Icons.admin_panel_settings_outlined, color: Colores.primary),
+            StreamBuilder<int>(
+              stream: widget.idUsuario.isEmpty
+                  ? const Stream.empty()
+                  : NotificacionService().contarNoLeidas(widget.idUsuario),
+              builder: (context, snap) {
+                final count = snap.data ?? 0;
+                return Badge(
+                  isLabelVisible: count > 0,
+                  label: Text('$count'),
+                  child: IconButton(
+                    icon: const Icon(Icons.notifications, color: Colores.icon),
                     onPressed: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const PantallaAdminUsuarios()),
-                    ),
-                    tooltip: 'Gestión de usuarios',
-                  ),
-                StreamBuilder<int>(
-                  stream: widget.idUsuario.isEmpty
-                      ? const Stream.empty()
-                      : NotificacionService().contarNoLeidas(widget.idUsuario),
-                  builder: (context, snap) {
-                    final count = snap.data ?? 0;
-                    return Badge(
-                      isLabelVisible: count > 0,
-                      label: Text('$count'),
-                      child: IconButton(
-                        icon: const Icon(Icons.notifications, color: Colores.icon),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                NotificacionesScreen(idUsuario: widget.idUsuario),
-                          ),
-                        ),
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            NotificacionesScreen(idUsuario: widget.idUsuario),
                       ),
-                    );
-                  },
-                ),
-              ],
+                    ),
+                  ),
+                );
+              },
             ),
           ],
-        );
-      },
+        ),
+      ],
     );
   }
 

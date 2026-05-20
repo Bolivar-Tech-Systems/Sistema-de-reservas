@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.categoria import CategoriaCreate, CategoriaResponse
@@ -10,6 +10,8 @@ router = APIRouter(prefix="/categorias", tags=["Categorias"])
 
 @router.post("/", response_model=CategoriaResponse)
 def create_categoria(categoria: CategoriaCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role_id != 1:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Únicamente los administradores pueden crear categorías.")
     return create_categoria_service(db, categoria, current_user.id)
 
 @router.get("/list/", response_model=list[CategoriaResponse])
@@ -18,6 +20,8 @@ def list_categorias(db: Session = Depends(get_db)):
 
 @router.put("/{categoria_id}", response_model=CategoriaResponse)
 def update_categoria(categoria_id: int, categoria: CategoriaCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role_id != 1:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Únicamente los administradores pueden modificar categorías.")
     return update_categoria_service(db, categoria_id, categoria, current_user.id)
 
 @router.get("/{categoria_id}", response_model=CategoriaResponse)
@@ -26,4 +30,6 @@ def show_categoria(categoria_id: int, db: Session = Depends(get_db), ):
 
 @router.delete("/{categoria_id}")
 def delete_categoria(categoria_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role_id != 1:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Únicamente los administradores pueden eliminar categorías.")
     return delete_categoria_service(db, categoria_id, current_user.id)
