@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip } from 'chart.js'
@@ -19,7 +19,7 @@ const GetReservas = async () => {
     return
   }
 
-  try{
+  try {
     const response = await fetch('https://129-80-171-141.nip.io/api/reservas/list/', {
       method: 'GET',
       headers: {
@@ -29,7 +29,7 @@ const GetReservas = async () => {
     })
     const data = await response.json()
     reservasList.value = Array.isArray(data) ? data : []
-  }catch(error){
+  } catch (error) {
     console.error("Error obteniendo reservas", error)
   }
 }
@@ -61,13 +61,21 @@ const chartData = computed(() => {
     datasets: [{
       data: amounts,
       borderColor: '#00DC82',
-      backgroundColor: 'rgba(0, 220, 130, 0.08)',
+      backgroundColor: (context) => {
+        const bgColor = 'rgba(0, 220, 130, 0.08)'
+        return bgColor
+      },
       fill: true,
       tension: 0.4,
-      pointRadius: 0,
-      pointHoverRadius: 5,
+      pointRadius: 4,
+      pointBackgroundColor: '#0f172a',
+      pointBorderColor: '#00DC82',
+      pointBorderWidth: 2,
+      pointHoverRadius: 6,
       pointHoverBackgroundColor: '#00DC82',
-      borderWidth: 2,
+      pointHoverBorderColor: '#fff',
+      pointHoverBorderWidth: 2,
+      borderWidth: 3,
     }]
   }
 })
@@ -80,23 +88,92 @@ const total = computed(() => {
 const formatNumber = (num) => new Intl.NumberFormat('es-CO').format(num)
 
 const chartOptions = {
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { display: false }, tooltip: { backgroundColor: '#171717', titleFont: { size: 12 }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 8, callbacks: { label: (ctx) => ` ${ctx.raw.toLocaleString('es-CO')} reservas` } } },
-  scales: { x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#a3a3a3', maxTicksLimit: 8 }, border: { display: false } }, y: { display: false } },
+  responsive: true, 
+  maintainAspectRatio: false,
+  plugins: { 
+    legend: { display: false }, 
+    tooltip: { 
+      backgroundColor: '#0f172a', 
+      titleFont: { size: 12, weight: 'bold' }, 
+      bodyFont: { size: 12 }, 
+      padding: 12, 
+      cornerRadius: 12, 
+      borderColor: '#1e293b',
+      borderWidth: 1,
+      callbacks: { label: (ctx) => ` ${ctx.raw.toLocaleString('es-CO')} reservas` } 
+    } 
+  },
+  scales: { 
+    x: { 
+      grid: { display: false }, 
+      ticks: { font: { size: 11, weight: '500' }, color: '#64748b', maxTicksLimit: 10 }, 
+      border: { display: false } 
+    }, 
+    y: { 
+      grid: { color: 'rgba(255, 255, 255, 0.03)', drawTicks: false }, 
+      ticks: { font: { size: 11, weight: '500' }, color: '#64748b', precision: 0 },
+      border: { display: false }
+    } 
+  },
   interaction: { intersect: false, mode: 'index' },
 }
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-header">
-      <p class="text-xs text-muted" style="text-transform: uppercase; margin-bottom: 4px;">Reservas</p>
-      <p style="font-size: 1.75rem; font-weight: 600;">{{ formatNumber(total) }}</p>
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <p class="chart-subtitle">Resumen de Reservas</p>
+        <p class="chart-title">{{ formatNumber(total) }}</p>
+      </div>
+      <div class="glow-dot"></div>
     </div>
-    <div class="card-body" style="padding-top: 0;">
+    <div class="chart-body">
       <div style="height: 320px;">
         <Line :data="chartData" :options="chartOptions" />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.chart-card { 
+  background: #0f172a; 
+  border: 1px solid #1e293b; 
+  border-radius: 16px; 
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.chart-title { 
+  font-size: 2.25rem; 
+  font-weight: 700; 
+  color: #f8fafc;
+  line-height: 1;
+  margin-top: 4px;
+}
+.chart-subtitle { 
+  font-size: 0.8125rem; 
+  font-weight: 600; 
+  text-transform: uppercase; 
+  color: #94a3b8; 
+  letter-spacing: 0.05em; 
+}
+.glow-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #00DC82;
+  box-shadow: 0 0 10px #00DC82, 0 0 20px #00DC82;
+}
+.chart-body {
+  position: relative;
+}
+</style>

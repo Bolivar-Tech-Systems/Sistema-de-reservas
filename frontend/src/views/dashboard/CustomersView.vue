@@ -151,7 +151,8 @@ function closeMenus(e) { if (!e.target.closest('.row-actions')) actionMenu.value
             <td>{{ c.id }}</td>
             <td>
               <div class="flex items-center gap-3">
-                <div class="avatar avatar-md" style="background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                <img v-if="c.foto_perfil && c.foto_perfil !== 'null' && c.foto_perfil !== 'undefined' && c.foto_perfil.trim() !== ''" :src="c.foto_perfil" class="avatar avatar-md" :alt="c.nombre || c.name" style="object-fit: cover;" @error="c.foto_perfil = null">
+                <div v-else class="avatar avatar-md" style="background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
                   {{ (c.nombre || c.name || '?')[0].toUpperCase() }}
                 </div>
                 <div><p class="font-medium">{{ c.nombre || c.name }}</p></div>

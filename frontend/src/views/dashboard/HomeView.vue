@@ -3,6 +3,8 @@ import { ref, shallowRef } from 'vue'
 import { sub } from 'date-fns'
 import HomeStats from '@/components/dashboard/home/HomeStats.vue'
 import HomeChart from '@/components/dashboard/home/HomeChart.vue'
+import HomeResourceChart from '@/components/dashboard/home/HomeResourceChart.vue'
+import HomeRoleChart from '@/components/dashboard/home/HomeRoleChart.vue'
 import HomeSales from '@/components/dashboard/home/HomeSales.vue'
 import HomeDateRangePicker from '@/components/dashboard/home/HomeDateRangePicker.vue'
 import HomePeriodSelect from '@/components/dashboard/home/HomePeriodSelect.vue'
@@ -21,6 +23,13 @@ const period = ref('daily')
     <div class="flex flex-col gap-6">
       <HomeStats :period="period" :range="range" />
       <HomeChart :period="period" :range="range" />
+      
+      <!-- New Secondary Analytics Grid -->
+      <div class="analytics-grid">
+        <HomeResourceChart :period="period" :range="range" />
+        <HomeRoleChart :period="period" :range="range" />
+      </div>
+
       <HomeSales :period="period" :range="range" />
     </div>
   </div>
@@ -28,4 +37,17 @@ const period = ref('daily')
 
 <style scoped>
 .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

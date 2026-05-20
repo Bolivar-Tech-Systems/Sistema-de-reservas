@@ -119,13 +119,13 @@ const formatJson = (jsonStr) => {
     </div>
 
     <!-- Barra de herramientas y Filtros -->
-    <div class="flex flex-wrap items-center justify-between gap-3" style="margin-bottom: 24px; background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-      <div class="input-with-icon" style="flex-grow: 1; max-width: 400px;">
+    <div class="flex flex-wrap items-center justify-between gap-3" style="margin-bottom: 16px; background: var(--bg-soft); padding: 8px 16px; border-radius: 8px; width: 100%;">
+      <div class="input-with-icon" style="flex: 1; max-width: 380px; min-width: 200px;">
         <Search />
         <input v-model="search" class="input" placeholder="Buscar por ruta o IP..." style="border: none; background: transparent; box-shadow: none;">
       </div>
       
-      <div class="flex gap-2" style="display: flex; gap: 8px;">
+      <div style="display: flex; gap: 8px;">
         <select v-model="methodFilter" class="select" style="min-width: 150px;">
           <option value="all">Todos los Métodos</option>
           <option value="GET">GET</option>

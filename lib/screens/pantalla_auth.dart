@@ -44,6 +44,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
           final body = jsonDecode(res.body);
           await prefs.setString('id_usuario', body['id'].toString());
           await prefs.setInt('role_id', body['role_id'] ?? 0);
+          await prefs.setString('user_name', body['name'] ?? body['nombre'] ?? '');
           
           if (mounted) {
             Navigator.of(context).pushReplacement(
@@ -116,6 +117,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
         await prefs.setString('access_token', body['access_token']);
         await prefs.setString('id_usuario', body['id'].toString());
         await prefs.setInt('role_id', body['role_id'] ?? 0);
+        await prefs.setString('user_name', body['name'] ?? body['nombre'] ?? '');
         navigator.pushReplacement(
           MaterialPageRoute(builder: (_) => PantallaHome(idUsuario: body['id'].toString())),
         );
@@ -239,6 +241,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
         await prefs.setString('access_token', body['access_token']);
         await prefs.setString('id_usuario', body['id'].toString());
         await prefs.setInt('role_id', body['role_id'] ?? 0);
+        await prefs.setString('user_name', body['name'] ?? '');
         navigator.pushReplacement(
           MaterialPageRoute(builder: (_) => PantallaHome(idUsuario: body['id'].toString())),
         );
