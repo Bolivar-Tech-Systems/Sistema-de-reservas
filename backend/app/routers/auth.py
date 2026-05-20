@@ -6,7 +6,7 @@ from typing import List
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse, ForgetPasswordRequest, ResetForgottenPassword, SuccessMessage, UserProfile, UserUpdate, UpdatePasswordRequest, GoogleLoginRequest
-from app.schemas.token import Token
+from app.schemas.token import Token, GoogleToken
 from app.services.auth import (
     create_user, login_user, logout_user, get_user_profile, update_user_profile, delete_user,
     verify_google_id_token, login_or_register_social_user
@@ -112,16 +112,17 @@ async def delete_user_route(user_id: int, current_user: User = Depends(get_curre
     return delete_user(user_id, db)
 
 
-@router.post("/google", response_model=Token)
+@router.post("/google", response_model=GoogleToken)
 def google_login(req_data: GoogleLoginRequest, db: Session = Depends(get_db)):
     try:
         payload = verify_google_id_token(req_data.id_token)
         email = payload.get("email")
         name = payload.get("name")
         picture = payload.get("picture")
+        phone = payload.get("phone_number") or payload.get("phone")
         if not email:
             raise HTTPException(status_code=400, detail="El token de Google no contiene email")
-        return login_or_register_social_user(db, email=email, name=name, profile_pic=picture)
+        return login_or_register_social_user(db, email=email, name=name, profile_pic=picture, phone=phone)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
