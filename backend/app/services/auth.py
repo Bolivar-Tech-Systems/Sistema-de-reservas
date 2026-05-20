@@ -266,7 +266,7 @@ def verify_google_id_token(id_token: str) -> dict:
 
 
 
-def login_or_register_social_user(db: Session, email: str, name: str, profile_pic: str | None = None):
+def login_or_register_social_user(db: Session, email: str, name: str, profile_pic: str | None = None, phone: str | None = None):
     db_user = db.query(User).filter(User.email == email).first()
     if not db_user:
         try:
@@ -275,6 +275,7 @@ def login_or_register_social_user(db: Session, email: str, name: str, profile_pi
                 email=email,
                 password=None,
                 foto_perfil=profile_pic,
+                telefono=phone,
                 role_id=2,
             )
             db.add(db_user)
@@ -293,6 +294,21 @@ def login_or_register_social_user(db: Session, email: str, name: str, profile_pi
         except Exception as e:
             db.rollback()
             raise HTTPException(status_code=500, detail=f"Error al registrar usuario social: {str(e)}")
+    else:
+        # Si el usuario ya existe pero no tiene foto o teléfono, los actualizamos
+        updated = False
+        if not db_user.foto_perfil and profile_pic:
+            db_user.foto_perfil = profile_pic
+            updated = True
+        if not db_user.telefono and phone:
+            db_user.telefono = phone
+            updated = True
+        if updated:
+            try:
+                db.commit()
+                db.refresh(db_user)
+            except Exception:
+                db.rollback()
             
     access_token = create_access_token(data={"sub": db_user.email})
     return {
@@ -302,5 +318,7 @@ def login_or_register_social_user(db: Session, email: str, name: str, profile_pi
         "name": db_user.nombre,
         "email": db_user.email,
         "role_id": db_user.role_id,
+        "foto_perfil": db_user.foto_perfil,
+        "telefono": db_user.telefono,
     }
 
