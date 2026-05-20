@@ -93,7 +93,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
               // Title
               const Text(
-                'Welcome Back',
+                'Bienvenido de nuevo',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -103,7 +103,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Sign in to manage your building resources',
+                'Inicia sesión para gestionar los recursos del edificio',
                 style: TextStyle(fontSize: 13, color: Colores.textSecondary),
               ),
               const SizedBox(height: 28),
@@ -128,7 +128,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                         ),
                         alignment: Alignment.center,
                         child: const Text(
-                          'Log In',
+                          'Iniciar sesión',
                           style: TextStyle(
                             color: Colores.text,
                             fontWeight: FontWeight.w600,
@@ -152,7 +152,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           alignment: Alignment.center,
                           child: const Text(
-                            'Sign Up',
+                            'Registrarse',
                             style: TextStyle(
                               color: Colores.textSecondary,
                               fontWeight: FontWeight.w500,
@@ -168,11 +168,11 @@ class _PantallaLoginState extends State<PantallaLogin> {
               const SizedBox(height: 28),
 
               // Email
-              _buildLabel('Email Address'),
+              _buildLabel('Correo electrónico'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: textController,
-                hint: 'name@building.com',
+                hint: 'nombre@edificio.com',
                 icon: Icons.mail_outline,
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -182,7 +182,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildLabel('Password'),
+                  _buildLabel('Contraseña'),
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -191,7 +191,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                       );
                     },
                     child: const Text(
-                      'Forgot Password?',
+                      '¿Olvidaste tu contraseña?',
                       style: TextStyle(
                         color: Colores.primary,
                         fontSize: 13,
@@ -237,7 +237,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Sign In',
+                              'Iniciar sesión',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -259,7 +259,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
-                      'OR CONTINUE WITH',
+                      'O CONTINUAR CON',
                       style: TextStyle(
                         color: Colores.textMuted,
                         fontSize: 11,
@@ -298,7 +298,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
               const SizedBox(height: 32),
 
               const Text(
-                'By signing in, you agree to our automated booking\nmanagement guidelines for building residents.',
+                'Al iniciar sesión, aceptas nuestras pautas automatizadas\nde gestión de reservas para residentes del edificio.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colores.textMuted,

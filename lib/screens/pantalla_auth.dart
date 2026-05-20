@@ -59,8 +59,10 @@ class _PantallaAuthState extends State<PantallaAuth> {
         final body = jsonDecode(result.body);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('access_token', body['access_token']);
+        await prefs.setString('id_usuario', body['id'].toString());
+        await prefs.setInt('role_id', body['role_id'] ?? 0);
         navigator.pushReplacement(
-          MaterialPageRoute(builder: (_) =>  PantallaHome(idUsuario: body['id'].toString())),
+          MaterialPageRoute(builder: (_) => PantallaHome(idUsuario: body['id'].toString())),
         );
       } else if (result.statusCode == 400) {
         setState(() => _errorMessage = 'Correo o contraseña incorrectos');
@@ -193,7 +195,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
                 // ── Título ─────────────────────────────────────────
                 const Center(
                   child: Text(
-                    'Welcome Back',
+                    'Bienvenido de nuevo',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -205,7 +207,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
                 const SizedBox(height: 6),
                 const Center(
                   child: Text(
-                    'Sign in to manage your building resources',
+                    'Inicia sesión para gestionar los recursos del edificio',
                     style: TextStyle(fontSize: 13.5, color: Color(0xFF8B949E)),
                   ),
                 ),
@@ -221,8 +223,8 @@ class _PantallaAuthState extends State<PantallaAuth> {
                   ),
                   child: Row(
                     children: [
-                      _buildTab('Log In', _isLogin, () => _switchTab(true)),
-                      _buildTab('Sign Up', !_isLogin, () => _switchTab(false)),
+                      _buildTab('Iniciar sesión', _isLogin, () => _switchTab(true)),
+                      _buildTab('Registrarse', !_isLogin, () => _switchTab(false)),
                     ],
                   ),
                 ),
@@ -230,7 +232,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
 
                 // ── Campos de registro extra ───────────────────────
                 if (!_isLogin) ...[
-                  _label('Full Name'),
+                  _label('Nombre completo'),
                   const SizedBox(height: 8),
                   _inputField(
                     controller: _nameController,
@@ -243,11 +245,11 @@ class _PantallaAuthState extends State<PantallaAuth> {
                 ],
 
                 // ── Email ──────────────────────────────────────────
-                _label('Email Address'),
+                _label('Correo electrónico'),
                 const SizedBox(height: 8),
                 _inputField(
                   controller: _emailController,
-                  hint: 'name@building.com',
+                  hint: 'nombre@edificio.com',
                   icon: Icons.mail_outline_rounded,
                   keyboardType: TextInputType.emailAddress,
                   inputBg: inputBg,
@@ -259,7 +261,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _label('Password'),
+                    _label('Contraseña'),
                     if (_isLogin)
                       GestureDetector(
                         onTap: () => Navigator.push(
@@ -267,7 +269,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
                           MaterialPageRoute(builder: (_) => ResetPwd()),
                         ),
                         child: const Text(
-                          'Forgot Password?',
+                          '¿Olvidaste tu contraseña?',
                           style: TextStyle(
                             color: Color(0xFF6E8EFB),
                             fontSize: 13,
@@ -290,7 +292,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
                 // ── Confirm password (solo registro) ───────────────
                 if (!_isLogin) ...[
                   const SizedBox(height: 20),
-                  _label('Confirm Password'),
+                  _label('Confirmar contraseña'),
                   const SizedBox(height: 8),
                   _inputField(
                     controller: _passwordConfirmController,
@@ -332,14 +334,14 @@ class _PantallaAuthState extends State<PantallaAuth> {
                         ),
                         const SizedBox(width: 10),
                         const Text(
-                          'I agree to the ',
+                          'Acepto los ',
                           style: TextStyle(
                             color: Color(0xFF8B949E),
                             fontSize: 13,
                           ),
                         ),
                         const Text(
-                          'Terms & Conditions',
+                          'Términos y condiciones',
                           style: TextStyle(
                             color: Color(0xFF6E8EFB),
                             fontSize: 13,
@@ -417,7 +419,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                _isLogin ? 'Sign In' : 'Create Account',
+                                _isLogin ? 'Iniciar sesión' : 'Crear cuenta',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -441,7 +443,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 14),
                       child: Text(
-                        'OR CONTINUE WITH',
+                        'O CONTINUAR CON',
                         style: TextStyle(
                           color: Color(0xFF484F58),
                           fontSize: 11,
@@ -491,8 +493,8 @@ class _PantallaAuthState extends State<PantallaAuth> {
                 Center(
                   child: Text(
                     _isLogin
-                        ? 'By signing in, you agree to our automated booking\nmanagement guidelines for building residents.'
-                        : 'By signing up, you agree to our automated booking\nmanagement guidelines for building residents.',
+                        ? 'Al iniciar sesión, aceptas nuestras pautas automatizadas\nde gestión de reservas para residentes del edificio.'
+                        : 'Al registrarte, aceptas nuestras pautas automatizadas\nde gestión de reservas para residentes del edificio.',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Color(0xFF484F58),

@@ -115,7 +115,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
 
               // Title
               const Text(
-                'Create Account',
+                'Crear cuenta',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -125,7 +125,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Register to manage your building resources',
+                'Regístrate para gestionar los recursos del edificio',
                 style: TextStyle(fontSize: 13, color: Colores.textSecondary),
               ),
               const SizedBox(height: 28),
@@ -148,7 +148,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           alignment: Alignment.center,
                           child: const Text(
-                            'Log In',
+                            'Iniciar sesión',
                             style: TextStyle(
                               color: Colores.textSecondary,
                               fontWeight: FontWeight.w500,
@@ -168,7 +168,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                         ),
                         alignment: Alignment.center,
                         child: const Text(
-                          'Sign Up',
+                          'Registrarse',
                           style: TextStyle(
                             color: Colores.text,
                             fontWeight: FontWeight.w600,
@@ -183,7 +183,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               const SizedBox(height: 28),
 
               // Name
-              _buildLabel('Full Name'),
+              _buildLabel('Nombre completo'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: nameController,
@@ -193,18 +193,18 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               const SizedBox(height: 18),
 
               // Email
-              _buildLabel('Email Address'),
+              _buildLabel('Correo electrónico'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: emailController,
-                hint: 'name@building.com',
+                hint: 'nombre@edificio.com',
                 icon: Icons.mail_outline,
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 18),
 
               // Password
-              _buildLabel('Password'),
+              _buildLabel('Contraseña'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: passwordController,
@@ -215,7 +215,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               const SizedBox(height: 18),
 
               // Confirm password
-              _buildLabel('Confirm Password'),
+              _buildLabel('Confirmar contraseña'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: passwordConfirmController,
@@ -254,14 +254,14 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                     ),
                     const SizedBox(width: 10),
                     const Text(
-                      'I agree to the ',
+                      'Acepto los ',
                       style: TextStyle(
                         color: Colores.textSecondary,
                         fontSize: 13,
                       ),
                     ),
                     const Text(
-                      'Terms & Conditions',
+                      'Términos y condiciones',
                       style: TextStyle(
                         color: Colores.primary,
                         fontSize: 13,
@@ -336,7 +336,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Create Account',
+                              'Crear cuenta',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -358,7 +358,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
-                      'OR CONTINUE WITH',
+                      'O CONTINUAR CON',
                       style: TextStyle(
                         color: Colores.textMuted,
                         fontSize: 11,
@@ -397,7 +397,7 @@ class _PantallaRegistrarState extends State<PantallaRegistrar> {
               const SizedBox(height: 32),
 
               const Text(
-                'By signing up, you agree to our automated booking\nmanagement guidelines for building residents.',
+                'Al registrarte, aceptas nuestras pautas automatizadas\nde gestión de reservas para residentes del edificio.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colores.textMuted,

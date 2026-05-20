@@ -29,6 +29,7 @@ class _PantallaHomeState extends State<PantallaHome> {
   List<Map<String, dynamic>> _categories = [];
 
   final GlobalKey<PantallaExplorarRecursosState> _explorarKey = GlobalKey();
+  final GlobalKey<PantallaMisReservasState> _misReservasKey = GlobalKey();
 
   @override
   void initState() {
@@ -60,16 +61,16 @@ class _PantallaHomeState extends State<PantallaHome> {
 
   final List<Map<String, dynamic>> _featuredFacilities = const [
     {
-      'title': 'Rooftop Infinity Pool',
-      'subtitle': 'Heated salt-water pool with skyline views',
-      'tag': 'Trending',
+      'title': 'Piscina infinita en la azotea',
+      'subtitle': 'Piscina de agua salada templada con vista al horizonte',
+      'tag': 'Tendencia',
       'image':
           'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
     },
     {
-      'title': 'Zen Yoga Studio',
-      'subtitle': 'Peaceful space for mind and body',
-      'tag': 'New',
+      'title': 'Estudio de Yoga Zen',
+      'subtitle': 'Espacio pacífico para mente y cuerpo',
+      'tag': 'Nuevo',
       'image':
           'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80',
     },
@@ -77,19 +78,19 @@ class _PantallaHomeState extends State<PantallaHome> {
 
   final List<Map<String, dynamic>> _availableNow = const [
     {
-      'label': 'GYM',
-      'title': 'Main Fitness\nCenter',
-      'capacity': 'Capacity: 25 People',
-      'status': 'AVAILABLE',
+      'label': 'GIMNASIO',
+      'title': 'Gimnasio\nPrincipal',
+      'capacity': 'Capacidad: 25 personas',
+      'status': 'DISPONIBLE',
       'image':
           'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80',
       'statusColor': Color(0xFF22C55E),
     },
     {
-      'label': 'MEETING',
-      'title': 'Conference\nRoom B',
-      'capacity': 'Capacity: 8 People',
-      'status': 'BUSY',
+      'label': 'REUNIONES',
+      'title': 'Sala de\nConferencias B',
+      'capacity': 'Capacidad: 8 personas',
+      'status': 'OCUPADO',
       'image':
           'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80',
       'statusColor': Color(0xFFFF5A5F),
@@ -97,17 +98,17 @@ class _PantallaHomeState extends State<PantallaHome> {
   ];
 
   final List<BottomNavigationBarItem> _navItems = const [
-    BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+    BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Inicio'),
     BottomNavigationBarItem(
       icon: Icon(Icons.explore_outlined),
-      label: 'Explore',
+      label: 'Explorar',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.calendar_month_outlined),
-      label: 'Bookings',
+      label: 'Reservas',
     ),
-    BottomNavigationBarItem(icon: _AlertsIcon(), label: 'Alerts'),
-    BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+    BottomNavigationBarItem(icon: _AlertsIcon(), label: 'Alertas'),
+    BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
   ];
 
   List<Widget> get _pages => [
@@ -120,7 +121,7 @@ class _PantallaHomeState extends State<PantallaHome> {
 
     PantallaExplorarRecursos(key: _explorarKey, idUsuario: _idUsuario),
 
-    PantallaMisReservas(),
+    PantallaMisReservas(key: _misReservasKey),
     NotificacionesScreen(idUsuario: _idUsuario),
     PantallaPerfil(),
   ];
@@ -159,6 +160,9 @@ class _PantallaHomeState extends State<PantallaHome> {
           setState(() {
             _currentIndex = index;
           });
+          if (index == 2) {
+            _misReservasKey.currentState?.fetchMisReservas();
+          }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF12161A),
@@ -216,7 +220,7 @@ class _HomeTab extends StatelessWidget {
               _buildTopBar(context),
               const SizedBox(height: 18),
               const Text(
-                'Hi, Resident! 👋',
+                '¡Hola, Residente! 👋',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 26,
@@ -226,7 +230,7 @@ class _HomeTab extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'What would you like to reserve today?',
+                '¿Qué te gustaría reservar hoy?',
                 style: TextStyle(
                   color: Color(0xFF94A3B8),
                   fontSize: 14,
@@ -237,8 +241,8 @@ class _HomeTab extends StatelessWidget {
               _buildSearchBar(),
               const SizedBox(height: 18),
               _buildSectionHeader(
-                title: 'Categories',
-                actionText: 'See All',
+                title: 'Categorías',
+                actionText: 'Ver todo',
                 onTap: () {},
               ),
               const SizedBox(height: 14),
@@ -260,7 +264,7 @@ class _HomeTab extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               const Text(
-                'Featured Facilities',
+                'Instalaciones destacadas',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -293,7 +297,7 @@ class _HomeTab extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Available Now',
+                        'Disponible ahora',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -305,7 +309,7 @@ class _HomeTab extends StatelessWidget {
                     ],
                   ),
                   Text(
-                    'Filter',
+                    'Filtrar',
                     style: TextStyle(
                       color: Color(0xFF94A3B8),
                       fontSize: 13,
@@ -410,7 +414,7 @@ class _HomeTab extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Search facilities or equipment...',
+              'Buscar instalaciones o equipos...',
               style: TextStyle(
                 color: Color(0xFF73808E),
                 fontSize: 14,
@@ -494,7 +498,7 @@ class _HomeTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'YOUR WEEK',
+                  'TU SEMANA',
                   style: TextStyle(
                     color: Color(0xFF7FC8FF),
                     fontSize: 11,
@@ -504,7 +508,7 @@ class _HomeTab extends StatelessWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  '3 Reservations confirmed',
+                  '3 Reservas confirmadas',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -513,7 +517,7 @@ class _HomeTab extends StatelessWidget {
                 ),
                 SizedBox(height: 3),
                 Text(
-                  'Next: Rooftop Pool today at 4:00 PM',
+                  'Siguiente: Piscina hoy a las 4:00 PM',
                   style: TextStyle(
                     color: Color(0xFFC5D3E2),
                     fontSize: 12,
@@ -870,7 +874,7 @@ class _AlertsPage extends StatelessWidget {
       color: const Color(0xFF111417),
       child: const Center(
         child: Text(
-          'Alerts',
+          'Alertas',
           style: TextStyle(
             color: Colors.white,
             fontSize: 22,

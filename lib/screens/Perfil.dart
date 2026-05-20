@@ -1,7 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -62,9 +59,11 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
       }
     } catch (e) {
       setState(() => _cargando = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("No se pudo conectar al servidor")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No se pudo conectar al servidor")),
+        );
+      }
     }
   }
 
@@ -113,17 +112,19 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
           if (usuario != null) usuario!['foto_perfil'] = _fotoPerfilUrl;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Foto de perfil actualizada")),
+          const SnackBar(content: Text("Foto de perfil actualizada")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error al subir foto: ${response.statusCode}")),
+          SnackBar(
+            content: Text("Error al subir foto: ${response.statusCode}"),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error de conexión al subir foto")),
+          const SnackBar(content: Text("Error de conexión al subir foto")),
         );
       }
     } finally {
@@ -166,7 +167,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
           _cargando = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Perfil actualizado correctamente")),
+          const SnackBar(content: Text("Perfil actualizado correctamente")),
         );
       } else {
         setState(() {
@@ -182,334 +183,393 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
     }
   }
 
-  Widget _statCard(String valor, String label, IconData icono) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colores.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colores.border),
-      ),
-      child: Column(
-        children: [
-          Icon(icono, color: Colores.primary, size: 22),
-          SizedBox(height: 6),
-          Text(
-            valor,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colores.text,
-            ),
-          ),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: Colores.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colores.background,
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
             colors: [Colores.background, Colors.black],
           ),
         ),
-        padding: EdgeInsets.only(left: 10, right: 20),
-        child: _cargando
-            ? Center(child: CircularProgressIndicator(color: Colores.primary))
-            : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 30),
-
-                    // Header
-                    Row(
-                      children: [
-                        Text(
-                          "Mi Perfil",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colores.text,
-                          ),
-                        ),
-                        Spacer(),
-                        IconButton(
-                          onPressed: () =>
-                              setState(() => _editando = !_editando),
-                          icon: Icon(
-                            _editando ? Icons.close : Icons.edit_outlined,
-                          ),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colores.surface,
-                            foregroundColor: _editando
-                                ? Colores.danger
-                                : Colores.icon,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 30),
-
-                    // Avatar y nombre
-                    Center(
-                      child: Column(
+        child: SafeArea(
+          child: _cargando
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colores.primary),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Row(
                         children: [
-                          GestureDetector(
-                            onTap: _editando && !_subiendoFoto
-                                ? _subirFotoPerfil
-                                : null,
-                            child: Stack(
-                              children: [
-                                _subiendoFoto
-                                    ? Container(
-                                        width: 90,
-                                        height: 90,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colores.surface,
-                                        ),
-                                        child: Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colores.primary,
-                                            strokeWidth: 2,
-                                          ),
-                                        ),
-                                      )
-                                    : _fotoPerfilUrl != null &&
-                                            _fotoPerfilUrl!.isNotEmpty
-                                        ? CircleAvatar(
-                                            radius: 45,
-                                            backgroundImage:
-                                                NetworkImage(_fotoPerfilUrl!),
-                                            backgroundColor: Colores.surface,
-                                          )
-                                        : Icon(
-                                            Icons.account_circle_rounded,
-                                            size: 90,
-                                            color: Colores.iconActive,
-                                          ),
-                                if (_editando && !_subiendoFoto)
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: Container(
-                                      padding: EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: Colores.primaryDark,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.camera_alt_outlined,
-                                        size: 14,
-                                        color: Colores.text,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            usuario?['nombre'] ?? 'Usuario',
+                          const Text(
+                            'Mi Perfil',
                             style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
                               color: Colores.text,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
-                          Text(
-                            usuario?['email'] ?? '',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colores.textSecondary,
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () =>
+                                setState(() => _editando = !_editando),
+                            child: Container(
+                              padding: const EdgeInsets.all(9),
+                              decoration: BoxDecoration(
+                                color: Colores.surface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colores.border),
+                              ),
+                              child: Icon(
+                                _editando
+                                    ? Icons.close_rounded
+                                    : Icons.edit_outlined,
+                                color: _editando
+                                    ? Colores.danger
+                                    : Colores.icon,
+                                size: 18,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
 
-                    SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
-                    // Stats
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _statCard(
-                            '${usuario?['total_reservas'] ?? 0}',
-                            'Reservas',
-                            Icons.date_range_outlined,
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: _statCard(
-                            '${usuario?['activas'] ?? 0}',
-                            'Activas',
-                            Icons.check_circle_outline,
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: _statCard(
-                            '${usuario?['favoritos'] ?? 0}',
-                            'Favoritos',
-                            Icons.star_outline,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 24),
-
-                    // Formulario de edición
-                    if (_editando) ...[
-                      TextField(
-                        controller: nombreController,
-                        style: TextStyle(color: Colores.text),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                            borderSide: BorderSide.none,
-                          ),
-                          labelText: "Nombre",
-                          labelStyle: TextStyle(color: Colores.textSecondary),
-                          prefixIcon: Icon(
-                            Icons.person_outline,
-                            color: Colores.primary,
-                          ),
-                          fillColor: Colores.surface,
-                          filled: true,
-                        ),
-                      ),
-                      SizedBox(height: 14),
-                      TextField(
-                        controller: emailController,
-                        style: TextStyle(color: Colores.text),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                            borderSide: BorderSide.none,
-                          ),
-                          labelText: "Email",
-                          labelStyle: TextStyle(color: Colores.textSecondary),
-                          prefixIcon: Icon(
-                            Icons.email_outlined,
-                            color: Colores.primary,
-                          ),
-                          fillColor: Colores.surface,
-                          filled: true,
-                        ),
-                      ),
-                      SizedBox(height: 14),
-                      if (_errorMSG != null)
-                        Padding(
-                          padding: EdgeInsets.only(bottom: 8),
-                          child: Text(
-                            _errorMSG!,
-                            style: TextStyle(
-                              color: Colores.danger,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ElevatedButton(
-                        onPressed: guardarCambios,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colores.primaryDark,
-                          minimumSize: Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          "Guardar cambios",
-                          style: TextStyle(color: Colores.text),
-                        ),
-                      ),
-                      SizedBox(height: 14),
-                    ] else ...[
-                      // Info de solo lectura
-                      Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colores.surface,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colores.border),
-                        ),
+                      // Avatar
+                      Center(
                         child: Column(
                           children: [
-                            _infoRow(
-                              Icons.person_outline,
-                              "Nombre",
-                              usuario?['nombre'] ?? 'No disponible',
+                            GestureDetector(
+                              onTap: _editando && !_subiendoFoto
+                                  ? _subirFotoPerfil
+                                  : null,
+                              child: Stack(
+                                children: [
+                                  _subiendoFoto
+                                      ? Container(
+                                          width: 90,
+                                          height: 90,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colores.surface,
+                                            border: Border.all(
+                                              color: Colores.border,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              color: Colores.primary,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        )
+                                      : _fotoPerfilUrl != null &&
+                                              _fotoPerfilUrl!.isNotEmpty
+                                          ? CircleAvatar(
+                                              radius: 45,
+                                              backgroundImage: NetworkImage(
+                                                _fotoPerfilUrl!,
+                                              ),
+                                              backgroundColor: Colores.surface,
+                                            )
+                                          : Container(
+                                              width: 90,
+                                              height: 90,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colores.primaryDark
+                                                    .withOpacity(0.15),
+                                                border: Border.all(
+                                                  color: Colores.border,
+                                                  width: 2,
+                                                ),
+                                              ),
+                                              child: const Icon(
+                                                Icons.account_circle_rounded,
+                                                size: 50,
+                                                color: Colores.iconActive,
+                                              ),
+                                            ),
+                                  if (_editando && !_subiendoFoto)
+                                    Positioned(
+                                      bottom: 2,
+                                      right: 2,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(5),
+                                        decoration: const BoxDecoration(
+                                          color: Colores.primaryDark,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.camera_alt_outlined,
+                                          size: 14,
+                                          color: Colores.text,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
-                            Divider(color: Colores.border, height: 20),
-                            _infoRow(
-                              Icons.email_outlined,
-                              "Email",
-                              usuario?['email'] ?? 'No disponible',
+                            const SizedBox(height: 12),
+                            Text(
+                              usuario?['nombre'] ?? 'Usuario',
+                              style: const TextStyle(
+                                color: Colores.text,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            Divider(color: Colores.border, height: 20),
-                            _infoRow(
-                              Icons.calendar_month_outlined,
-                              "Miembro desde",
-                              usuario?['fecha_registro'] ?? 'No disponible',
+                            const SizedBox(height: 2),
+                            Text(
+                              usuario?['email'] ?? '',
+                              style: const TextStyle(
+                                color: Colores.textSecondary,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
 
-                    SizedBox(height: 16),
+                      const SizedBox(height: 24),
 
-                    // Cambiar contraseña
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colores.surface,
-                        minimumSize: Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: BorderSide(color: Colores.border),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      // Stats
+                      Row(
                         children: [
-                          Icon(
-                            Icons.lock_outline,
-                            color: Colores.textSecondary,
-                            size: 18,
+                          Expanded(
+                            child: _statCard(
+                              '${usuario?['total_reservas'] ?? 0}',
+                              'Reservas',
+                              Icons.date_range_outlined,
+                            ),
                           ),
-                          SizedBox(width: 8),
-                          Text(
-                            "Cambiar contraseña",
-                            style: TextStyle(color: Colores.textSecondary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _statCard(
+                              '${usuario?['activas'] ?? 0}',
+                              'Activas',
+                              Icons.check_circle_outline_rounded,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _statCard(
+                              '${usuario?['favoritos'] ?? 0}',
+                              'Favoritos',
+                              Icons.star_outline_rounded,
+                            ),
                           ),
                         ],
                       ),
-                    ),
 
-                    SizedBox(height: 30),
-                  ],
+                      const SizedBox(height: 22),
+
+                      // Formulario o vista de lectura
+                      if (_editando) ...[
+                        _inputField(
+                          controller: nombreController,
+                          label: 'Nombre',
+                          icon: Icons.person_outline_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _inputField(
+                          controller: emailController,
+                          label: 'Correo electrónico',
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        const SizedBox(height: 14),
+                        if (_errorMSG != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              _errorMSG!,
+                              style: const TextStyle(
+                                color: Colores.danger,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: guardarCambios,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colores.primaryDark,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Guardar cambios',
+                              style: TextStyle(
+                                color: Colores.text,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colores.surface,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colores.border),
+                          ),
+                          child: Column(
+                            children: [
+                              _infoRow(
+                                Icons.person_outline_rounded,
+                                'Nombre',
+                                usuario?['nombre'] ?? 'No disponible',
+                              ),
+                              const Divider(
+                                color: Colores.border,
+                                height: 22,
+                                thickness: 1,
+                              ),
+                              _infoRow(
+                                Icons.email_outlined,
+                                'Correo',
+                                usuario?['email'] ?? 'No disponible',
+                              ),
+                              const Divider(
+                                color: Colores.border,
+                                height: 22,
+                                thickness: 1,
+                              ),
+                              _infoRow(
+                                Icons.calendar_month_outlined,
+                                'Miembro desde',
+                                usuario?['fecha_registro'] ?? 'No disponible',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 16),
+
+                      // Cambiar contraseña
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colores.surface,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              side: const BorderSide(color: Colores.border),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.lock_outline_rounded,
+                                color: Colores.icon,
+                                size: 18,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Cambiar contraseña',
+                                style: TextStyle(
+                                  color: Colores.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statCard(String valor, String label, IconData icono) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colores.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colores.border),
+      ),
+      child: Column(
+        children: [
+          Icon(icono, color: Colores.primary, size: 20),
+          const SizedBox(height: 6),
+          Text(
+            valor,
+            style: const TextStyle(
+              color: Colores.text,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colores.textSecondary,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _inputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colores.text, fontSize: 14),
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colores.textSecondary, fontSize: 13),
+        prefixIcon: Icon(icon, color: Colores.primary, size: 18),
+        filled: true,
+        fillColor: Colores.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colores.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colores.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colores.primary),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 14,
+          horizontal: 14,
+        ),
       ),
     );
   }
@@ -517,16 +577,34 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
   Widget _infoRow(IconData icono, String label, String valor) {
     return Row(
       children: [
-        Icon(icono, color: Colores.primary, size: 18),
-        SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: Colores.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icono, color: Colores.primary, size: 16),
+        ),
+        const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: TextStyle(color: Colores.textSecondary, fontSize: 11),
+              style: const TextStyle(
+                color: Colores.textSecondary,
+                fontSize: 11,
+              ),
             ),
-            Text(valor, style: TextStyle(color: Colores.text, fontSize: 14)),
+            const SizedBox(height: 2),
+            Text(
+              valor,
+              style: const TextStyle(
+                color: Colores.text,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ],
