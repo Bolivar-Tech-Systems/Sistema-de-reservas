@@ -102,6 +102,7 @@ def get_user_profile(current_user: User, db: Session) -> UserProfile:
         email=current_user.email,
         telefono=current_user.telefono,
         foto_perfil=current_user.foto_perfil,
+        fecha_registro=current_user.created_at.strftime("%d/%m/%Y") if current_user.created_at else "No disponible",
         total_reservas=total_reservas,
         activas=activas,
         favoritos=favoritos,
