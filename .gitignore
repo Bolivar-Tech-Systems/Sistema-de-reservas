@@ -55,3 +55,6 @@ alembic/
 alembic.ini
 keystore-base64.txt
 release-keystore.jks
+
+# Firebase
+serviceAccountKey.json

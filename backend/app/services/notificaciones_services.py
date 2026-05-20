@@ -3,11 +3,19 @@ from firebase_admin import credentials, firestore
 from fastapi import HTTPException
 from datetime import datetime
 import os
+from dotenv import load_dotenv
+import json
 
-# Inicializar solo si no está inicializado
+load_dotenv()
+
 if not firebase_admin._apps:
-    cred = credentials.Certificate("serviceAccountKey.json")
+    creds_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+    if creds_json:
+        cred = credentials.Certificate(json.loads(creds_json))
+    else:
+        raise Exception("FIREBASE_CREDENTIALS_JSON no está definido en el .env")
     firebase_admin.initialize_app(cred)
+
 
 db = firestore.client()
 COLLECTION = "notificaciones"
