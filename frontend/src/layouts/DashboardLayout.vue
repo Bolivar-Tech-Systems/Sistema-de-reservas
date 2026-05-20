@@ -93,10 +93,10 @@ onUnmounted(() => { if (unsubFirestore) unsubFirestore() })
     <aside class="sidebar" :class="{ open: mobileOpen }">
       <div class="sidebar-header">
         <div class="sidebar-brand" v-if="!isSidebarCollapsed">
-          <div class="brand-icon">R</div>
+          <img src="/logo_resibook.png" class="brand-icon" alt="ResiBook" />
           <span class="brand-text">Reservas</span>
         </div>
-        <div v-else class="brand-icon" style="margin: 0 auto;">R</div>
+        <img v-else src="/logo_resibook.png" class="brand-icon" style="margin: 0 auto;" alt="ResiBook" />
       </div>
 
       <nav class="sidebar-nav">
@@ -178,7 +178,7 @@ onUnmounted(() => { if (unsubFirestore) unsubFirestore() })
 
 .sidebar-header { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .sidebar-brand { display: flex; align-items: center; gap: 10px; }
-.brand-icon { width: 32px; height: 32px; background: var(--primary); color: #fff; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.brand-icon { width: 32px; height: 32px; border-radius: var(--radius-md); flex-shrink: 0; object-fit: cover; }
 .brand-text { color: #fff; font-weight: 600; font-size: 0.9375rem; }
 
 .sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
