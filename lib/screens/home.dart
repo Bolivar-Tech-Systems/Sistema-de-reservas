@@ -11,6 +11,7 @@ import 'MisReservas.dart';
 import 'Perfil.dart';
 import '../services/notificacion_services.dart';
 import '../screens/Notificaciones.dart';
+import '../models/notificacion_model.dart';
 import 'ExplorarRecursos.dart';
 
 class PantallaHome extends StatefulWidget {
@@ -149,6 +150,11 @@ class _PantallaHomeState extends State<PantallaHome> {
         });
         _misReservasKey.currentState?.fetchMisReservas();
       },
+      onGoToAlertas: () {
+        setState(() {
+          _currentIndex = 3;
+        });
+      },
     ),
 
     PantallaExplorarRecursos(key: _explorarKey, idUsuario: _idUsuario),
@@ -220,6 +226,7 @@ class _HomeTab extends StatefulWidget {
   final int roleId;
   final VoidCallback onRefresh;
   final VoidCallback onGoToReservas;
+  final VoidCallback onGoToAlertas;
 
   const _HomeTab({
     required this.categories,
@@ -228,6 +235,7 @@ class _HomeTab extends StatefulWidget {
     required this.roleId,
     required this.onRefresh,
     required this.onGoToReservas,
+    required this.onGoToAlertas,
   });
 
   @override
@@ -613,26 +621,209 @@ class _HomeTabState extends State<_HomeTab> {
                 },
                 tooltip: 'Panel administrativo',
               ),
-            StreamBuilder<int>(
-              stream: widget.idUsuario.isEmpty
-                  ? const Stream.empty()
-                  : NotificacionService().contarNoLeidas(widget.idUsuario),
-              builder: (context, snap) {
-                final count = snap.data ?? 0;
-                return Badge(
-                  isLabelVisible: count > 0,
-                  label: Text('$count'),
-                  child: IconButton(
-                    icon: const Icon(Icons.notifications, color: Colores.icon),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            NotificacionesScreen(idUsuario: widget.idUsuario),
+            PopupMenuButton<void>(
+              offset: const Offset(0, 42),
+              color: Colores.surfaceAlt,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Colores.border),
+              ),
+              child: StreamBuilder<int>(
+                stream: widget.idUsuario.isEmpty
+                    ? const Stream.empty()
+                    : NotificacionService().contarNoLeidas(widget.idUsuario),
+                builder: (context, snap) {
+                  final count = snap.data ?? 0;
+                  return Badge(
+                    isLabelVisible: count > 0,
+                    label: Text(
+                      '$count',
+                      style: const TextStyle(
+                        fontSize: 9,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(Icons.notifications, color: Colores.icon, size: 24),
+                    ),
+                  );
+                },
+              ),
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<void>(
+                    enabled: false,
+                    child: Container(
+                      width: 290,
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Notificaciones',
+                                style: TextStyle(
+                                  color: Colores.text,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              if (widget.idUsuario.isNotEmpty)
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+                                    await NotificacionService().marcarTodasLeidas(widget.idUsuario);
+                                  },
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: const Text(
+                                    'Leer todas',
+                                    style: TextStyle(
+                                      color: Colores.primary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const Divider(color: Colores.border, height: 16),
+                          StreamBuilder<List<Notificacion>>(
+                            stream: NotificacionService().getNotificaciones(widget.idUsuario),
+                            builder: (context, snap) {
+                              if (snap.connectionState == ConnectionState.waiting) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colores.primary,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              final list = snap.data ?? [];
+                              if (list.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 24),
+                                  child: Center(
+                                    child: Text(
+                                      'No tienes notificaciones',
+                                      style: TextStyle(
+                                        color: Colores.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              final limitList = list.take(4).toList();
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: limitList.map((notif) {
+                                  return InkWell(
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      await NotificacionService().marcarLeida(notif.id);
+                                    },
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 7,
+                                            height: 7,
+                                            margin: const EdgeInsets.only(top: 5, right: 8),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: notif.leida ? Colors.transparent : Colores.primary,
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  notif.titulo,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: Colores.text,
+                                                    fontSize: 12.5,
+                                                    fontWeight: notif.leida ? FontWeight.normal : FontWeight.w700,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  notif.mensaje,
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    color: Colores.textSecondary,
+                                                    fontSize: 11,
+                                                    height: 1.3,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            },
+                          ),
+                          const Divider(color: Colores.border, height: 16),
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              widget.onGoToAlertas();
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Text(
+                                    'Mostrar todas',
+                                    style: TextStyle(
+                                      color: Colores.primary,
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(
+                                    Icons.arrow_forward_rounded,
+                                    color: Colores.primary,
+                                    size: 14,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                );
+                ];
               },
             ),
           ],
