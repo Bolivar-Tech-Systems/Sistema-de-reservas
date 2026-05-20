@@ -18,6 +18,59 @@ class PantallaAuth extends StatefulWidget {
 class _PantallaAuthState extends State<PantallaAuth> {
   bool _isLogin = true;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkAutoLogin();
+  }
+
+  Future<void> _checkAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+    final idUsuario = prefs.getString('id_usuario');
+
+    if (token != null && token.isNotEmpty && idUsuario != null && idUsuario.isNotEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        final res = await http.get(
+          Uri.parse('${AppConfig.baseUrl}/auth/me/'),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+        if (res.statusCode == 200) {
+          final body = jsonDecode(res.body);
+          await prefs.setString('id_usuario', body['id'].toString());
+          await prefs.setInt('role_id', body['role_id'] ?? 0);
+          
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => PantallaHome(idUsuario: body['id'].toString())),
+            );
+          }
+          return;
+        } else {
+          await prefs.remove('access_token');
+          await prefs.remove('id_usuario');
+          await prefs.remove('role_id');
+        }
+      } catch (_) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => PantallaHome(idUsuario: idUsuario)),
+          );
+        }
+        return;
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();

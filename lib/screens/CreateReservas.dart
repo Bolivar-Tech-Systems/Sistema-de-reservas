@@ -33,6 +33,11 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
   String? _errorMSG;
   bool _cargando = false;
 
+  int? _categoriaSeleccionada;
+  List<Map<String, dynamic>> _categorias = [];
+  List<Map<String, dynamic>> _amenidades = [];
+  Set<int> _amenidadesSeleccionadas = {};
+
   File? _imagenSeleccionada;
   Uint8List? _imagenBytes;
   String? _imagenNombre;
@@ -41,10 +46,31 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
   @override
   void initState() {
     super.initState();
-    // Default dates: today and one month from today
     final hoy = DateTime.now();
     _fechaInicio = hoy;
     _fechaFin = hoy.add(const Duration(days: 30));
+    _fetchCategorias();
+    _fetchAmenidades();
+  }
+
+  Future<void> _fetchCategorias() async {
+    try {
+      final res = await http.get(Uri.parse('${AppConfig.baseUrl}/categorias/list/'));
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        if (mounted) setState(() => _categorias = data.cast<Map<String, dynamic>>());
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _fetchAmenidades() async {
+    try {
+      final res = await http.get(Uri.parse('${AppConfig.baseUrl}/amenidades/list/'));
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        if (mounted) setState(() => _amenidades = data.cast<Map<String, dynamic>>());
+      }
+    } catch (_) {}
   }
 
   // ── Seleccionar imagen ─────────────────────────────────────────────
@@ -105,12 +131,15 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
         return;
       }
 
-      // Body del recurso — usa alias "name" y "description"
       final Map<String, dynamic> bodyMap = {
         'name': _nombre.text.trim(),
         'description': _descripcion.text.trim(),
         'es_visible': true,
       };
+
+      if (_categoriaSeleccionada != null) {
+        bodyMap['categoria_id'] = _categoriaSeleccionada;
+      }
 
       // Precio por hora (opcional)
       if (_precio.text.trim().isNotEmpty) {
@@ -337,6 +366,74 @@ class _PantallaCreateReservaState extends State<PantallaCreateReserva> {
                   ],
                 ),
 
+                const SizedBox(height: 12),
+
+                // ── Categoría Dropdown ───────────────────────────────
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colores.surfaceAlt,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colores.border),
+                  ),
+                  child: DropdownButtonFormField<int>(
+                    value: _categoriaSeleccionada,
+                    dropdownColor: Colores.surfaceAlt,
+                    style: const TextStyle(color: Colores.text, fontSize: 14),
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.category_rounded, color: Colores.primary, size: 20),
+                      labelText: 'Categoría',
+                      labelStyle: TextStyle(color: Colores.textMuted, fontSize: 13),
+                      border: InputBorder.none,
+                    ),
+                    items: _categorias.map((c) => DropdownMenuItem<int>(
+                      value: c['id'] as int,
+                      child: Text(c['nombre'] ?? ''),
+                    )).toList(),
+                    onChanged: (val) => setState(() => _categoriaSeleccionada = val),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // ── Amenidades ────────────────────────────────────────
+                if (_amenidades.isNotEmpty) ...[
+                  const Text('Amenidades',
+                      style: TextStyle(color: Colores.text, fontSize: 14, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _amenidades.map((a) {
+                      final id = a['id'] as int;
+                      final selected = _amenidadesSeleccionadas.contains(id);
+                      return FilterChip(
+                        label: Text(a['nombre'] ?? ''),
+                        selected: selected,
+                        selectedColor: Colores.primaryDark,
+                        backgroundColor: Colores.surfaceAlt,
+                        checkmarkColor: Colores.text,
+                        labelStyle: TextStyle(
+                          color: selected ? Colores.text : Colores.textSecondary,
+                          fontSize: 12,
+                        ),
+                        side: BorderSide(
+                          color: selected ? Colores.primary : Colores.border,
+                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        onSelected: (val) {
+                          setState(() {
+                            if (val) {
+                              _amenidadesSeleccionadas.add(id);
+                            } else {
+                              _amenidadesSeleccionadas.remove(id);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
                 const SizedBox(height: 20),
 
                 // ── Disponibilidad inicial switch ──────────────────

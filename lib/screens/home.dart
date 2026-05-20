@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_de_reservas/screens/DetalleReserva.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'CreateReservas.dart';
 import 'horario_disponible.dart';
+import 'AdminUsuarios.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +11,6 @@ import 'MisReservas.dart';
 import 'Perfil.dart';
 import '../services/notificacion_services.dart';
 import '../screens/Notificaciones.dart';
-import '../models/notificacion_model.dart';
 import 'ExplorarRecursos.dart';
 
 class PantallaHome extends StatefulWidget {
@@ -25,6 +24,7 @@ class PantallaHome extends StatefulWidget {
 class _PantallaHomeState extends State<PantallaHome> {
   int _currentIndex = 0;
   String _idUsuario = '';
+  int _roleId = 0;
 
   List<Map<String, dynamic>> _categories = [];
 
@@ -35,28 +35,54 @@ class _PantallaHomeState extends State<PantallaHome> {
   void initState() {
     super.initState();
     _idUsuario = widget.idUsuario;
+    _loadRole();
     fetchCategories();
   }
 
-  Future<void> fetchCategories() async {
-    final response = await http.get(
-      Uri.parse('https://129-80-171-141.nip.io/api/categorias/list/'),
-    );
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) setState(() => _roleId = prefs.getInt('role_id') ?? 0);
+  }
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        _categories = List<Map<String, dynamic>>.from(
-          data.map(
-            (item) => {
-              'label': item['nombre'],
-              'icon': Icons.abc_rounded,
-              'color': Colores.primary,
-            },
-          ),
-        );
-      });
+  IconData _getIconData(String? iconName) {
+    switch (iconName) {
+      case 'meeting_room':
+        return Icons.meeting_room_rounded;
+      case 'theater_comedy':
+        return Icons.theater_comedy_rounded;
+      case 'sports_soccer':
+        return Icons.sports_soccer_rounded;
+      case 'work':
+        return Icons.work_rounded;
+      case 'science':
+        return Icons.science_rounded;
+      default:
+        return Icons.category_rounded;
     }
+  }
+
+  Future<void> fetchCategories() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/categorias/list/'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _categories = List<Map<String, dynamic>>.from(
+            data.map(
+              (item) => {
+                'id': item['id'],
+                'label': item['nombre'],
+                'icon': _getIconData(item['icono']),
+                'color': Colores.primary,
+              },
+            ),
+          );
+        });
+      }
+    } catch (_) {}
   }
 
   final List<BottomNavigationBarItem> _navItems = const [
@@ -74,7 +100,16 @@ class _PantallaHomeState extends State<PantallaHome> {
   ];
 
   List<Widget> get _pages => [
-    _HomeTab(categories: _categories, idUsuario: _idUsuario),
+    _HomeTab(
+      categories: _categories,
+      idUsuario: _idUsuario,
+      onCategorySelected: (catId) {
+        setState(() {
+          _currentIndex = 1;
+        });
+        _explorarKey.currentState?.filtrarPorCategoria(catId);
+      },
+    ),
 
     PantallaExplorarRecursos(key: _explorarKey, idUsuario: _idUsuario),
 
@@ -98,11 +133,9 @@ class _PantallaHomeState extends State<PantallaHome> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Colores.primary;
-
     return Scaffold(
       backgroundColor: const Color(0xFF111417),
-      floatingActionButton: _currentIndex == 0
+      floatingActionButton: _currentIndex == 0 && _roleId == 1
           ? FloatingActionButton(
               elevation: 8,
               backgroundColor: Colores.background,
@@ -143,8 +176,13 @@ class _PantallaHomeState extends State<PantallaHome> {
 class _HomeTab extends StatefulWidget {
   final List<Map<String, dynamic>> categories;
   final String idUsuario;
+  final Function(int?) onCategorySelected;
 
-  const _HomeTab({required this.categories, required this.idUsuario});
+  const _HomeTab({
+    required this.categories,
+    required this.idUsuario,
+    required this.onCategorySelected,
+  });
 
   @override
   State<_HomeTab> createState() => _HomeTabState();
@@ -228,9 +266,6 @@ class _HomeTabState extends State<_HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    const textMain = Colores.text;
-    const textSecondary = Colores.textSecondary;
-
     return Stack(
       children: [
         Container(
@@ -288,6 +323,9 @@ class _HomeTabState extends State<_HomeTab> {
                       label: item['label'] as String,
                       icon: item['icon'] as IconData,
                       color: item['color'] as Color,
+                      onTap: () {
+                        widget.onCategorySelected(item['id'] as int?);
+                      },
                     );
                   },
                 ),
@@ -396,53 +434,73 @@ class _HomeTabState extends State<_HomeTab> {
   }
 
   Widget _buildTopBar(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colores.surface,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(
-            Icons.flash_on_rounded,
-            color: Colores.icon,
-            size: 18,
-          ),
-        ),
-        const Text(
-          'ResiBook',
-          style: TextStyle(
-            color: Colores.text,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-        ),
-        StreamBuilder<int>(
-          stream: widget.idUsuario.isEmpty
-              ? const Stream.empty()
-              : NotificacionService().contarNoLeidas(widget.idUsuario),
-          builder: (context, snap) {
-            final count = snap.data ?? 0;
-            return Badge(
-              isLabelVisible: count > 0,
-              label: Text('$count'),
-              child: IconButton(
-                icon: const Icon(Icons.notifications, color: Colores.icon),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        NotificacionesScreen(idUsuario: widget.idUsuario),
-                  ),
-                ),
+    return FutureBuilder<int>(
+      future: SharedPreferences.getInstance().then((p) => p.getInt('role_id') ?? 0),
+      builder: (context, snap) {
+        final isAdmin = (snap.data ?? 0) == 1;
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colores.surface,
+                borderRadius: BorderRadius.circular(10),
               ),
-            );
-          },
-        ),
-      ],
+              child: const Icon(
+                Icons.flash_on_rounded,
+                color: Colores.icon,
+                size: 18,
+              ),
+            ),
+            const Text(
+              'ResiBook',
+              style: TextStyle(
+                color: Colores.text,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isAdmin)
+                  IconButton(
+                    icon: const Icon(Icons.admin_panel_settings_outlined, color: Colores.primary),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PantallaAdminUsuarios()),
+                    ),
+                    tooltip: 'Gestión de usuarios',
+                  ),
+                StreamBuilder<int>(
+                  stream: widget.idUsuario.isEmpty
+                      ? const Stream.empty()
+                      : NotificacionService().contarNoLeidas(widget.idUsuario),
+                  builder: (context, snap) {
+                    final count = snap.data ?? 0;
+                    return Badge(
+                      isLabelVisible: count > 0,
+                      label: Text('$count'),
+                      child: IconButton(
+                        icon: const Icon(Icons.notifications, color: Colores.icon),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                NotificacionesScreen(idUsuario: widget.idUsuario),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -702,45 +760,52 @@ class _CategoryItem extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
+  final VoidCallback onTap;
 
   const _CategoryItem({
     required this.label,
     required this.icon,
     required this.color,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 68,
-      child: Column(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.25),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 68,
+        child: Column(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: Colors.white, size: 26),
             ),
-            child: Icon(icon, color: Colores.icon, size: 26),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colores.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+            const SizedBox(height: 8),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colores.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

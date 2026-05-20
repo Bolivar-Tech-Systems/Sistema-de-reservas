@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
 import '../services/notificacion_services.dart';
+import 'PagoWompi.dart';
 
 class PantallaHorario extends StatefulWidget {
   final int recursoId;
@@ -23,6 +24,7 @@ class PantallaHorario extends StatefulWidget {
 class _PantallaHorarioState extends State<PantallaHorario> {
   // ── Estado ─────────────────────────────────────────────────────────
   List<Map<String, dynamic>> _disponibilidades = [];
+  List<Map<String, dynamic>> _reservasExistentes = [];
   bool _cargandoDisp = true;
   String _errorDisp = '';
 
@@ -33,11 +35,69 @@ class _PantallaHorarioState extends State<PantallaHorario> {
   bool _reservando = false;
   String _errorReserva = '';
 
+  // ── Reseñas ─────────────────────────────────────────────────────
+  List<Map<String, dynamic>> _resenas = [];
+  int _miCalificacion = 0;
+  final _comentarioCtrl = TextEditingController();
+  bool _enviandoResena = false;
+
+  // ── Detalle del Recurso ──────────────────────────────────────────
+  Map<String, dynamic>? _recursoDetalle;
+  bool _cargandoDetalle = true;
+  String _errorDetalle = '';
+
   // ── Init ───────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
+    _cargarRecursoDetalle();
     _cargarDisponibilidades();
+    _cargarReservasExistentes();
+    _cargarResenas();
+  }
+
+  @override
+  void dispose() {
+    _comentarioCtrl.dispose();
+    super.dispose();
+  }
+
+  // ── API: cargar detalle del recurso ──────────────────────────────────
+  Future<void> _cargarRecursoDetalle() async {
+    setState(() {
+      _cargandoDetalle = true;
+      _errorDetalle = '';
+    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+
+      final res = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/reservas/${widget.recursoId}'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        setState(() {
+          _recursoDetalle = jsonDecode(res.body);
+          _cargandoDetalle = false;
+        });
+      } else {
+        setState(() {
+          _errorDetalle = 'No se pudo cargar el detalle del recurso';
+          _cargandoDetalle = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _errorDetalle = 'Error de red al cargar detalle';
+          _cargandoDetalle = false;
+        });
+      }
+    }
   }
 
   // ── API: cargar disponibilidades ───────────────────────────────────
@@ -83,6 +143,30 @@ class _PantallaHorarioState extends State<PantallaHorario> {
     }
   }
 
+  Future<void> _cargarReservasExistentes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+
+      final res = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/reservas/recurso/${widget.recursoId}/reservas'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        if (mounted) {
+          setState(() {
+            _reservasExistentes = data
+                .map((r) => Map<String, dynamic>.from(r as Map))
+                .where((r) => r['estado'] != 'Cancelado')
+                .toList();
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
   // ── API: crear reserva ─────────────────────────────────────────────
   Future<void> _confirmarReserva() async {
     if (_dispSeleccionada == null || _horaInicio == null || _horaFin == null) return;
@@ -114,12 +198,6 @@ class _PantallaHorarioState extends State<PantallaHorario> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('access_token') ?? '';
-
-      // Calcular precio total si el recurso tiene precio_por_hora
-      // (precio_especial del bloque tiene prioridad)
-      final int minutos = (_horaFin!.hour * 60 + _horaFin!.minute) -
-          (_horaInicio!.hour * 60 + _horaInicio!.minute);
-      final double horas = minutos / 60.0;
 
       final Map<String, dynamic> body = {
         // El schema usa alias: recurso_id → "reserva_id" en JSON
@@ -263,7 +341,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                 child: _cargandoDisp
                     ? const Center(
                         child: CircularProgressIndicator(color: Colores.primary))
-                    : _errorDisp.isNotEmpty
+                    : (_errorDisp.isNotEmpty || _errorDetalle.isNotEmpty)
                         ? _buildError()
                         : _disponibilidades.isEmpty
                             ? _buildSinDisponibilidad()
@@ -314,6 +392,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
   }
 
   Widget _buildError() {
+    final msg = _errorDisp.isNotEmpty ? _errorDisp : _errorDetalle;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -323,13 +402,16 @@ class _PantallaHorarioState extends State<PantallaHorario> {
             const Icon(Icons.wifi_off_rounded,
                 color: Colores.textMuted, size: 52),
             const SizedBox(height: 14),
-            Text(_errorDisp,
+            Text(msg,
                 style: const TextStyle(
                     color: Colores.textSecondary, fontSize: 14),
                 textAlign: TextAlign.center),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _cargarDisponibilidades,
+              onPressed: () {
+                _cargarRecursoDetalle();
+                _cargarDisponibilidades();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colores.primaryDark,
                 shape: RoundedRectangleBorder(
@@ -393,6 +475,8 @@ class _PantallaHorarioState extends State<PantallaHorario> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildGaleriaRecurso(),
+          _buildAmenidadesRecurso(),
           // ── Paso 1: elegir bloque ────────────────────────────────
           _labelSeccion('1. Elige un horario disponible'),
           const SizedBox(height: 10),
@@ -400,6 +484,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
 
           if (_dispSeleccionada != null) ...[
             const SizedBox(height: 20),
+            _buildOcupacionesWidget(),
 
             // ── Paso 2: ajustar horas dentro del bloque ──────────
             _labelSeccion('2. Ajusta tu hora de entrada y salida'),
@@ -532,8 +617,203 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                     ),
             ),
           ),
+
+          // ── Sección Reseñas ────────────────────────────────────
+          const SizedBox(height: 28),
+          _labelSeccion('Reseñas'),
+          const SizedBox(height: 10),
+          _buildFormResena(),
+          const SizedBox(height: 12),
+          ..._resenas.map((r) => _buildResenaCard(r)),
+          if (_resenas.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Text('Aún no hay reseñas para este recurso.',
+                  style: TextStyle(color: Colores.textMuted, fontSize: 13)),
+            ),
         ],
       ),
+    );
+  }
+
+  Widget _buildGaleriaRecurso() {
+    if (_cargandoDetalle) {
+      return Container(
+        height: 180,
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colores.surfaceAlt,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: Colores.primary),
+        ),
+      );
+    }
+
+    if (_recursoDetalle == null) return const SizedBox.shrink();
+
+    final List<dynamic> fotosRaw = _recursoDetalle!['fotos'] ?? [];
+    final fotoPrincipal = _recursoDetalle!['foto_principal']?.toString() ?? '';
+    final List<String> urls = [];
+
+    if (fotoPrincipal.isNotEmpty) {
+      urls.add(fotoPrincipal);
+    }
+    for (var f in fotosRaw) {
+      final url = f['url']?.toString() ?? '';
+      if (url.isNotEmpty && url != fotoPrincipal) {
+        urls.add(url);
+      }
+    }
+
+    if (urls.isEmpty) {
+      final nombre = _recursoDetalle!['name']?.toString() ?? '?';
+      final inicial = nombre.isNotEmpty ? nombre[0].toUpperCase() : '?';
+      return Container(
+        height: 180,
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colores.primaryDark.withOpacity(0.6),
+              Colores.surfaceAlt,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colores.border),
+        ),
+        child: Center(
+          child: Text(
+            inicial,
+            style: const TextStyle(
+              color: Colores.text,
+              fontSize: 48,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 180,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: PageView.builder(
+        itemCount: urls.length,
+        itemBuilder: (context, index) {
+          final url = urls[index];
+          final fullUrl = url.startsWith('http') ? url : '${AppConfig.baseUrl}/images/$url';
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colores.border),
+              image: DecorationImage(
+                image: NetworkImage(fullUrl),
+                fit: BoxFit.cover,
+                onError: (_, __) {},
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildAmenidadesRecurso() {
+    if (_cargandoDetalle || _recursoDetalle == null) return const SizedBox.shrink();
+
+    final List<dynamic> amenidades = _recursoDetalle!['amenidades'] ?? [];
+    if (amenidades.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _labelSeccion('Amenidades del recurso'),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: amenidades.map((a) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colores.surfaceAlt,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colores.border),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.check_circle_outline_rounded,
+                      color: Colores.success, size: 14),
+                  const SizedBox(width: 6),
+                  Text(
+                    a['nombre']?.toString() ?? '',
+                    style: const TextStyle(color: Colores.text, fontSize: 12),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 18),
+      ],
+    );
+  }
+
+  Widget _buildOcupacionesWidget() {
+    if (_dispSeleccionada == null) return const SizedBox.shrink();
+    final fecha = _dispSeleccionada!['fecha_inicio']?.toString();
+    final ocupadas = _reservasExistentes.where((r) => r['fecha_inicio']?.toString() == fecha).toList();
+    if (ocupadas.isEmpty) return const SizedBox.shrink();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
+            SizedBox(width: 6),
+            Text(
+              'Horarios ya ocupados en esta fecha:',
+              style: TextStyle(
+                color: Colors.orange,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: ocupadas.map((r) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+              ),
+              child: Text(
+                '${_formatHoraStr(r['hora_inicio']?.toString())} – ${_formatHoraStr(r['hora_fin']?.toString())}',
+                style: const TextStyle(
+                  color: Colors.orange,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -669,13 +949,18 @@ class _PantallaHorarioState extends State<PantallaHorario> {
     );
   }
 
-  // ── Resumen duración ───────────────────────────────────────────────
   Widget _buildResumen() {
     final ini = _horaInicio!.hour * 60 + _horaInicio!.minute;
     final fin = _horaFin!.hour * 60 + _horaFin!.minute;
     final diff = fin - ini;
 
     if (diff <= 0) return const SizedBox.shrink();
+
+    double precioPorHora = 0.0;
+    if (_recursoDetalle != null && _recursoDetalle!['precio_por_hora'] != null) {
+      precioPorHora = (_recursoDetalle!['precio_por_hora'] as num).toDouble();
+    }
+    final total = precioPorHora * (diff / 60.0);
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -689,17 +974,30 @@ class _PantallaHorarioState extends State<PantallaHorario> {
               color: Colores.primary.withOpacity(0.2)),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Icon(Icons.timer_outlined,
-                color: Colores.primary, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              'Duración: ${_duracionStr(diff)}',
-              style: const TextStyle(
-                  color: Colores.primary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600),
+            Row(
+              children: [
+                const Icon(Icons.timer_outlined,
+                    color: Colores.primary, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'Duración: ${_duracionStr(diff)}',
+                  style: const TextStyle(
+                      color: Colores.primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
+            if (precioPorHora > 0)
+              Text(
+                'Total: \$${total.toStringAsFixed(0)} COP',
+                style: const TextStyle(
+                    color: Colores.primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800),
+              ),
           ],
         ),
       ),
@@ -776,4 +1074,199 @@ class _PantallaHorarioState extends State<PantallaHorario> {
           fontWeight: FontWeight.w700,
         ),
       );
+
+  // ── Reseñas: API ─────────────────────────────────────────────────
+  Future<void> _cargarResenas() async {
+    try {
+      final res = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/resenas/recurso/${widget.recursoId}'),
+      );
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        if (mounted) {
+          setState(() => _resenas = data.cast<Map<String, dynamic>>());
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _enviarResena() async {
+    if (_miCalificacion == 0) return;
+    setState(() => _enviandoResena = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+      final userId = int.tryParse(prefs.getString('id_usuario') ?? '') ?? 0;
+      final res = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/resenas/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'recurso_id': widget.recursoId,
+          'usuario_id': userId,
+          'calificacion': _miCalificacion,
+          'comentario': _comentarioCtrl.text.trim().isEmpty
+              ? null
+              : _comentarioCtrl.text.trim(),
+        }),
+      );
+      if (!mounted) return;
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        _comentarioCtrl.clear();
+        setState(() => _miCalificacion = 0);
+        _cargarResenas();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reseña enviada')),
+        );
+      } else {
+        String msg = 'Error al enviar reseña';
+        try {
+          final err = jsonDecode(res.body);
+          msg = err['detail'] ?? msg;
+        } catch (_) {}
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error de conexión')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _enviandoResena = false);
+    }
+  }
+
+  Widget _buildFormResena() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colores.surfaceAlt,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colores.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Deja tu reseña',
+              style: TextStyle(color: Colores.text, fontSize: 13, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 10),
+          // Estrellas
+          Row(
+            children: List.generate(5, (i) {
+              final star = i + 1;
+              return GestureDetector(
+                onTap: () => setState(() => _miCalificacion = star),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Icon(
+                    star <= _miCalificacion
+                        ? Icons.star_rounded
+                        : Icons.star_border_rounded,
+                    color: star <= _miCalificacion
+                        ? Colors.orange
+                        : Colores.textMuted,
+                    size: 28,
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _comentarioCtrl,
+            style: const TextStyle(color: Colores.text, fontSize: 13),
+            maxLines: 2,
+            decoration: InputDecoration(
+              hintText: 'Comentario (opcional)',
+              hintStyle: const TextStyle(color: Colores.textMuted, fontSize: 13),
+              filled: true,
+              fillColor: Colores.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colores.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colores.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Colores.primary),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _miCalificacion > 0 && !_enviandoResena ? _enviarResena : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _miCalificacion > 0 ? Colores.primaryDark : Colores.surfaceAlt,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+              ),
+              child: _enviandoResena
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colores.text))
+                  : Text('Enviar reseña',
+                      style: TextStyle(
+                        color: _miCalificacion > 0 ? Colores.text : Colores.textMuted,
+                        fontWeight: FontWeight.w700,
+                      )),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResenaCard(Map<String, dynamic> r) {
+    final calificacion = r['calificacion'] ?? 0;
+    final comentario = r['comentario'] ?? '';
+    final fecha = r['created_at']?.toString() ?? '';
+    String fechaStr = '';
+    try {
+      final dt = DateTime.parse(fecha);
+      const meses = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      fechaStr = '${dt.day} ${meses[dt.month]} ${dt.year}';
+    } catch (_) {}
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colores.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colores.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              ...List.generate(5, (i) => Icon(
+                i < (calificacion as int) ? Icons.star_rounded : Icons.star_border_rounded,
+                color: i < calificacion ? Colors.orange : Colores.textMuted,
+                size: 16,
+              )),
+              const Spacer(),
+              if (fechaStr.isNotEmpty)
+                Text(fechaStr,
+                    style: const TextStyle(color: Colores.textMuted, fontSize: 11)),
+            ],
+          ),
+          if (comentario.toString().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(comentario.toString(),
+                style: const TextStyle(color: Colores.textSecondary, fontSize: 13)),
+          ],
+        ],
+      ),
+    );
+  }
 }

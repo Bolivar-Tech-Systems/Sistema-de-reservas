@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../util/colores.dart';
@@ -17,6 +18,22 @@ class PantallaDetalleReserva extends StatefulWidget {
 
 class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
   bool _cargando = false;
+  int _roleId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _roleId = prefs.getInt('role_id') ?? 0;
+      });
+    }
+  }
 
   // ── API ────────────────────────────────────────────────────────────
   Future<void> cancelarReserva() async {
@@ -41,6 +58,53 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al cancelar: ${response.statusCode}')),
+        );
+      }
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo conectar al servidor')),
+      );
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  Future<void> actualizarEstadoReserva(String nuevoEstado) async {
+    setState(() => _cargando = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+
+      final r = widget.reserva;
+      final body = {
+        'reserva_id': r['reserva_id'] ?? r['recurso_id'],
+        'fecha_inicio': r['fecha_inicio'],
+        'fecha_fin': r['fecha_fin'],
+        'hora_inicio': r['hora_inicio'],
+        'hora_fin': r['hora_fin'],
+        'estado': nuevoEstado,
+        'notas': r['notas'],
+      };
+
+      final response = await http.put(
+        Uri.parse('${AppConfig.baseUrl}/reservas/reserva_usuario/${r['id']}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Reserva actualizada a $nuevoEstado')),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al actualizar: ${response.statusCode}')),
         );
       }
     } catch (_) {
@@ -231,50 +295,111 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
                       const SizedBox(height: 28),
 
                       // ── Botones ──────────────────────────────────
-                      if (!cancelada) ...[
-                        _boton(
-                          label: 'Modificar reserva',
-                          icon: Icons.edit_outlined,
-                          textColor: Colores.primary,
-                          borderColor: Colores.primary,
-                          bgColor: Colores.primary.withOpacity(0.08),
-                          onTap: () {},
-                        ),
-                        const SizedBox(height: 12),
-                        _boton(
-                          label: 'Cancelar reserva',
-                          icon: Icons.cancel_outlined,
-                          textColor: Colores.danger,
-                          borderColor: Colores.danger,
-                          bgColor: Colores.danger.withOpacity(0.08),
-                          loading: _cargando,
-                          onTap: _confirmarCancelacion,
-                        ),
-                      ] else
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14, horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: Colores.danger.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                                color: Colores.danger.withOpacity(0.3)),
+                      if (_roleId == 1) ...[
+                        // Admin Actions
+                        if (estado == 'pendiente') ...[
+                          _boton(
+                            label: 'Aprobar reserva',
+                            icon: Icons.check_circle_outline_rounded,
+                            textColor: Colores.success,
+                            borderColor: Colores.success,
+                            bgColor: Colores.success.withOpacity(0.08),
+                            loading: _cargando,
+                            onTap: () => actualizarEstadoReserva('Confirmada'),
                           ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.cancel_rounded,
-                                  color: Colores.danger, size: 16),
-                              SizedBox(width: 8),
-                              Text('Esta reserva está cancelada',
-                                  style: TextStyle(
-                                      color: Colores.danger,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14)),
-                            ],
+                          const SizedBox(height: 12),
+                          _boton(
+                            label: 'Rechazar reserva',
+                            icon: Icons.cancel_outlined,
+                            textColor: Colores.danger,
+                            borderColor: Colores.danger,
+                            bgColor: Colores.danger.withOpacity(0.08),
+                            loading: _cargando,
+                            onTap: () => actualizarEstadoReserva('Cancelada'),
                           ),
-                        ),
+                        ] else if (estado == 'confirmada') ...[
+                          _boton(
+                            label: 'Cancelar/Rechazar reserva',
+                            icon: Icons.cancel_outlined,
+                            textColor: Colores.danger,
+                            borderColor: Colores.danger,
+                            bgColor: Colores.danger.withOpacity(0.08),
+                            loading: _cargando,
+                            onTap: () => actualizarEstadoReserva('Cancelada'),
+                          ),
+                        ] else ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colores.danger.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color: Colores.danger.withOpacity(0.3)),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.cancel_rounded,
+                                    color: Colores.danger, size: 16),
+                                SizedBox(width: 8),
+                                Text('Esta reserva está cancelada',
+                                    style: TextStyle(
+                                        color: Colores.danger,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14)),
+                              ],
+                            ),
+                          ),
+                        ]
+                      ] else ...[
+                        // User Actions
+                        if (!cancelada) ...[
+                          _boton(
+                            label: 'Modificar reserva',
+                            icon: Icons.edit_outlined,
+                            textColor: Colores.primary,
+                            borderColor: Colores.primary,
+                            bgColor: Colores.primary.withOpacity(0.08),
+                            onTap: () {},
+                          ),
+                          const SizedBox(height: 12),
+                          _boton(
+                            label: 'Cancelar reserva',
+                            icon: Icons.cancel_outlined,
+                            textColor: Colores.danger,
+                            borderColor: Colores.danger,
+                            bgColor: Colores.danger.withOpacity(0.08),
+                            loading: _cargando,
+                            onTap: _confirmarCancelacion,
+                          ),
+                        ] else
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colores.danger.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color: Colores.danger.withOpacity(0.3)),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.cancel_rounded,
+                                    color: Colores.danger, size: 16),
+                                SizedBox(width: 8),
+                                Text('Esta reserva está cancelada',
+                                    style: TextStyle(
+                                        color: Colores.danger,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14)),
+                              ],
+                            ),
+                          ),
+                      ],
                     ],
                   ),
                 ),

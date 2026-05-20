@@ -23,14 +23,19 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
   String _busqueda = '';
   bool _vistaGrilla = true;
   int _roleId = 0;
+  Set<int> _favoritoIds = {};
 
   final TextEditingController _searchController = TextEditingController();
+
+  List<Map<String, dynamic>> _categories = [];
 
   @override
   void initState() {
     super.initState();
     _loadRole();
     fetchRecursos();
+    _fetchCategories();
+    _fetchFavoritos();
     _searchController.addListener(_aplicarFiltros);
   }
 
@@ -43,6 +48,48 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
   Future<void> _loadRole() async {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) setState(() => _roleId = prefs.getInt('role_id') ?? 0);
+  }
+
+  Future<void> _fetchFavoritos() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+      final res = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/favoritos/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        if (mounted) {
+          setState(() {
+            _favoritoIds = data.map((r) => r['id'] as int).toSet();
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFavorito(int recursoId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+      final res = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/favoritos/$recursoId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (mounted) {
+          setState(() {
+            if (data['favorito'] == true) {
+              _favoritoIds.add(recursoId);
+            } else {
+              _favoritoIds.remove(recursoId);
+            }
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> fetchRecursos() async {
@@ -69,6 +116,15 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
     }
   }
 
+  int? _selectedCategoriaId;
+
+  void filtrarPorCategoria(int? categoriaId) {
+    setState(() {
+      _selectedCategoriaId = categoriaId;
+    });
+    _aplicarFiltros();
+  }
+
   void _aplicarFiltros() {
     final q = _searchController.text.toLowerCase();
     setState(() {
@@ -76,7 +132,9 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
       _recursosFiltrados = _recursos.where((r) {
         final n = (r['nombre'] ?? r['name'] ?? '').toString().toLowerCase();
         final d = (r['descripcion'] ?? r['description'] ?? '').toString().toLowerCase();
-        return n.contains(q) || d.contains(q);
+        final matchesQuery = n.contains(q) || d.contains(q);
+        final matchesCategory = _selectedCategoriaId == null || r['categoria_id'] == _selectedCategoriaId;
+        return matchesQuery && matchesCategory;
       }).toList();
     });
   }
@@ -89,6 +147,66 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
       context,
       MaterialPageRoute(
         builder: (_) => PantallaHorario(recursoId: recursoId, idUsuario: userId),
+      ),
+    );
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/categorias/list/'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            _categories = data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  Widget _buildCategoryBar() {
+    if (_categories.isEmpty) return const SizedBox.shrink();
+    return SizedBox(
+      height: 38,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        scrollDirection: Axis.horizontal,
+        itemCount: _categories.length + 1,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final isAll = index == 0;
+          final isSelected = isAll ? (_selectedCategoriaId == null) : (_selectedCategoriaId == _categories[index - 1]['id']);
+          final label = isAll ? 'Todos' : _categories[index - 1]['nombre'];
+          
+          return GestureDetector(
+            onTap: () {
+              filtrarPorCategoria(isAll ? null : _categories[index - 1]['id'] as int);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? Colores.primaryDark : Colores.surfaceAlt,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? Colores.primary : Colores.border,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected ? Colores.text : Colores.textSecondary,
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -111,7 +229,9 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
             children: [
               _buildHeader(),
               _buildSearchBar(),
-              const SizedBox(height: 6),
+              const SizedBox(height: 10),
+              _buildCategoryBar(),
+              const SizedBox(height: 10),
               _buildSubtitulo(),
               const SizedBox(height: 8),
               Expanded(child: _buildCuerpo()),
@@ -327,6 +447,30 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
                               blurRadius: 6,
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+                    // Botón favorito
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () => _toggleFavorito(recursoId),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.55),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _favoritoIds.contains(recursoId)
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: _favoritoIds.contains(recursoId)
+                                ? Colores.danger
+                                : Colors.white,
+                            size: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -548,6 +692,19 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
                     ),
                     const SizedBox(height: 4),
                   ],
+                  GestureDetector(
+                    onTap: () => _toggleFavorito(recursoId),
+                    child: Icon(
+                      _favoritoIds.contains(recursoId)
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: _favoritoIds.contains(recursoId)
+                          ? Colores.danger
+                          : Colores.textMuted,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   const Icon(Icons.chevron_right_rounded,
                       color: Colores.textMuted, size: 20),
                 ],
