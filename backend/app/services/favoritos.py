@@ -1,3 +1,4 @@
+import traceback
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from fastapi import HTTPException
@@ -49,7 +50,12 @@ def toggle_favorito(db: Session, user_id: int, recurso_id: int):
             return {"favorito": True, "detail": "Agregado a favoritos"}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al actualizar favoritos: {str(e)}")
+        # Imprimir el traceback en el log de gunicorn/systemd
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al actualizar favoritos: {repr(e)}"
+        )
 
 
 def list_favoritos(db: Session, user_id: int):
