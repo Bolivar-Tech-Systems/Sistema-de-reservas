@@ -59,6 +59,7 @@ class UserProfile(BaseModel):
     email: str
     telefono: Optional[str] = None
     foto_perfil: Optional[str] = None
+    fecha_registro: Optional[str] = None
     total_reservas: int
     activas: int
     favoritos: int
