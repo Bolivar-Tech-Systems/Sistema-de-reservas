@@ -443,7 +443,7 @@ class _HomeTabState extends State<_HomeTab> {
               _buildSectionHeader(
                 title: 'Categorías',
                 actionText: 'Ver todo',
-                onTap: () {},
+                onTap: () => widget.onCategorySelected(null),
               ),
               const SizedBox(height: 14),
               SizedBox(
@@ -838,7 +838,10 @@ class _HomeTabState extends State<_HomeTab> {
       );
     }
 
-    final activas = _misReservas.where((r) => r['estado'] == 'pendiente' || r['estado'] == 'confirmada' || r['estado'] == 'activa').toList();
+    final activas = _misReservas.where((r) {
+      final e = (r['estado'] ?? '').toString().toLowerCase();
+      return e == 'pendiente' || e == 'confirmada' || e == 'activa';
+    }).toList();
     
     // Find the next upcoming reservation
     Map<String, dynamic>? proxima;
@@ -848,7 +851,7 @@ class _HomeTabState extends State<_HomeTab> {
 
     for (var r in activas) {
       try {
-        final fechaStr = r['fecha_reserva'];
+        final fechaStr = r['fecha_inicio'] ?? r['fecha_reserva'];
         final horaStr = r['hora_inicio'];
         if (fechaStr != null && horaStr != null) {
           final partesFecha = fechaStr.split('-');
