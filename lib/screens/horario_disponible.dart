@@ -21,440 +21,759 @@ class PantallaHorario extends StatefulWidget {
 }
 
 class _PantallaHorarioState extends State<PantallaHorario> {
-  DateTime? _fecha;
+  // ── Estado ─────────────────────────────────────────────────────────
+  List<Map<String, dynamic>> _disponibilidades = [];
+  bool _cargandoDisp = true;
+  String _errorDisp = '';
+
+  Map<String, dynamic>? _dispSeleccionada; // bloque de disponibilidad elegido
   TimeOfDay? _horaInicio;
   TimeOfDay? _horaFin;
-  bool _cargando = false;
 
-  Future<void> _seleccionarFecha() async {
-    final DateTime? nuevaFecha = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.dark(
-            primary: Colores.primary,
-            surface: Colores.surface,
-          ),
-        ),
-        child: child!,
-      ),
-    );
-    if (nuevaFecha != null) setState(() => _fecha = nuevaFecha);
+  bool _reservando = false;
+  String _errorReserva = '';
+
+  // ── Init ───────────────────────────────────────────────────────────
+  @override
+  void initState() {
+    super.initState();
+    _cargarDisponibilidades();
   }
 
-  Future<void> _seleccionarHoraInicio() async {
-    final TimeOfDay? nueva = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.dark(
-            primary: Colores.primary,
-            surface: Colores.surface,
-          ),
-        ),
-        child: child!,
-      ),
-    );
-    if (nueva != null) setState(() => _horaInicio = nueva);
+  // ── API: cargar disponibilidades ───────────────────────────────────
+  Future<void> _cargarDisponibilidades() async {
+    setState(() { _cargandoDisp = true; _errorDisp = ''; });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+
+      final res = await http.get(
+        Uri.parse(
+            '${AppConfig.baseUrl}/reservas/disponibilidad/recurso/${widget.recursoId}'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        // Filtramos solo los disponibles
+        final disponibles = data
+            .map((d) => Map<String, dynamic>.from(d as Map))
+            .where((d) => d['es_disponible'] == true)
+            .toList();
+
+        setState(() {
+          _disponibilidades = disponibles;
+          _cargandoDisp = false;
+        });
+      } else {
+        setState(() {
+          _errorDisp = 'No se pudo cargar la disponibilidad (${res.statusCode})';
+          _cargandoDisp = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _errorDisp = 'Sin conexión al servidor';
+          _cargandoDisp = false;
+        });
+      }
+    }
   }
 
-  Future<void> _seleccionarHoraFin() async {
-    final TimeOfDay? nueva = await showTimePicker(
-      context: context,
-      initialTime: _horaInicio ?? TimeOfDay.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.dark(
-            primary: Colores.primary,
-            surface: Colores.surface,
-          ),
-        ),
-        child: child!,
-      ),
-    );
-    if (nueva != null) setState(() => _horaFin = nueva);
-  }
+  // ── API: crear reserva ─────────────────────────────────────────────
+  Future<void> _confirmarReserva() async {
+    if (_dispSeleccionada == null || _horaInicio == null || _horaFin == null) return;
 
-  String _formatearHora(TimeOfDay hora) {
-    final h = hora.hour.toString().padLeft(2, '0');
-    final m = hora.minute.toString().padLeft(2, '0');
-    return '$h:$m:00';
-  }
+    // Validar que las horas estén dentro del bloque
+    final limiteInicio = _parseHora(_dispSeleccionada!['hora_inicio']);
+    final limiteFin    = _parseHora(_dispSeleccionada!['hora_fin']);
 
-  String _formatearFecha(DateTime fecha) {
-    final y = fecha.year;
-    final m = fecha.month.toString().padLeft(2, '0');
-    final d = fecha.day.toString().padLeft(2, '0');
-    return '$y-$m-$d';
-  }
+    if (_horaInicio!.hour * 60 + _horaInicio!.minute <
+        limiteInicio.hour * 60 + limiteInicio.minute) {
+      setState(() => _errorReserva =
+          'La hora de inicio es anterior a la disponibilidad del recurso');
+      return;
+    }
+    if (_horaFin!.hour * 60 + _horaFin!.minute >
+        limiteFin.hour * 60 + limiteFin.minute) {
+      setState(() => _errorReserva =
+          'La hora de fin supera el límite de disponibilidad');
+      return;
+    }
+    if (_horaInicio!.hour * 60 + _horaInicio!.minute >=
+        _horaFin!.hour * 60 + _horaFin!.minute) {
+      setState(() => _errorReserva = 'La hora de inicio debe ser antes de la hora de fin');
+      return;
+    }
 
-  Future<void> _reservar() async {
-    setState(() => _cargando = true);
+    setState(() { _reservando = true; _errorReserva = ''; });
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('access_token');
+      final token = prefs.getString('access_token') ?? '';
 
-      final response = await http.post(
-        Uri.parse("${AppConfig.baseUrl}/reservas/reserva_usuario/"),
+      // Calcular precio total si el recurso tiene precio_por_hora
+      // (precio_especial del bloque tiene prioridad)
+      final int minutos = (_horaFin!.hour * 60 + _horaFin!.minute) -
+          (_horaInicio!.hour * 60 + _horaInicio!.minute);
+      final double horas = minutos / 60.0;
+
+      final Map<String, dynamic> body = {
+        // El schema usa alias: recurso_id → "reserva_id" en JSON
+        'reserva_id': widget.recursoId,
+        'fecha_inicio': _dispSeleccionada!['fecha_inicio'],
+        'fecha_fin': _dispSeleccionada!['fecha_fin'],
+        'hora_inicio': _formatHora(_horaInicio!),
+        'hora_fin': _formatHora(_horaFin!),
+        'estado': 'Pendiente',
+      };
+
+      final res = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/reservas/reserva_usuario/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          "reserva_id": widget.recursoId,
-          "fecha_inicio": _formatearFecha(_fecha!),
-          "fecha_fin": _formatearFecha(_fecha!),
-          "hora_inicio": _formatearHora(_horaInicio!),
-          "hora_fin": _formatearHora(_horaFin!),
-          "estado": "pendiente",
-        }),
+        body: jsonEncode(body),
       );
 
       if (!mounted) return;
-      print(response.body);
-      if (response.statusCode == 200 || response.statusCode == 201) {
 
-  final data = jsonDecode(response.body);
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        // Notificación Firestore
+        final idUsuario = widget.idUsuario.isNotEmpty
+            ? widget.idUsuario
+            : (prefs.getString('id_usuario') ?? '');
+        if (idUsuario.isNotEmpty) {
+          await NotificacionService().crearNotificacion(
+            idUsuario: idUsuario,
+            titulo: 'Reserva creada',
+            mensaje: 'Tu reserva fue registrada y está pendiente de confirmación.',
+            tipo: 'confirmada',
+          );
+        }
 
-  print("RESERVA CREADA:");
-  print(data);
-
-  print("CREANDO NOTIFICACION...");
-  print(widget.idUsuario);
-
-  await NotificacionService().crearNotificacion(
-    idUsuario: widget.idUsuario,
-    titulo: 'Reserva confirmada',
-    mensaje: 'Tu reserva fue creada exitosamente',
-    tipo: 'confirmada',
-  );
-
-  print("NOTIFICACION CREADA");
-
-  if (!mounted) return;
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text("Reserva creada correctamente"),
-    ),
-  );
-
-  Navigator.pop(context, true);
-
-}else {
-
-  print("ERROR BACKEND:");
-  print(response.body);
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        "Error al reservar: ${response.body}",
-      ),
-    ),
-  );
-}
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("No se pudo conectar al servidor")),
-      );
-    } finally {
-      setState(() => _cargando = false);
+        if (!mounted) return;
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Reserva creada correctamente!')),
+        );
+      } else {
+        // Mostrar el mensaje de error del backend
+        String msg = 'Error al crear la reserva (${res.statusCode})';
+        try {
+          final err = jsonDecode(res.body);
+          msg = err['detail'] ?? msg;
+        } catch (_) {}
+        setState(() { _errorReserva = msg; _reservando = false; });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _errorReserva = 'Sin conexión al servidor';
+          _reservando = false;
+        });
+      }
     }
   }
 
-  bool get _formularioCompleto =>
-      _fecha != null && _horaInicio != null && _horaFin != null;
+  // ── Helpers ────────────────────────────────────────────────────────
+  TimeOfDay _parseHora(String? h) {
+    if (h == null || h.isEmpty) return const TimeOfDay(hour: 0, minute: 0);
+    final partes = h.split(':');
+    return TimeOfDay(
+      hour: int.tryParse(partes[0]) ?? 0,
+      minute: int.tryParse(partes[1]) ?? 0,
+    );
+  }
 
+  String _formatHora(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}:00';
+
+  String _formatFechaLegible(String? f) {
+    if (f == null || f.isEmpty) return '—';
+    try {
+      final p = f.split('-');
+      const meses = [
+        '', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+      ];
+      final mes = int.tryParse(p[1]) ?? 0;
+      return '${p[2]} ${meses[mes]} ${p[0]}';
+    } catch (_) { return f; }
+  }
+
+  String _formatHoraStr(String? h) {
+    if (h == null || h.length < 5) return h ?? '—';
+    return h.substring(0, 5);
+  }
+
+  int _minutosDisponibles(Map<String, dynamic> d) {
+    final ini = _parseHora(d['hora_inicio']?.toString());
+    final fin = _parseHora(d['hora_fin']?.toString());
+    return (fin.hour * 60 + fin.minute) - (ini.hour * 60 + ini.minute);
+  }
+
+  String _duracionStr(int minutos) {
+    final h = minutos ~/ 60;
+    final m = minutos % 60;
+    if (h == 0) return '$m min';
+    if (m == 0) return '${h}h';
+    return '${h}h ${m}min';
+  }
+
+  bool get _formularioCompleto =>
+      _dispSeleccionada != null && _horaInicio != null && _horaFin != null;
+
+  Future<TimeOfDay?> _pickTime(TimeOfDay initial) => showTimePicker(
+        context: context,
+        initialTime: initial,
+        builder: (ctx, child) => Theme(
+          data: Theme.of(ctx).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: Colores.primary,
+              surface: Colores.surfaceAlt,
+            ),
+          ),
+          child: child!,
+        ),
+      );
+
+  // ── UI ─────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colores.background,
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [Colores.background, Colors.black],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color.fromRGBO(18, 22, 30, 1), Colores.background],
           ),
         ),
-        padding: const EdgeInsets.only(top: 20, left: 10, right: 20),
-        child: SingleChildScrollView(
+        child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 30),
-
-              // Header
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colores.surface,
-                      foregroundColor: Colores.text,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_outlined,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Text(
-                    'Horario disponible',
-                    style: TextStyle(
-                      color: Colores.text,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              _buildHeader(),
+              Expanded(
+                child: _cargandoDisp
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colores.primary))
+                    : _errorDisp.isNotEmpty
+                        ? _buildError()
+                        : _disponibilidades.isEmpty
+                            ? _buildSinDisponibilidad()
+                            : _buildContenido(),
               ),
-
-              const SizedBox(height: 20),
-
-              // // Tarjeta recurso
-              // Container(
-              //   padding: const EdgeInsets.all(10),
-              //   decoration: BoxDecoration(
-              //     color: Colores.surface,
-              //     borderRadius: BorderRadius.circular(10),
-              //     border: Border.all(color: Colores.border),
-              //   ),
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       ClipRRect(
-              //         borderRadius: BorderRadius.circular(8),
-              //         child: Image.asset(
-              //           widget.imagen,
-              //           height: 160,
-              //           width: double.infinity,
-              //           fit: BoxFit.cover,
-              //         ),
-              //       ),
-              //       const SizedBox(height: 10),
-              //       Text(
-              //         widget.recurso,
-              //         style: TextStyle(
-              //           fontSize: 16,
-              //           color: Colores.text,
-              //           fontWeight: FontWeight.bold,
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
-              const SizedBox(height: 20),
-
-              Text(
-                "Selecciona una hora disponible",
-                style: TextStyle(color: Colores.text, fontSize: 15),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Campo fecha
-              GestureDetector(
-                onTap: _seleccionarFecha,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colores.surface,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        color: Colores.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        _fecha == null
-                            ? "Seleccionar fecha"
-                            : "${_fecha!.day}/${_fecha!.month}/${_fecha!.year}",
-                        style: TextStyle(
-                          color: _fecha == null
-                              ? Colores.textSecondary
-                              : Colores.text,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Hora inicio y fin en fila
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: _seleccionarHoraInicio,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colores.surface,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.access_time_rounded,
-                              color: Colores.primary,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 10),
-                            Flexible(
-                              child: Text(
-                                _horaInicio == null
-                                    ? "Hora inicio"
-                                    : _horaInicio!.format(context),
-                                style: TextStyle(
-                                  color: _horaInicio == null
-                                      ? Colores.textSecondary
-                                      : Colores.text,
-                                  fontSize: 14,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: _seleccionarHoraFin,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colores.surface,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.access_time_filled_rounded,
-                              color: Colores.primary,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 10),
-                            Flexible(
-                              child: Text(
-                                _horaFin == null
-                                    ? "Hora fin"
-                                    : _horaFin!.format(context),
-                                style: TextStyle(
-                                  color: _horaFin == null
-                                      ? Colores.textSecondary
-                                      : Colores.text,
-                                  fontSize: 14,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              // Botón verificar
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colores.surface,
-                    foregroundColor: Colores.text,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(color: Colores.primary),
-                    ),
-                  ),
-                  onPressed: () {},
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search, color: Colores.primary, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Verificar base de datos",
-                        style: TextStyle(color: Colores.primary),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Botón reservar
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colores.primaryDark,
-                    foregroundColor: Colores.text,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    disabledBackgroundColor: Colores.surface,
-                    disabledForegroundColor: Colores.textSecondary,
-                  ),
-                  onPressed: _formularioCompleto && !_cargando
-                      ? _reservar
-                      : null,
-                  child: _cargando
-                      ? CircularProgressIndicator(color: Colores.primary)
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _formularioCompleto
-                                  ? Icons.check_circle_outline
-                                  : Icons.lock_outline,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text("Reservar"),
-                          ],
-                        ),
-                ),
-              ),
-
-              const SizedBox(height: 30),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colores.surfaceAlt,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colores.border),
+              ),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: Colores.text, size: 18),
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Nueva reserva',
+                  style: TextStyle(
+                      color: Colores.text,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800)),
+              Text('Selecciona un horario disponible',
+                  style: TextStyle(
+                      color: Colores.textSecondary, fontSize: 12)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.wifi_off_rounded,
+                color: Colores.textMuted, size: 52),
+            const SizedBox(height: 14),
+            Text(_errorDisp,
+                style: const TextStyle(
+                    color: Colores.textSecondary, fontSize: 14),
+                textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _cargarDisponibilidades,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colores.primaryDark,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Reintentar',
+                  style: TextStyle(color: Colores.text)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSinDisponibilidad() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: Colores.surfaceAlt,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colores.border),
+              ),
+              child: const Icon(Icons.event_busy_outlined,
+                  color: Colores.textMuted, size: 48),
+            ),
+            const SizedBox(height: 18),
+            const Text('Sin disponibilidad',
+                style: TextStyle(
+                    color: Colores.text,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            const Text(
+              'Este recurso no tiene horarios habilitados por el administrador.',
+              style: TextStyle(color: Colores.textSecondary, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: _cargarDisponibilidades,
+              child: const Text('Actualizar',
+                  style: TextStyle(
+                      color: Colores.primary,
+                      fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContenido() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Paso 1: elegir bloque ────────────────────────────────
+          _labelSeccion('1. Elige un horario disponible'),
+          const SizedBox(height: 10),
+          ..._disponibilidades.map((d) => _buildDispCard(d)),
+
+          if (_dispSeleccionada != null) ...[
+            const SizedBox(height: 20),
+
+            // ── Paso 2: ajustar horas dentro del bloque ──────────
+            _labelSeccion('2. Ajusta tu hora de entrada y salida'),
+            const SizedBox(height: 4),
+            Text(
+              'Debe estar entre ${_formatHoraStr(_dispSeleccionada!['hora_inicio']?.toString())} y ${_formatHoraStr(_dispSeleccionada!['hora_fin']?.toString())}',
+              style: const TextStyle(color: Colores.textMuted, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _selectorHora(
+                    label: 'Entrada',
+                    icon: Icons.login_rounded,
+                    valor: _horaInicio != null
+                        ? _horaInicio!.format(context)
+                        : 'Seleccionar',
+                    seleccionado: _horaInicio != null,
+                    onTap: () async {
+                      final limIni = _parseHora(
+                          _dispSeleccionada!['hora_inicio']?.toString());
+                      final t = await _pickTime(limIni);
+                      if (t != null) setState(() => _horaInicio = t);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _selectorHora(
+                    label: 'Salida',
+                    icon: Icons.logout_rounded,
+                    valor: _horaFin != null
+                        ? _horaFin!.format(context)
+                        : 'Seleccionar',
+                    seleccionado: _horaFin != null,
+                    onTap: () async {
+                      final limFin = _parseHora(
+                          _dispSeleccionada!['hora_fin']?.toString());
+                      final t = await _pickTime(
+                          _horaInicio ?? limFin);
+                      if (t != null) setState(() => _horaFin = t);
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            // Resumen duración + precio
+            if (_horaInicio != null && _horaFin != null)
+              _buildResumen(),
+          ],
+
+          const SizedBox(height: 24),
+
+          // ── Error ────────────────────────────────────────────────
+          if (_errorReserva.isNotEmpty)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colores.danger.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: Colores.danger.withOpacity(0.4)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline_rounded,
+                      color: Colores.danger, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(_errorReserva,
+                        style: const TextStyle(
+                            color: Colores.danger, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+
+          // ── Botón confirmar ──────────────────────────────────────
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _formularioCompleto
+                    ? Colores.primaryDark
+                    : Colores.surfaceAlt,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
+              ),
+              onPressed: _formularioCompleto && !_reservando
+                  ? _confirmarReserva
+                  : null,
+              child: _reservando
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                          color: Colores.primary, strokeWidth: 2.5),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _formularioCompleto
+                              ? Icons.check_circle_rounded
+                              : Icons.lock_rounded,
+                          size: 18,
+                          color: _formularioCompleto
+                              ? Colores.text
+                              : Colores.textMuted,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Confirmar reserva',
+                          style: TextStyle(
+                            color: _formularioCompleto
+                                ? Colores.text
+                                : Colores.textMuted,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Card de bloque de disponibilidad ──────────────────────────────
+  Widget _buildDispCard(Map<String, dynamic> d) {
+    final seleccionado = _dispSeleccionada == d;
+    final minutos = _minutosDisponibles(d);
+    final precio = d['precio_especial'];
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _dispSeleccionada = d;
+          _horaInicio = null;
+          _horaFin = null;
+          _errorReserva = '';
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: seleccionado
+              ? Colores.primaryDark.withOpacity(0.25)
+              : Colores.surfaceAlt,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: seleccionado ? Colores.primary : Colores.border,
+            width: seleccionado ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Radio visual
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: seleccionado ? Colores.primary : Colores.border,
+                  width: 2,
+                ),
+                color: seleccionado
+                    ? Colores.primary
+                    : Colors.transparent,
+              ),
+              child: seleccionado
+                  ? const Icon(Icons.check_rounded,
+                      color: Colors.white, size: 12)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Fecha
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 12, color: Colores.icon),
+                      const SizedBox(width: 4),
+                      Text(
+                        d['fecha_inicio'] == d['fecha_fin']
+                            ? _formatFechaLegible(
+                                d['fecha_inicio']?.toString())
+                            : '${_formatFechaLegible(d['fecha_inicio']?.toString())} – ${_formatFechaLegible(d['fecha_fin']?.toString())}',
+                        style: const TextStyle(
+                            color: Colores.text,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  // Hora
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time_rounded,
+                          size: 12, color: Colores.icon),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_formatHoraStr(d['hora_inicio']?.toString())} – ${_formatHoraStr(d['hora_fin']?.toString())}',
+                        style: const TextStyle(
+                            color: Colores.textSecondary,
+                            fontSize: 12),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colores.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          _duracionStr(minutos),
+                          style: const TextStyle(
+                              color: Colores.primary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Precio especial si existe
+            if (precio != null)
+              Column(
+                children: [
+                  Text(
+                    '\$${(precio as num).toStringAsFixed(0)}',
+                    style: const TextStyle(
+                        color: Colores.primary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800),
+                  ),
+                  const Text('tarifa especial',
+                      style: TextStyle(
+                          color: Colores.textMuted, fontSize: 9)),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Resumen duración ───────────────────────────────────────────────
+  Widget _buildResumen() {
+    final ini = _horaInicio!.hour * 60 + _horaInicio!.minute;
+    final fin = _horaFin!.hour * 60 + _horaFin!.minute;
+    final diff = fin - ini;
+
+    if (diff <= 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colores.primary.withOpacity(0.07),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: Colores.primary.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.timer_outlined,
+                color: Colores.primary, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              'Duración: ${_duracionStr(diff)}',
+              style: const TextStyle(
+                  color: Colores.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Widget selector hora ───────────────────────────────────────────
+  Widget _selectorHora({
+    required String label,
+    required IconData icon,
+    required String valor,
+    required bool seleccionado,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: seleccionado
+              ? Colores.primaryDark.withOpacity(0.2)
+              : Colores.surfaceAlt,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: seleccionado
+                ? Colores.primary.withOpacity(0.5)
+                : Colores.border,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: const TextStyle(
+                    color: Colores.textMuted,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(icon,
+                    color: seleccionado
+                        ? Colores.primary
+                        : Colores.icon,
+                    size: 14),
+                const SizedBox(width: 6),
+                Text(
+                  valor,
+                  style: TextStyle(
+                    color: seleccionado
+                        ? Colores.text
+                        : Colores.textSecondary,
+                    fontSize: 14,
+                    fontWeight: seleccionado
+                        ? FontWeight.w700
+                        : FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _labelSeccion(String texto) => Text(
+        texto,
+        style: const TextStyle(
+          color: Colores.text,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+      );
 }

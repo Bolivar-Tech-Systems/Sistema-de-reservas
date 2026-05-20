@@ -29,6 +29,7 @@ class _PantallaHomeState extends State<PantallaHome> {
   List<Map<String, dynamic>> _categories = [];
 
   final GlobalKey<PantallaExplorarRecursosState> _explorarKey = GlobalKey();
+  final GlobalKey<PantallaMisReservasState> _misReservasKey = GlobalKey();
 
   @override
   void initState() {
@@ -59,17 +60,17 @@ class _PantallaHomeState extends State<PantallaHome> {
   }
 
   final List<BottomNavigationBarItem> _navItems = const [
-    BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+    BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Inicio'),
     BottomNavigationBarItem(
       icon: Icon(Icons.explore_outlined),
-      label: 'Explore',
+      label: 'Explorar',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.calendar_month_outlined),
-      label: 'Bookings',
+      label: 'Reservas',
     ),
-    BottomNavigationBarItem(icon: _AlertsIcon(), label: 'Alerts'),
-    BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+    BottomNavigationBarItem(icon: _AlertsIcon(), label: 'Alertas'),
+    BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
   ];
 
   List<Widget> get _pages => [
@@ -77,7 +78,7 @@ class _PantallaHomeState extends State<PantallaHome> {
 
     PantallaExplorarRecursos(key: _explorarKey, idUsuario: _idUsuario),
 
-    PantallaMisReservas(),
+    PantallaMisReservas(key: _misReservasKey),
     NotificacionesScreen(idUsuario: _idUsuario),
     PantallaPerfil(),
   ];
@@ -116,6 +117,9 @@ class _PantallaHomeState extends State<PantallaHome> {
           setState(() {
             _currentIndex = index;
           });
+          if (index == 2) {
+            _misReservasKey.currentState?.fetchMisReservas();
+          }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colores.surface,
@@ -267,8 +271,8 @@ class _HomeTabState extends State<_HomeTab> {
               _buildSearchBar(),
               const SizedBox(height: 18),
               _buildSectionHeader(
-                title: 'Categories',
-                actionText: 'See All',
+                title: 'Categorías',
+                actionText: 'Ver todo',
                 onTap: () {},
               ),
               const SizedBox(height: 14),
@@ -290,7 +294,7 @@ class _HomeTabState extends State<_HomeTab> {
               ),
               const SizedBox(height: 18),
               const Text(
-                'Featured Facilities',
+                'Instalaciones destacadas',
                 style: TextStyle(
                   color:Colores.text,
                   fontSize: 18,
@@ -334,7 +338,7 @@ class _HomeTabState extends State<_HomeTab> {
                   Row(
                     children: [
                       Text(
-                        'Available Now',
+                        'Disponible ahora',
                         style: TextStyle(
                           color: Colores.text,
                           fontSize: 18,
@@ -654,7 +658,7 @@ class _HomeTabState extends State<_HomeTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'YOUR WEEK',
+                  'TU SEMANA',
                   style: TextStyle(
                     color: Color(0xFF7FC8FF),
                     fontSize: 11,
@@ -664,7 +668,7 @@ class _HomeTabState extends State<_HomeTab> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  '3 Reservations confirmed',
+                  '3 Reservas confirmadas',
                   style: TextStyle(
                     color: Colores.text,
                     fontSize: 16,
@@ -673,7 +677,7 @@ class _HomeTabState extends State<_HomeTab> {
                 ),
                 SizedBox(height: 3),
                 Text(
-                  'Next: Rooftop Pool today at 4:00 PM',
+                  'Siguiente: Piscina hoy a las 4:00 PM',
                   style: TextStyle(
                     color: Colores.textSecondary,
                     fontSize: 12,
@@ -1088,7 +1092,7 @@ class _AlertsPage extends StatelessWidget {
       color: Colores.surface,
       child: const Center(
         child: Text(
-          'Alerts',
+          'Alertas',
           style: TextStyle(
             color: Colores.text,
             fontSize: 22,

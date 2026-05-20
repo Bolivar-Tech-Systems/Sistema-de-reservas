@@ -5,28 +5,29 @@ import '../util/colores.dart';
 import '../util/app_config.dart';
 
 class PantallaDetalleReserva extends StatefulWidget {
+  // reserva contiene todos los campos de ReservaUsuario + nombre_recurso, foto_recurso, etc.
   final Map<String, dynamic> reserva;
 
   const PantallaDetalleReserva({required this.reserva, super.key});
 
   @override
-  State<PantallaDetalleReserva> createState() => _PantallaDetalleReservaState();
+  State<PantallaDetalleReserva> createState() =>
+      _PantallaDetalleReservaState();
 }
 
 class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
   bool _cargando = false;
 
+  // ── API ────────────────────────────────────────────────────────────
   Future<void> cancelarReserva() async {
     setState(() => _cargando = true);
-
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('access_token');
+      final token = prefs.getString('access_token') ?? '';
 
       final response = await http.delete(
-        Uri.parse(
-          "${AppConfig.baseUrl}/reservas/reserva_usuario/${widget.reserva['id']}",
-        ),
+        // El id de la ReservaUsuario es widget.reserva['id']
+        Uri.parse('${AppConfig.baseUrl}/reservas/reserva_usuario/${widget.reserva['id']}'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -34,44 +35,40 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Reserva cancelada correctamente")),
+          const SnackBar(content: Text('Reserva cancelada correctamente')),
         );
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error al cancelar: ${response.statusCode}")),
+          SnackBar(content: Text('Error al cancelar: ${response.statusCode}')),
         );
       }
-    } catch (e) {
+    } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("No se pudo conectar al servidor")),
+        const SnackBar(content: Text('No se pudo conectar al servidor')),
       );
     } finally {
-      setState(() => _cargando = false);
+      if (mounted) setState(() => _cargando = false);
     }
   }
 
   void _confirmarCancelacion() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colores.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(
-          "¿Cancelar reserva?",
-          style: TextStyle(color: Colores.text),
-        ),
-        content: Text(
-          "Esta acción no se puede deshacer.",
-          style: TextStyle(color: Colores.textSecondary),
+      builder: (_) => AlertDialog(
+        backgroundColor: Colores.surfaceAlt,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('¿Cancelar reserva?',
+            style: TextStyle(color: Colores.text, fontWeight: FontWeight.w800)),
+        content: const Text(
+          'Esta acción no se puede deshacer. La reserva quedará marcada como cancelada.',
+          style: TextStyle(color: Colores.textSecondary, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              "Volver",
-              style: TextStyle(color: Colores.textSecondary),
-            ),
+            child: const Text('Volver',
+                style: TextStyle(color: Colores.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -81,278 +78,423 @@ class _PantallaDetalleReservaState extends State<PantallaDetalleReserva> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colores.danger,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+                  borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
             ),
-            child: Text("Sí, cancelar", style: TextStyle(color: Colores.text)),
+            child: const Text('Sí, cancelar',
+                style: TextStyle(color: Colores.text, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
     );
   }
 
-  Widget _infoFila(IconData icono, String label, String valor) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icono, color: Colores.primary, size: 20),
-          SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(color: Colores.textSecondary, fontSize: 12),
-              ),
-              Text(valor, style: TextStyle(color: Colores.text, fontSize: 14)),
-            ],
-          ),
-        ],
-      ),
-    );
+  // ── Helpers ────────────────────────────────────────────────────────
+  Color _colorEstado(String e) {
+    switch (e) {
+      case 'activa':
+      case 'confirmada': return Colores.success;
+      case 'pendiente':  return Colores.warning;
+      case 'cancelada':  return Colores.danger;
+      default:           return Colores.textSecondary;
+    }
   }
 
-  String _formatearFechas() {
-    final inicio = widget.reserva['fecha_inicio'];
-    final fin = widget.reserva['fecha_fin'];
-    if (inicio == null && fin == null) return 'No disponible';
-    if (inicio != null && fin != null) return '$inicio → $fin';
-    return inicio ?? fin ?? 'No disponible';
+  String _formatFecha(String? f) {
+    if (f == null || f.isEmpty) return 'No disponible';
+    try {
+      final p = f.split('-');
+      return '${p[2]}/${p[1]}/${p[0]}';
+    } catch (_) { return f; }
   }
 
-  String _formatearHoras() {
-    final inicio = widget.reserva['hora_inicio'];
-    final fin = widget.reserva['hora_fin'];
-    if (inicio == null && fin == null) return 'No disponible';
-    if (inicio != null && fin != null) return '$inicio → $fin';
-    return inicio ?? fin ?? 'No disponible';
+  String _formatHora(String? h) {
+    if (h == null || h.isEmpty) return '—';
+    return h.length >= 5 ? h.substring(0, 5) : h;
+  }
+
+  int _calcularHoras() {
+    try {
+      final inicio = widget.reserva['hora_inicio']?.toString() ?? '';
+      final fin    = widget.reserva['hora_fin']?.toString() ?? '';
+      if (inicio.isEmpty || fin.isEmpty) return 0;
+      final hI = int.parse(inicio.split(':')[0]);
+      final mI = int.parse(inicio.split(':')[1]);
+      final hF = int.parse(fin.split(':')[0]);
+      final mF = int.parse(fin.split(':')[1]);
+      return (hF * 60 + mF) - (hI * 60 + mI);
+    } catch (_) { return 0; }
   }
 
   @override
   Widget build(BuildContext context) {
-    final reserva = widget.reserva;
-    final estado = (reserva['estado'] ?? 'pendiente').toString().toLowerCase();
+    final r       = widget.reserva;
+    final estado  = (r['estado'] ?? 'pendiente').toString().toLowerCase();
     final cancelada = estado == 'cancelada';
+    final color   = _colorEstado(estado);
+    final precio  = r['precio_total'];
+    final pph     = r['precio_por_hora'];
+    final foto    = r['foto_recurso'];
+    final minutos = _calcularHoras();
 
     return Scaffold(
+      backgroundColor: Colores.background,
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [Colores.background, Colors.black],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color.fromRGBO(18, 22, 30, 1), Colores.background],
           ),
         ),
-        padding: EdgeInsets.only(left: 10, right: 20),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 55),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Hero image con overlay ───────────────────────────
+                _buildHeroHeader(foto, color, estado),
 
-              // Header
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colores.surface,
-                      foregroundColor: Colores.text,
-                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Icon(Icons.arrow_back_ios_new_outlined, size: 20),
-                  ),
-                  SizedBox(width: 15),
-                  Text(
-                    "Detalle de Reserva",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colores.text,
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              // Imagen del recurso
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  "assets/images/nitro.jpg",
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              // Badge de estado
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(
-                  color: estado == 'activa'
-                      ? Colores.primaryDark
-                      : estado == 'cancelada'
-                      ? Colores.danger.withOpacity(0.2)
-                      : Colors.orange.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: estado == 'activa'
-                        ? Colores.primary
-                        : estado == 'cancelada'
-                        ? Colores.danger
-                        : Colors.orange,
-                  ),
-                ),
-                child: Text(
-                  estado.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: estado == 'activa'
-                        ? Colores.text
-                        : estado == 'cancelada'
-                        ? Colores.danger
-                        : Colors.orange,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 16),
-
-              Text(
-                reserva['name'] ?? 'Sin nombre',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colores.text,
-                ),
-              ),
-
-              SizedBox(height: 6),
-
-              Text(
-                reserva['description'] ?? '',
-                style: TextStyle(fontSize: 14, color: Colores.textSecondary),
-              ),
-
-              SizedBox(height: 24),
-
-              // Detalles
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colores.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colores.border),
-                ),
-                child: Column(
-                  children: [
-                    _infoFila(
-                      Icons.calendar_today_outlined,
-                      "Fecha",
-                      _formatearFechas(),
-                    ),
-                    _infoFila(
-                      Icons.access_time_rounded,
-                      "Hora",
-                      _formatearHoras(),
-                    ),
-                    _infoFila(
-                      Icons.confirmation_number_outlined,
-                      "ID de reserva",
-                      '#${reserva['reserva_id'] ?? reserva['id']}',
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 30),
-
-              // Botones
-              if (!cancelada) ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colores.surface,
-                      foregroundColor: Colores.text,
-                      minimumSize: Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: Colores.primary),
-                      ),
-                    ),
-                    onPressed: () {},
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          color: Colores.primary,
-                          size: 18,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Nombre
+                      Text(
+                        r['nombre_recurso'] ?? r['name'] ?? 'Sin nombre',
+                        style: const TextStyle(
+                          color: Colores.text,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
                         ),
-                        SizedBox(width: 8),
+                      ),
+
+                      if ((r['descripcion_recurso'] ?? r['description'] ?? '').toString().isNotEmpty) ...[
+                        const SizedBox(height: 6),
                         Text(
-                          "Modificar reserva",
-                          style: TextStyle(color: Colores.primary),
+                          r['descripcion_recurso'] ?? r['description'] ?? '',
+                          style: const TextStyle(
+                              color: Colores.textSecondary, fontSize: 14),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
-                    ),
-                  ),
-                ),
 
-                SizedBox(height: 12),
+                      const SizedBox(height: 22),
 
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colores.danger.withOpacity(0.15),
-                      foregroundColor: Colores.text,
-                      minimumSize: Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: Colores.danger),
-                      ),
-                    ),
-                    onPressed: _cargando ? null : _confirmarCancelacion,
-                    child: _cargando
-                        ? CircularProgressIndicator(color: Colores.danger)
-                        : Row(
+                      // ── Bloque información ───────────────────────
+                      _seccionCard('Detalles de la reserva', [
+                        _fila(Icons.confirmation_number_outlined, 'ID',
+                            '#${r['id']}'),
+                        _divider(),
+                        _fila(Icons.calendar_today_outlined, 'Fecha',
+                            _formatFecha(r['fecha_inicio']?.toString())),
+                        _divider(),
+                        _fila(Icons.access_time_rounded, 'Horario',
+                            '${_formatHora(r['hora_inicio']?.toString())} – ${_formatHora(r['hora_fin']?.toString())}'),
+                        if (minutos > 0) ...[
+                          _divider(),
+                          _fila(Icons.timer_outlined, 'Duración',
+                              _formatMinutos(minutos)),
+                        ],
+                        if ((r['notas'] ?? '').toString().isNotEmpty) ...[
+                          _divider(),
+                          _fila(Icons.notes_rounded, 'Notas',
+                              r['notas'].toString()),
+                        ],
+                      ]),
+
+                      const SizedBox(height: 14),
+
+                      // ── Bloque pago ──────────────────────────────
+                      if (precio != null || pph != null)
+                        _seccionCard('Resumen de pago', [
+                          if (pph != null)
+                            _fila(Icons.attach_money_rounded, 'Precio por hora',
+                                '\$${(pph as num).toStringAsFixed(0)}'),
+                          if (pph != null && minutos > 0) ...[
+                            _divider(),
+                            _fila(Icons.calculate_outlined, 'Cálculo',
+                                '${(minutos / 60).toStringAsFixed(1)} h × \$${(pph as num).toStringAsFixed(0)}'),
+                          ],
+                          if (precio != null) ...[
+                            if (pph != null) _divider(),
+                            _fila(Icons.payments_rounded, 'Total',
+                                '\$${(precio as num).toStringAsFixed(0)}',
+                                valueColor: Colores.primary,
+                                bold: true),
+                          ],
+                        ]),
+
+                      const SizedBox(height: 28),
+
+                      // ── Botones ──────────────────────────────────
+                      if (!cancelada) ...[
+                        _boton(
+                          label: 'Modificar reserva',
+                          icon: Icons.edit_outlined,
+                          textColor: Colores.primary,
+                          borderColor: Colores.primary,
+                          bgColor: Colores.primary.withOpacity(0.08),
+                          onTap: () {},
+                        ),
+                        const SizedBox(height: 12),
+                        _boton(
+                          label: 'Cancelar reserva',
+                          icon: Icons.cancel_outlined,
+                          textColor: Colores.danger,
+                          borderColor: Colores.danger,
+                          bgColor: Colores.danger.withOpacity(0.08),
+                          loading: _cargando,
+                          onTap: _confirmarCancelacion,
+                        ),
+                      ] else
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: Colores.danger.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                                color: Colores.danger.withOpacity(0.3)),
+                          ),
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.cancel_outlined,
-                                color: Colores.danger,
-                                size: 18,
-                              ),
+                              Icon(Icons.cancel_rounded,
+                                  color: Colores.danger, size: 16),
                               SizedBox(width: 8),
-                              Text(
-                                "Cancelar reserva",
-                                style: TextStyle(color: Colores.danger),
-                              ),
+                              Text('Esta reserva está cancelada',
+                                  style: TextStyle(
+                                      color: Colores.danger,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14)),
                             ],
                           ),
+                        ),
+                    ],
                   ),
                 ),
               ],
-
-              SizedBox(height: 30),
-            ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  // ── Hero ───────────────────────────────────────────────────────────
+  Widget _buildHeroHeader(String? foto, Color color, String estado) {
+    return Stack(
+      children: [
+        // Fondo imagen o gradiente de color de estado
+        SizedBox(
+          height: 200,
+          width: double.infinity,
+          child: foto != null && foto.isNotEmpty
+              ? Image.network(foto, fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _colorBg(color))
+              : _colorBg(color),
+        ),
+        // Overlay gradiente
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.35),
+                Colors.black.withOpacity(0.7),
+              ],
+            ),
+          ),
+        ),
+        // Back button + badge estado
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: Colors.white.withOpacity(0.15)),
+                    ),
+                    child: const Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white, size: 18),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: color.withOpacity(0.6)),
+                  ),
+                  child: Text(
+                    estado.toUpperCase(),
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _colorBg(Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colores.primaryDark.withOpacity(0.6),
+            color.withOpacity(0.3),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(Icons.domain_rounded,
+            color: Colors.white.withOpacity(0.15), size: 80),
+      ),
+    );
+  }
+
+  // ── Helpers UI ─────────────────────────────────────────────────────
+  Widget _seccionCard(String titulo, List<Widget> children) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colores.surfaceAlt,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colores.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(titulo.toUpperCase(),
+              style: const TextStyle(
+                  color: Colores.textMuted,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.1)),
+          const SizedBox(height: 14),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _fila(IconData icon, String label, String valor,
+      {Color? valueColor, bool bold = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: Colores.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: Colores.primary, size: 14),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: const TextStyle(
+                      color: Colores.textMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500)),
+              const SizedBox(height: 2),
+              Text(valor,
+                  style: TextStyle(
+                    color: valueColor ?? Colores.text,
+                    fontSize: 14,
+                    fontWeight:
+                        bold ? FontWeight.w800 : FontWeight.w500,
+                  )),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _divider() => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: Divider(color: Colores.border, height: 1, thickness: 1),
+      );
+
+  Widget _boton({
+    required String label,
+    required IconData icon,
+    required Color textColor,
+    required Color borderColor,
+    required Color bgColor,
+    required VoidCallback onTap,
+    bool loading = false,
+  }) {
+    return GestureDetector(
+      onTap: loading ? null : onTap,
+      child: Container(
+        width: double.infinity,
+        height: 52,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderColor.withOpacity(0.5)),
+        ),
+        child: Center(
+          child: loading
+              ? SizedBox(
+                  width: 22, height: 22,
+                  child: CircularProgressIndicator(
+                      color: textColor, strokeWidth: 2.5))
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: textColor, size: 18),
+                    const SizedBox(width: 8),
+                    Text(label,
+                        style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700)),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  String _formatMinutos(int min) {
+    final h = min ~/ 60;
+    final m = min % 60;
+    if (h == 0) return '$m min';
+    if (m == 0) return '${h}h';
+    return '${h}h ${m}min';
   }
 }
