@@ -151,25 +151,72 @@ def list_disponibilidades_by_recurso_service(db: Session, recurso_id: int):
         Disponibilidad.recurso_id == recurso_id
     ).all()
         
-def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, user_id: int):
-    # ── Verificar solapamiento de reservas ──
-    # Evita que un usuario reserve el mismo recurso si las fechas y horas 
-    # de su nueva reserva se cruzan con una reserva activa existente.
-    existing = db.query(ReservaUsuario).filter(
-        ReservaUsuario.recurso_id == reserva_usuario.recurso_id,
+def check_reserva_capacidad(db: Session, recurso_id: int, fecha_inicio, fecha_fin, hora_inicio, hora_fin, cantidad: int, exclude_reserva_id: int = None):
+    from datetime import timedelta
+    recurso = db.query(Recurso).filter(Recurso.id == recurso_id).first()
+    if not recurso:
+        raise HTTPException(status_code=404, detail="Recurso no encontrado")
+        
+    capacidad_maxima = recurso.capacidad
+    if capacidad_maxima is None or capacidad_maxima <= 0:
+        capacidad_maxima = 1
+
+    # Query all active reservations that overlap in date and time
+    query = db.query(ReservaUsuario).filter(
+        ReservaUsuario.recurso_id == recurso_id,
         ReservaUsuario.estado.notin_(["Cancelada"]),
-        # Solapamiento de fechas
-        ReservaUsuario.fecha_inicio <= reserva_usuario.fecha_fin,
-        ReservaUsuario.fecha_fin >= reserva_usuario.fecha_inicio,
-        # Solapamiento de horas (estricto: < y > para permitir reservas consecutivas)
-        ReservaUsuario.hora_inicio < reserva_usuario.hora_fin,
-        ReservaUsuario.hora_fin > reserva_usuario.hora_inicio,
-    ).first()
-    if existing:
-        if existing.usuario_id == user_id:
-            raise HTTPException(status_code=400, detail="Ya tienes una reserva en ese horario para este recurso")
-        else:
-            raise HTTPException(status_code=400, detail="El recurso ya está reservado en ese horario por otro usuario")
+        ReservaUsuario.fecha_inicio <= fecha_fin,
+        ReservaUsuario.fecha_fin >= fecha_inicio,
+        ReservaUsuario.hora_inicio < hora_fin,
+        ReservaUsuario.hora_fin > hora_inicio,
+    )
+    
+    if exclude_reserva_id is not None:
+        query = query.filter(ReservaUsuario.id != exclude_reserva_id)
+        
+    overlapping_reservations = query.all()
+    
+    # Check day by day
+    current_date = fecha_inicio
+    while current_date <= fecha_fin:
+        day_reservations = [
+            r for r in overlapping_reservations 
+            if r.fecha_inicio <= current_date <= r.fecha_fin
+        ]
+        
+        # Build timeline of events
+        events = []
+        for r in day_reservations:
+            events.append((r.hora_inicio, r.cantidad))
+            events.append((r.hora_fin, -r.cantidad))
+            
+        events.append((hora_inicio, cantidad))
+        events.append((hora_fin, -cantidad))
+        
+        # Sort events: end first at same time
+        events.sort(key=lambda x: (x[0], x[1]))
+        
+        current_occupied = 0
+        for time_event, change in events:
+            current_occupied += change
+            if current_occupied > capacidad_maxima:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Capacidad máxima superada. Disponible: {capacidad_maxima - (current_occupied - change)}, Solicitado: {cantidad}"
+                )
+        current_date += timedelta(days=1)
+
+def create_reserva_usuario(db: Session, reserva_usuario: ReservaUsuarioCreate, user_id: int):
+    # ── Verificar solapamiento de reservas y capacidad ──
+    check_reserva_capacidad(
+        db=db,
+        recurso_id=reserva_usuario.recurso_id,
+        fecha_inicio=reserva_usuario.fecha_inicio,
+        fecha_fin=reserva_usuario.fecha_fin,
+        hora_inicio=reserva_usuario.hora_inicio,
+        hora_fin=reserva_usuario.hora_fin,
+        cantidad=reserva_usuario.cantidad,
+    )
 
     # Validar que el horario solicitado esté dentro de una ventana de disponibilidad
     disponible = db.query(Disponibilidad).filter(
@@ -225,6 +272,17 @@ def update_reserva_usuario(db: Session, reserva_usuario_id: int, reserva_usuario
     if not db_reserva_usuario:
         raise HTTPException(status_code=404, detail="ReservaUsuario not found")
     else:
+        if reserva_usuario.estado != "Cancelada":
+            check_reserva_capacidad(
+                db=db,
+                recurso_id=reserva_usuario.recurso_id,
+                fecha_inicio=reserva_usuario.fecha_inicio,
+                fecha_fin=reserva_usuario.fecha_fin,
+                hora_inicio=reserva_usuario.hora_inicio,
+                hora_fin=reserva_usuario.hora_fin,
+                cantidad=reserva_usuario.cantidad,
+                exclude_reserva_id=reserva_usuario_id,
+            )
         try:
             db_reserva_usuario.recurso_id = reserva_usuario.recurso_id
             db_reserva_usuario.fecha_inicio = reserva_usuario.fecha_inicio

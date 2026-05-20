@@ -34,7 +34,7 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
     super.initState();
     _loadRole();
     fetchRecursos();
-    _fetchCategories();
+    fetchCategories();
     _fetchFavoritos();
     _searchController.addListener(_aplicarFiltros);
   }
@@ -151,7 +151,7 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
     );
   }
 
-  Future<void> _fetchCategories() async {
+  Future<void> fetchCategories() async {
     try {
       final response = await http.get(
         Uri.parse('${AppConfig.baseUrl}/categorias/list/'),

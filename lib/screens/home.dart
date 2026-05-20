@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'CreateReservas.dart';
 import 'horario_disponible.dart';
-import 'AdminUsuarios.dart';
 import 'AdminPanel.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
@@ -86,6 +85,14 @@ class _PantallaHomeState extends State<PantallaHome> {
     }
   }
 
+  Future<void> _refreshAllData() async {
+    await fetchCategories();
+    if (_explorarKey.currentState != null) {
+      await _explorarKey.currentState!.fetchCategories();
+      await _explorarKey.currentState!.fetchRecursos();
+    }
+  }
+
   Future<void> fetchCategories() async {
     try {
       final response = await http.get(
@@ -129,6 +136,7 @@ class _PantallaHomeState extends State<PantallaHome> {
       categories: _categories,
       idUsuario: _idUsuario,
       roleId: _roleId,
+      onRefresh: _refreshAllData,
       onCategorySelected: (catId) {
         setState(() {
           _currentIndex = 1;
@@ -204,12 +212,14 @@ class _HomeTab extends StatefulWidget {
   final String idUsuario;
   final Function(int?) onCategorySelected;
   final int roleId;
+  final VoidCallback onRefresh;
 
   const _HomeTab({
     required this.categories,
     required this.idUsuario,
     required this.onCategorySelected,
     required this.roleId,
+    required this.onRefresh,
   });
 
   @override
@@ -493,10 +503,14 @@ class _HomeTabState extends State<_HomeTab> {
             if (isAdmin)
               IconButton(
                 icon: const Icon(Icons.admin_panel_settings_outlined, color: Colores.primary),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PantallaAdminPanel()),
-                ),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PantallaAdminPanel()),
+                  );
+                  widget.onRefresh();
+                  _fetchRecursos();
+                },
                 tooltip: 'Panel administrativo',
               ),
             StreamBuilder<int>(
