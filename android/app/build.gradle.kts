@@ -1,5 +1,6 @@
 import java.util.Properties
 import java.io.FileInputStream
+apply plugin: 'com.android.application'
 
 plugins {
     id("com.android.application")
@@ -50,6 +51,10 @@ android {
         }
     }
 }
+
+    dependencies {
+        implementation 'com.google.android.gms:play-services-auth:21.3.0'
+    }
 
 flutter {
     source = "../.."

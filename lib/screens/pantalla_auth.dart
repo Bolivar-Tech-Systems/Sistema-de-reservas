@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sistema_de_reservas/screens/resetPwd.dart';
 import '../util/colores.dart';
 import '../util/app_config.dart';
@@ -193,6 +194,65 @@ class _PantallaAuthState extends State<PantallaAuth> {
       setState(() => _isLoading = false);
     }
   }
+
+  Future<void> _loginWithGoogle() async {
+    final navigator = Navigator.of(context);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: '617625094266-appob04anh7f5rgns9mn3o1m5ihbrbdn.apps.googleusercontent.com',
+        scopes: ['email', 'profile'],
+      );
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+      
+      if (idToken == null) {
+        setState(() {
+          _errorMessage = 'No se pudo obtener el token de Google.';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final result = await http.post(
+        Uri.parse("${AppConfig.baseUrl}/auth/google"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_token': idToken,
+        }),
+      );
+
+      if (result.statusCode == 200) {
+        final body = jsonDecode(result.body);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('access_token', body['access_token']);
+        await prefs.setString('id_usuario', body['id'].toString());
+        await prefs.setInt('role_id', body['role_id'] ?? 0);
+        navigator.pushReplacement(
+          MaterialPageRoute(builder: (_) => PantallaHome(idUsuario: body['id'].toString())),
+        );
+      } else {
+        final data = jsonDecode(result.body);
+        setState(() => _errorMessage = data['detail'] ?? 'Error al iniciar sesión con Google');
+      }
+    } catch (e) {
+      setState(() => _errorMessage = 'Error de conexión o configuración de Google: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -512,33 +572,13 @@ class _PantallaAuthState extends State<PantallaAuth> {
                 ),
                 const SizedBox(height: 20),
 
-                // ── Botones sociales ───────────────────────────────
-                Row(
-                  children: [
-                    Expanded(
-                      child: _socialBtn(
-                        label: 'Google',
-                        iconWidget: _googleIcon(),
-                        inputBg: inputBg,
-                        borderColor: borderColor,
-                        onTap: () {},
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _socialBtn(
-                        label: 'Apple',
-                        iconWidget: const Icon(
-                          Icons.apple,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                        inputBg: inputBg,
-                        borderColor: borderColor,
-                        onTap: () {},
-                      ),
-                    ),
-                  ],
+                // ── Botón social ────────────────────────────────────
+                _socialBtn(
+                  label: 'Continuar con Google',
+                  iconWidget: _googleIcon(),
+                  inputBg: inputBg,
+                  borderColor: borderColor,
+                  onTap: _isLoading ? () {} : () { _loginWithGoogle(); },
                 ),
                 const SizedBox(height: 36),
 

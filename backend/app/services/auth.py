@@ -248,3 +248,59 @@ def delete_user(user_id: int, db: Session):
     db.delete(user)
     db.commit()
     return {"message": "Usuario eliminado correctamente"}
+
+
+def verify_google_id_token(id_token: str) -> dict:
+    import urllib.request
+    import json
+    url = f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode())
+            if "error_description" in data:
+                raise ValueError(data["error_description"])
+            return data
+    except Exception as e:
+        raise ValueError(f"Error al validar el token de Google: {e}")
+
+
+
+def login_or_register_social_user(db: Session, email: str, name: str, profile_pic: str | None = None):
+    db_user = db.query(User).filter(User.email == email).first()
+    if not db_user:
+        try:
+            db_user = User(
+                nombre=name or email.split("@")[0],
+                email=email,
+                password=None,
+                foto_perfil=profile_pic,
+                role_id=2,
+            )
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+            
+            try:
+                crear_notificacion(
+                    id_usuario=str(db_user.id),
+                    titulo="Bienvenido",
+                    mensaje="Tu cuenta fue creada exitosamente vía Login Social",
+                    tipo="bienvenida",
+                )
+            except Exception:
+                pass
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"Error al registrar usuario social: {str(e)}")
+            
+    access_token = create_access_token(data={"sub": db_user.email})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "id": db_user.id,
+        "name": db_user.nombre,
+        "email": db_user.email,
+        "role_id": db_user.role_id,
+    }
+
