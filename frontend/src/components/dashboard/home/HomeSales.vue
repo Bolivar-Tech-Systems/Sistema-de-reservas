@@ -69,10 +69,8 @@ function fmtDate(d) {
               <td class="font-mono" style="color: #64748b;">#{{ user.id }}</td>
               <td>
                 <div class="flex items-center gap-3">
-                  <img v-if="user.foto_perfil && user.foto_perfil !== 'null' && user.foto_perfil !== 'undefined' && user.foto_perfil.trim() !== ''" :src="user.foto_perfil" class="avatar avatar-md" :alt="user.name || user.nombre" style="object-fit: cover;" @error="user.foto_perfil = null">
-                  <div v-else class="avatar avatar-md" style="background: var(--primary); color: #0b0f19; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.875rem;">
-                    {{ (user.name || user.nombre || '?')[0].toUpperCase() }}
-                  </div>
+                  <img v-if="user.foto_perfil && user.foto_perfil !== 'null' && user.foto_perfil !== 'undefined' && user.foto_perfil.trim() !== ''" :src="encodeURI(user.foto_perfil)" @error="user.foto_perfil = null" class="avatar avatar-md" :alt="user.name || user.nombre" style="object-fit: cover;" />
+                  <div v-else class="avatar avatar-md avatar-placeholder" style="background: var(--bg-elevated, #e2e8f0); color: #0b0f19; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.875rem;">{{ (user.name || user.nombre || '?')[0].toUpperCase() }}</div>
                   <div>
                     <p class="font-semibold" style="color: #f8fafc;">{{ user.name || user.nombre }}</p>
                   </div>

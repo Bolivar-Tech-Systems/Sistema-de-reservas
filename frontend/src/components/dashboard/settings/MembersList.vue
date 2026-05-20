@@ -46,7 +46,7 @@ const revokeAdmin = async (userId) => {
     <li v-for="(member, i) in members" :key="member.id" class="member-row hover-row">
       <div class="flex items-center gap-3" style="min-width: 0;">
         <img v-if="member.foto_perfil" :src="member.foto_perfil" class="avatar avatar-md" :alt="member.nombre || member.name" style="object-fit: cover;">
-        <div v-else class="avatar avatar-md avatar-placeholder" style="background: var(--primary); color: white;">
+        <div v-else class="avatar avatar-md avatar-placeholder" style="background: var(--bg-elevated); color: white;">
           {{ (member.nombre || member.name) ? (member.nombre || member.name)[0].toUpperCase() : 'U' }}
         </div>
         <div style="min-width: 0;">

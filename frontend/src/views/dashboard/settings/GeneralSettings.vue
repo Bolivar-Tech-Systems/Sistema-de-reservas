@@ -171,7 +171,7 @@ async function removeAvatar() {
               <span class="text-muted text-xs">Subiendo…</span>
             </div>
             <img v-else-if="profile.avatar" :src="profile.avatar" class="avatar avatar-lg" alt="Avatar" style="object-fit: cover;">
-            <div v-else class="avatar avatar-lg avatar-placeholder" style="display: flex; align-items: center; justify-content: center; background: var(--primary); color: white; border-radius: 50%;">
+            <div v-else class="avatar avatar-lg avatar-placeholder" style="display: flex; align-items: center; justify-content: center; background: var(--bg-elevated); color: white; border-radius: 50%;">
               {{ profile.name ? profile.name[0].toUpperCase() : 'U' }}
             </div>
             <button type="button" class="btn btn-neutral btn-sm" @click="fileRef?.click()" :disabled="isUploadingAvatar">{{ isUploadingAvatar ? 'Subiendo...' : 'Elegir foto' }}</button>
