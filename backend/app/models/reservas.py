@@ -76,3 +76,4 @@ class Resena(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     recurso = relationship("Recurso", back_populates="resenas")
+    usuario = relationship("User")

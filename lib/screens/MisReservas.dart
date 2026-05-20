@@ -422,125 +422,133 @@ class PantallaMisReservasState extends State<PantallaMisReservas> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colores.border),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Franja superior con color de estado ──────────────────
-            Container(
-              height: 3,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Imagen o ícono de estado
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: foto != null && foto.toString().isNotEmpty
-                        ? Image.network(
-                            foto,
-                            width: 56, height: 56,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _iconBox(color),
-                          )
-                        : _iconBox(color),
-                  ),
-                  const SizedBox(width: 13),
-
-                  // Información principal
-                  Expanded(
-                    child: Column(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Franja lateral con color de estado (Left vertical accent bar)
+                Container(
+                  width: 5,
+                  color: color,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          r['nombre_recurso'] ?? 'Sin nombre',
-                          style: const TextStyle(
-                            color: Colores.text,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        // Imagen o ícono de estado
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: foto != null && foto.toString().isNotEmpty
+                              ? Image.network(
+                                  foto,
+                                  width: 56, height: 56,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _iconBox(color),
+                                )
+                              : _iconBox(color),
                         ),
-                        const SizedBox(height: 5),
-                        // Fecha
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_today_outlined,
-                                size: 12, color: Colores.icon),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${_formatFecha(r['fecha_inicio']?.toString())}  ·  ${_formatHora(r['hora_inicio']?.toString())} – ${_formatHora(r['hora_fin']?.toString())}',
-                              style: const TextStyle(
-                                color: Colores.textSecondary, fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (precio != null) ...[
-                          const SizedBox(height: 4),
-                          Row(
+                        const SizedBox(width: 13),
+
+                        // Información principal
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.payments_outlined,
-                                  size: 12, color: Colores.primary),
-                              const SizedBox(width: 4),
                               Text(
-                                '\$${(precio as num).toStringAsFixed(0)}',
+                                r['nombre_recurso'] ?? 'Sin nombre',
                                 style: const TextStyle(
-                                  color: Colores.primary,
-                                  fontSize: 12,
+                                  color: Colores.text,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
+                              const SizedBox(height: 5),
+                              // Fecha
+                              Row(
+                                children: [
+                                  const Icon(Icons.calendar_today_outlined,
+                                      size: 12, color: Colores.icon),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      '${_formatFecha(r['fecha_inicio']?.toString())}  ·  ${_formatHora(r['hora_inicio']?.toString())} – ${_formatHora(r['hora_fin']?.toString())}',
+                                      style: const TextStyle(
+                                        color: Colores.textSecondary, fontSize: 12,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (precio != null) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.payments_outlined,
+                                        size: 12, color: Colores.primary),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '\$${(precio as num).toStringAsFixed(0)}',
+                                      style: const TextStyle(
+                                        color: Colores.primary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
-                        ],
+                        ),
+
+                        // Badge estado + chevron
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 9, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.14),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: color.withOpacity(0.4)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(_iconoEstado(estado), color: color, size: 11),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _etiquetaEstado(estado),
+                                    style: TextStyle(
+                                      color: color,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            const Icon(Icons.chevron_right_rounded,
+                                color: Colores.textMuted, size: 20),
+                          ],
+                        ),
                       ],
                     ),
                   ),
-
-                  // Badge estado + chevron
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.14),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: color.withOpacity(0.4)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(_iconoEstado(estado), color: color, size: 11),
-                            const SizedBox(width: 4),
-                            Text(
-                              _etiquetaEstado(estado),
-                              style: TextStyle(
-                                color: color,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Icon(Icons.chevron_right_rounded,
-                          color: Colores.textMuted, size: 20),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

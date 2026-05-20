@@ -113,8 +113,19 @@ class ResenaCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserMinResponse(BaseModel):
+    id: int
+    nombre: str | None = Field(None, alias="name")
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True
+    )
+
+
 class ResenaResponse(ResenaCreate):
     id: int
     created_at: datetime | None = None
+    usuario: UserMinResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)

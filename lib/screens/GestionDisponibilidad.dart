@@ -491,11 +491,6 @@ class _PantallaGestionDisponibilidadState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colores.background,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colores.primaryDark,
-        onPressed: _mostrarDialogoCrear,
-        child: const Icon(Icons.add_rounded, color: Colores.text),
-      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -543,6 +538,20 @@ class _PantallaGestionDisponibilidadState
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
                         ],
+                      ),
+                    ),
+                    // Botón para agregar (Premium Header button)
+                    GestureDetector(
+                      onTap: _mostrarDialogoCrear,
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colores.primaryDark,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colores.primary.withOpacity(0.4)),
+                        ),
+                        child: const Icon(Icons.add_rounded,
+                            color: Colores.text, size: 18),
                       ),
                     ),
                   ],

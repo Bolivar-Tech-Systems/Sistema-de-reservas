@@ -1236,6 +1236,11 @@ class _PantallaHorarioState extends State<PantallaHorario> {
       fechaStr = '${dt.day} ${meses[dt.month]} ${dt.year}';
     } catch (_) {}
 
+    final usuario = r['usuario'] as Map<String, dynamic>?;
+    final nombreUsuario = usuario != null
+        ? (usuario['name'] ?? usuario['nombre'] ?? 'Usuario')
+        : 'Usuario';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -1252,7 +1257,7 @@ class _PantallaHorarioState extends State<PantallaHorario> {
               ...List.generate(5, (i) => Icon(
                 i < (calificacion as int) ? Icons.star_rounded : Icons.star_border_rounded,
                 color: i < calificacion ? Colors.orange : Colores.textMuted,
-                size: 16,
+                size: 14,
               )),
               const Spacer(),
               if (fechaStr.isNotEmpty)
@@ -1260,10 +1265,40 @@ class _PantallaHorarioState extends State<PantallaHorario> {
                     style: const TextStyle(color: Colores.textMuted, fontSize: 11)),
             ],
           ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: const BoxDecoration(
+                  color: Colores.surfaceAlt,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(Icons.person_rounded, color: Colores.primary, size: 14),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                nombreUsuario,
+                style: const TextStyle(
+                  color: Colores.text,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
           if (comentario.toString().isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(comentario.toString(),
-                style: const TextStyle(color: Colores.textSecondary, fontSize: 13)),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: Text(
+                comentario.toString(),
+                style: const TextStyle(color: Colores.textSecondary, fontSize: 13),
+              ),
+            ),
           ],
         ],
       ),
