@@ -447,17 +447,17 @@ class _HomeTabState extends State<_HomeTab> {
                         separatorBuilder: (_, __) => const SizedBox(width: 14),
                         itemBuilder: (context, index) {
                           final r = _disponibles[index];
-                          return _AvailableCard(
-                            width: 175,
-                            imageUrl: r['foto_principal'] ?? '',
-                            label: 'RECURSO',
-                            title: r['name'] ?? r['nombre'] ?? 'Recurso',
-                            capacity: 'Capacity: ${r['capacidad'] ?? 0} People',
-                            status: 'AVAILABLE',
-                            statusColor: const Color(0xFF22C55E),
-                            recursoId: r['id'] as int,
-                            idUsuario: widget.idUsuario,
-                          );
+                           return _AvailableCard(
+                             width: 175,
+                             imageUrl: r['foto_principal'] ?? '',
+                             label: 'RECURSO',
+                             title: r['name'] ?? r['nombre'] ?? 'Recurso',
+                             capacity: 'Capacidad: ${r['capacidad'] ?? 0} personas',
+                             status: 'DISPONIBLE',
+                             statusColor: const Color(0xFF22C55E),
+                             recursoId: r['id'] as int,
+                             idUsuario: widget.idUsuario,
+                           );
                         },
                       ),
                     ),
@@ -848,6 +848,32 @@ class _CategoryItem extends StatelessWidget {
   }
 }
 
+Widget _gradientPlaceholder(String name, {double fontSize = 28}) {
+  final inicial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+  return Container(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colores.primaryDark.withOpacity(0.6),
+          Colores.primary.withOpacity(0.3),
+        ],
+      ),
+    ),
+    child: Center(
+      child: Text(
+        inicial,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    ),
+  );
+}
+
 class _FeaturedCard extends StatelessWidget {
   final double width;
   final String imageUrl;
@@ -899,27 +925,9 @@ class _FeaturedCard extends StatelessWidget {
                   ? Image.network(
                       imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: Colores.border,
-                        child: const Center(
-                          child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: Colores.textSecondary,
-                            size: 34,
-                          ),
-                        ),
-                      ),
+                      errorBuilder: (_, __, ___) => _gradientPlaceholder(title),
                     )
-                  : Container(
-                      color: Colores.border,
-                      child: const Center(
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Colores.textSecondary,
-                          size: 34,
-                        ),
-                      ),
-                    ),
+                  : _gradientPlaceholder(title),
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -1055,27 +1063,9 @@ class _AvailableCard extends StatelessWidget {
                         ? Image.network(
                             imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: Colores.border,
-                              child: const Center(
-                                child: Icon(
-                                  Icons.image_outlined,
-                                  color: Colores.textSecondary,
-                                  size: 32,
-                                ),
-                              ),
-                            ),
+                            errorBuilder: (_, __, ___) => _gradientPlaceholder(title),
                           )
-                        : Container(
-                            color: Colores.border,
-                            child: const Center(
-                              child: Icon(
-                                Icons.image_outlined,
-                                color: Colores.textSecondary,
-                                size: 32,
-                              ),
-                            ),
-                          ),
+                        : _gradientPlaceholder(title),
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(

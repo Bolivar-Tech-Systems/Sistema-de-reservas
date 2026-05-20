@@ -48,7 +48,7 @@ async def upload_image(db: Session, image: ImageCreate, user_id: int, file: Uplo
         # Fallback local
         if not image_url:
             try:
-                static_dir = Path("static/uploads")
+                static_dir = Path(__file__).parent.parent.parent / "static" / "uploads"
                 static_dir.mkdir(parents=True, exist_ok=True)
                 file_path = static_dir / unique_name
                 with open(file_path, "wb") as f:
@@ -116,7 +116,7 @@ async def upload_profile_image(db: Session, user: User, file: UploadFile) -> str
         # Fallback local
         if not image_url:
             try:
-                static_dir = Path("static/uploads/profiles")
+                static_dir = Path(__file__).parent.parent.parent / "static" / "uploads" / "profiles"
                 static_dir.mkdir(parents=True, exist_ok=True)
                 file_path = static_dir / unique_name
                 with open(file_path, "wb") as f:
