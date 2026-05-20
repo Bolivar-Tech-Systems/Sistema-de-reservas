@@ -102,6 +102,7 @@ def get_user_profile(current_user: User, db: Session) -> UserProfile:
         email=current_user.email,
         telefono=current_user.telefono,
         foto_perfil=current_user.foto_perfil,
+        fecha_registro=current_user.created_at.strftime("%d/%m/%Y") if current_user.created_at else "No disponible",
         total_reservas=total_reservas,
         activas=activas,
         favoritos=favoritos,
@@ -253,20 +254,28 @@ def delete_user(user_id: int, db: Session):
 def verify_google_id_token(id_token: str) -> dict:
     import urllib.request
     import json
-    url = f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
-    try:
+    
+    if id_token.startswith("ya29"):
+        url = "https://www.googleapis.com/oauth2/v3/userinfo"
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {id_token}", "User-Agent": "Mozilla/5.0"})
+    else:
+        url = f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        
+    try:
         with urllib.request.urlopen(req) as response:
             data = json.loads(response.read().decode())
             if "error_description" in data:
                 raise ValueError(data["error_description"])
+            if "error" in data:
+                raise ValueError(str(data["error"]))
             return data
     except Exception as e:
         raise ValueError(f"Error al validar el token de Google: {e}")
 
 
 
-def login_or_register_social_user(db: Session, email: str, name: str, profile_pic: str | None = None):
+def login_or_register_social_user(db: Session, email: str, name: str, profile_pic: str | None = None, phone: str | None = None):
     db_user = db.query(User).filter(User.email == email).first()
     if not db_user:
         try:
@@ -275,6 +284,7 @@ def login_or_register_social_user(db: Session, email: str, name: str, profile_pi
                 email=email,
                 password=None,
                 foto_perfil=profile_pic,
+                telefono=phone,
                 role_id=2,
             )
             db.add(db_user)
@@ -293,6 +303,21 @@ def login_or_register_social_user(db: Session, email: str, name: str, profile_pi
         except Exception as e:
             db.rollback()
             raise HTTPException(status_code=500, detail=f"Error al registrar usuario social: {str(e)}")
+    else:
+        # Si el usuario ya existe pero no tiene foto o teléfono, los actualizamos
+        updated = False
+        if not db_user.foto_perfil and profile_pic:
+            db_user.foto_perfil = profile_pic
+            updated = True
+        if not db_user.telefono and phone:
+            db_user.telefono = phone
+            updated = True
+        if updated:
+            try:
+                db.commit()
+                db.refresh(db_user)
+            except Exception:
+                db.rollback()
             
     access_token = create_access_token(data={"sub": db_user.email})
     return {
@@ -302,5 +327,7 @@ def login_or_register_social_user(db: Session, email: str, name: str, profile_pi
         "name": db_user.nombre,
         "email": db_user.email,
         "role_id": db_user.role_id,
+        "foto_perfil": db_user.foto_perfil,
+        "telefono": db_user.telefono,
     }
 

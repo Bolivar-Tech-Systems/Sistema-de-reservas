@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -203,18 +204,20 @@ class _PantallaAuthState extends State<PantallaAuth> {
     });
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: '617625094266-appob04anh7f5rgns9mn3o1m5ihbrbdn.apps.googleusercontent.com',
         scopes: ['email', 'profile'],
+        clientId: kIsWeb ? '617625094266-re819dbesnpadl06dnv4tcc614o0rggm.apps.googleusercontent.com' : null,
+        serverClientId: kIsWeb ? null : '617625094266-re819dbesnpadl06dnv4tcc614o0rggm.apps.googleusercontent.com',
       );
+
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         setState(() => _isLoading = false);
         return;
       }
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final String? idToken = googleAuth.idToken;
+      final String? token = googleAuth.idToken ?? googleAuth.accessToken;
       
-      if (idToken == null) {
+      if (token == null) {
         setState(() {
           _errorMessage = 'No se pudo obtener el token de Google.';
           _isLoading = false;
@@ -226,7 +229,7 @@ class _PantallaAuthState extends State<PantallaAuth> {
         Uri.parse("${AppConfig.baseUrl}/auth/google"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'id_token': idToken,
+          'id_token': token,
         }),
       );
 

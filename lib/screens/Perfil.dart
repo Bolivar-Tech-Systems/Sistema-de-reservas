@@ -167,7 +167,9 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
+        final updatedData = jsonDecode(response.body);
         setState(() {
+          usuario = updatedData;
           _editando = false;
           _cargando = false;
         });
@@ -279,12 +281,29 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                                         )
                                       : _fotoPerfilUrl != null &&
                                               _fotoPerfilUrl!.isNotEmpty
-                                          ? CircleAvatar(
-                                              radius: 45,
-                                              backgroundImage: NetworkImage(
-                                                _fotoPerfilUrl!,
+                                          ? ClipOval(
+                                              child: Image.network(
+                                                _fotoPerfilUrl!.contains('googleusercontent.com')
+                                                    ? 'https://corsproxy.io/?${Uri.encodeComponent(_fotoPerfilUrl!)}'
+                                                    : _fotoPerfilUrl!,
+                                                width: 90,
+                                                height: 90,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) => Container(
+                                                  width: 90,
+                                                  height: 90,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Colores.primaryDark.withOpacity(0.15),
+                                                    border: Border.all(color: Colores.border, width: 2),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.account_circle_rounded,
+                                                    size: 50,
+                                                    color: Colores.iconActive,
+                                                  ),
+                                                ),
                                               ),
-                                              backgroundColor: Colores.surface,
                                             )
                                           : Container(
                                               width: 90,

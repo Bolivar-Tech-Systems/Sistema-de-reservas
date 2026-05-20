@@ -127,10 +127,19 @@ class _PantallaHomeState extends State<PantallaHome> {
       roleId: _roleId,
       onRefresh: _refreshAllData,
       onCategorySelected: (catId) {
-        setState(() => _currentIndex = 1);
+        setState(() {
+          _currentIndex = 1;
+        });
         _explorarKey.currentState?.filtrarPorCategoria(catId);
       },
+      onGoToReservas: () {
+        setState(() {
+          _currentIndex = 2;
+        });
+        _misReservasKey.currentState?.fetchMisReservas();
+      },
     ),
+
     PantallaExplorarRecursos(key: _explorarKey, idUsuario: _idUsuario),
     PantallaMisReservas(key: _misReservasKey),
     PantallaPerfil(),
@@ -207,6 +216,7 @@ class _HomeTab extends StatefulWidget {
   final Function(int?) onCategorySelected;
   final int roleId;
   final VoidCallback onRefresh;
+  final VoidCallback onGoToReservas;
 
   const _HomeTab({
     required this.categories,
@@ -214,6 +224,7 @@ class _HomeTab extends StatefulWidget {
     required this.onCategorySelected,
     required this.roleId,
     required this.onRefresh,
+    required this.onGoToReservas,
   });
 
   @override
@@ -224,7 +235,9 @@ class _HomeTabState extends State<_HomeTab> {
   List<Map<String, dynamic>> _recursos = [];
   bool _cargando = true;
 
-  // Búsqueda
+  List<Map<String, dynamic>> _misReservas = [];
+  bool _cargandoReservas = true;
+
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _resultadosBusqueda = [];
   bool _buscando = false;
@@ -236,15 +249,8 @@ class _HomeTabState extends State<_HomeTab> {
   void initState() {
     super.initState();
     _fetchRecursos();
+    _fetchReservas();
   }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  // ── Datos ────────────────────────────────────────────────────────────────
 
   Future<void> _fetchRecursos() async {
     try {
@@ -254,31 +260,47 @@ class _HomeTabState extends State<_HomeTab> {
         Uri.parse('${AppConfig.baseUrl}/reservas/list/'),
         headers: {'Authorization': 'Bearer $token'},
       );
-      if (res.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(res.body);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
         if (mounted) {
           setState(() {
-            _recursos = data.map((r) => Map<String, dynamic>.from(r as Map)).toList();
+            _recursos = data
+                .map((r) => Map<String, dynamic>.from(r as Map))
+                .toList();
             _cargando = false;
           });
         }
       } else {
         if (mounted) setState(() => _cargando = false);
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) setState(() => _cargando = false);
     }
   }
 
-
-
-  List<Map<String, dynamic>> get _recursosFiltrados {
-    if (_catSeleccionada == null) return _recursos;
-    return _recursos.where((r) {
-      // El recurso puede traer categoria_id o categoria como mapa
-      final catId = r['categoria_id'] ?? r['categoria']?['id'];
-      return catId == _catSeleccionada;
-    }).toList();
+  Future<void> _fetchReservas() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/reservas/reservas_usuario/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            _misReservas = data.map((r) => Map<String, dynamic>.from(r as Map)).toList();
+            _cargandoReservas = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _cargandoReservas = false);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _cargandoReservas = false);
+    }
   }
 
   List<Map<String, dynamic>> get _disponibles =>
@@ -702,93 +724,147 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 
-Widget _buildWeekCard() {
-  return GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const PantallaMisReservas(),
+  Widget _buildWeekCard() {
+    if (_cargandoReservas) {
+      return Container(
+        height: 74,
+        decoration: BoxDecoration(
+          color: Colores.border,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: Colores.primary, strokeWidth: 2),
         ),
       );
-    },
-    child: Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colores.surfaceAlt,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colores.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: Colores.categoryGlow,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: Colores.primary.withOpacity(0.3),
+    }
+
+    final activas = _misReservas.where((r) => r['estado'] == 'pendiente' || r['estado'] == 'confirmada' || r['estado'] == 'activa').toList();
+    
+    // Find the next upcoming reservation
+    Map<String, dynamic>? proxima;
+    DateTime? proximaFecha;
+
+    final ahora = DateTime.now();
+
+    for (var r in activas) {
+      try {
+        final fechaStr = r['fecha_reserva'];
+        final horaStr = r['hora_inicio'];
+        if (fechaStr != null && horaStr != null) {
+          final partesFecha = fechaStr.split('-');
+          final partesHora = horaStr.split(':');
+          final dt = DateTime(
+            int.parse(partesFecha[0]),
+            int.parse(partesFecha[1]),
+            int.parse(partesFecha[2]),
+            int.parse(partesHora[0]),
+            int.parse(partesHora[1]),
+          );
+
+          if (dt.isAfter(ahora)) {
+            if (proximaFecha == null || dt.isBefore(proximaFecha)) {
+              proximaFecha = dt;
+              proxima = r;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    String titulo = activas.length == 1 ? '1 Reserva activa' : '${activas.length} Reservas activas';
+    String subtitulo = 'No tienes reservas próximas';
+    
+    if (proxima != null && proximaFecha != null) {
+      final nombreRecurso = proxima['recurso'] != null ? proxima['recurso']['nombre'] : 'Recurso';
+      
+      String dia = '';
+      if (proximaFecha.day == ahora.day && proximaFecha.month == ahora.month && proximaFecha.year == ahora.year) {
+        dia = 'hoy';
+      } else if (proximaFecha.day == ahora.add(const Duration(days: 1)).day && proximaFecha.month == ahora.add(const Duration(days: 1)).month && proximaFecha.year == ahora.add(const Duration(days: 1)).year) {
+        dia = 'mañana';
+      } else {
+        dia = '${proximaFecha.day}/${proximaFecha.month}';
+      }
+
+      int hora = proximaFecha.hour;
+      int min = proximaFecha.minute;
+      String ampm = hora >= 12 ? 'PM' : 'AM';
+      if (hora > 12) hora -= 12;
+      if (hora == 0) hora = 12;
+      String minStr = min < 10 ? '0$min' : '$min';
+
+      subtitulo = 'Siguiente: $nombreRecurso $dia a las $hora:$minStr $ampm';
+    }
+
+    return GestureDetector(
+      onTap: widget.onGoToReservas,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colores.border,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: Colores.surface,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(
+                Icons.access_time_rounded,
+                color: Colores.icon,
+                size: 22,
               ),
             ),
-            child: const Icon(
-              Icons.calendar_today_rounded,
-              color: Colores.primary,
-              size: 22,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'TU SEMANA',
+                    style: TextStyle(
+                      color: Color(0xFF7FC8FF),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    titulo,
+                    style: const TextStyle(
+                      color: Colores.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitulo,
+                    style: const TextStyle(
+                      color: Colores.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-
-          const SizedBox(width: 14),
-
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'MIS RESERVAS',
-                  style: TextStyle(
-                    color: Colores.primary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-
-                SizedBox(height: 4),
-
-                Text(
-                  'Ver tus reservas',
-                  style: TextStyle(
-                    color: Colores.text,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-
-                SizedBox(height: 3),
-
-                Text(
-                  'Consulta tus reservas activas y pendientes',
-                  style: TextStyle(
-                    color: Colores.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Color(0xFF7FC8FF),
+              size: 26,
             ),
-          ),
-
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: Colores.primary,
-            size: 24,
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 
