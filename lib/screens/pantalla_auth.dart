@@ -294,18 +294,13 @@ class _PantallaAuthState extends State<PantallaAuth> {
               children: [
                 // ── Logo centrado ──────────────────────────────────
                 Center(
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: CustomPaint(
-                        size: const Size(38, 38),
-                        painter: _BoltPainter(),
-                      ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/images/logo_resibook.png',
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
