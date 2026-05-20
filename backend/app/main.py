@@ -18,7 +18,14 @@ from app.core.config import DATABASE_URL
 # Crea las tablas en PostgreSQL
 Base.metadata.create_all(bind=engine)
 
+from fastapi.staticfiles import StaticFiles
+import os
+
 app = FastAPI()
+
+# Asegurar directorios locales para uploads fallback
+os.makedirs("static/uploads/profiles", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.on_event("startup")
 def seed_categories():

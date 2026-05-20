@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from typing import Any
 import uuid
 from app.services.notificaciones_services import crear_notificacion
+import os
+from pathlib import Path
 
 
 def get_supabase_client() -> Any:
@@ -25,69 +27,117 @@ def get_supabase_client() -> Any:
 async def upload_image(db: Session, image: ImageCreate, user_id: int, file: UploadFile, reserva_id: int):
     try:
         image_read = await file.read()
-
-        ext = file.filename.split(".")[-1]
+        ext = file.filename.split(".")[-1] if file.filename else "jpg"
         unique_name = f"{uuid.uuid4()}.{ext}"
 
-        storage_path = f"{user_id}/{image.file_name}"
+        image_url = None
 
-        get_supabase_client().storage.from_(SUPABASE_BUCKET_NAME).upload(
-            storage_path,
-            image_read,
-            file_options={"content-type": file.content_type},
-        )
-        image_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/{storage_path}"
+        # Intentar Supabase
+        if SUPABASE_URL and SUPABASE_KEY and SUPABASE_BUCKET_NAME:
+            try:
+                storage_path = f"{user_id}/{unique_name}"
+                get_supabase_client().storage.from_(SUPABASE_BUCKET_NAME).upload(
+                    storage_path,
+                    image_read,
+                    file_options={"content-type": file.content_type or "image/jpeg"},
+                )
+                image_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/{storage_path}"
+            except Exception as se:
+                print(f"Supabase upload failed: {se}")
+
+        # Fallback local
+        if not image_url:
+            try:
+                static_dir = Path("static/uploads")
+                static_dir.mkdir(parents=True, exist_ok=True)
+                file_path = static_dir / unique_name
+                with open(file_path, "wb") as f:
+                    f.write(image_read)
+
+                from app.core.config import APP_HOST
+                host = APP_HOST or "https://129-80-171-141.nip.io/api"
+                if host.endswith("/"):
+                    host = host[:-1]
+                image_url = f"{host}/static/uploads/{unique_name}"
+            except Exception as le:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Error al subir imagen local: {str(le)}"
+                )
+
         new_image = ImageRecurso(url=image_url, recurso_id=reserva_id)
-        
         db.add(new_image)
-        
-        recurso = db.query(Recurso).filter(
-            Recurso.id == reserva_id
-        ).first()
 
+        recurso = db.query(Recurso).filter(Recurso.id == reserva_id).first()
         if recurso:
             recurso.foto_principal = image_url
 
         db.commit()
         db.refresh(new_image)
 
-        return {
-            "url": image_url
-        }
+        return {"url": image_url}
 
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 async def upload_profile_image(db: Session, user: User, file: UploadFile) -> str:
-    """Sube una foto de perfil a Supabase Storage y actualiza el registro del usuario."""
     try:
         image_bytes = await file.read()
         ext = file.filename.split('.')[-1].lower() if file.filename else 'jpg'
         unique_name = f"{uuid.uuid4().hex}.{ext}"
-        storage_path = f"profiles/{user.id}/{unique_name}"
 
-        # Eliminar la foto de perfil anterior de Supabase si existe
-        if user.foto_perfil and f"/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/profiles/" in (user.foto_perfil or ""):
-            old_path = user.foto_perfil.split(f"/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/")[-1]
+        image_url = None
+
+        # Intentar Supabase
+        if SUPABASE_URL and SUPABASE_KEY and SUPABASE_BUCKET_NAME:
             try:
-                get_supabase_client().storage.from_(SUPABASE_BUCKET_NAME).remove([old_path])
-            except Exception:
-                pass  # Si falla eliminar la foto anterior, continuar de todas formas
+                storage_path = f"profiles/{user.id}/{unique_name}"
 
-        get_supabase_client().storage.from_(SUPABASE_BUCKET_NAME).upload(
-            storage_path,
-            image_bytes,
-            file_options={"content-type": file.content_type or "image/jpeg"},
-        )
+                # Eliminar anterior
+                if user.foto_perfil and f"/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/profiles/" in (user.foto_perfil or ""):
+                    old_path = user.foto_perfil.split(f"/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/")[-1]
+                    try:
+                        get_supabase_client().storage.from_(SUPABASE_BUCKET_NAME).remove([old_path])
+                    except Exception:
+                        pass
 
-        image_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/{storage_path}"
+                get_supabase_client().storage.from_(SUPABASE_BUCKET_NAME).upload(
+                    storage_path,
+                    image_bytes,
+                    file_options={"content-type": file.content_type or "image/jpeg"},
+                )
+                image_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/{storage_path}"
+            except Exception as se:
+                print(f"Supabase profile upload failed: {se}")
+
+        # Fallback local
+        if not image_url:
+            try:
+                static_dir = Path("static/uploads/profiles")
+                static_dir.mkdir(parents=True, exist_ok=True)
+                file_path = static_dir / unique_name
+                with open(file_path, "wb") as f:
+                    f.write(image_bytes)
+
+                from app.core.config import APP_HOST
+                host = APP_HOST or "https://129-80-171-141.nip.io/api"
+                if host.endswith("/"):
+                    host = host[:-1]
+                image_url = f"{host}/static/uploads/profiles/{unique_name}"
+            except Exception as le:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Error al guardar foto perfil local: {str(le)}"
+                )
 
         user.foto_perfil = image_url
         db.commit()
         db.refresh(user)
 
-        # Notificar al usuario que su foto fue actualizada
+        # Notificar
         try:
             crear_notificacion(
                 id_usuario=str(user.id),
@@ -99,6 +149,8 @@ async def upload_profile_image(db: Session, user: User, file: UploadFile) -> str
             pass
 
         return image_url
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

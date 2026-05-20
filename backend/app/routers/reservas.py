@@ -22,7 +22,8 @@ def show_recurso(recurso_id: int, db: Session = Depends(get_db)):
 
 @router.delete("/{recurso_id}")
 def delete_recurso(recurso_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return delete_recurso_service(db, recurso_id, current_user.id)
+    is_admin = (current_user.role_id == 1)
+    return delete_recurso_service(db, recurso_id, current_user.id, is_admin=is_admin)
 
 @router.post("/disponibilidad/", response_model=DisponibilidadResponse)
 def create_disponibilidad_endpoint(disponibilidad: DisponibilidadCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

@@ -646,13 +646,15 @@ class PantallaExplorarRecursosState extends State<PantallaExplorarRecursos> {
             ),
 
             // Badge + chevron
-            Padding(
+            Container(
+              width: 75,
               padding: const EdgeInsets.only(right: 12),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
                       color: esVisible
                           ? Colores.success.withOpacity(0.12)
