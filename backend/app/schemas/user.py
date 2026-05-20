@@ -80,3 +80,9 @@ class UserUpdate(BaseModel):
 class UpdatePasswordRequest(BaseModel):
     current_password: str
     new_password: str
+
+
+class GoogleLoginRequest(BaseModel):
+    id_token: str
+
+
