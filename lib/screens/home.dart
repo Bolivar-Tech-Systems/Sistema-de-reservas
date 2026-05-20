@@ -18,7 +18,6 @@ class PantallaHome extends StatefulWidget {
   final String idUsuario;
   const PantallaHome({super.key, required this.idUsuario});
 
-
   @override
   State<PantallaHome> createState() => _PantallaHomeState();
 }
@@ -29,13 +28,14 @@ class _PantallaHomeState extends State<PantallaHome> {
 
   List<Map<String, dynamic>> _categories = [];
 
+  final GlobalKey<PantallaExplorarRecursosState> _explorarKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     _idUsuario = widget.idUsuario;
     fetchCategories();
   }
-
 
   Future<void> fetchCategories() async {
     final response = await http.get(
@@ -110,30 +110,32 @@ class _PantallaHomeState extends State<PantallaHome> {
     BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
   ];
 
- List<Widget> get _pages => [
-  _HomeTab(
-    categories: _categories,
-    featuredFacilities: _featuredFacilities,
-    availableNow: _availableNow,
-    idUsuario: _idUsuario,
-  ),
+  List<Widget> get _pages => [
+    _HomeTab(
+      categories: _categories,
+      featuredFacilities: _featuredFacilities,
+      availableNow: _availableNow,
+      idUsuario: _idUsuario,
+    ),
 
+    PantallaExplorarRecursos(key: _explorarKey, idUsuario: _idUsuario),
 
+    PantallaMisReservas(),
+    NotificacionesScreen(idUsuario: _idUsuario),
+    PantallaPerfil(),
+  ];
 
-  PantallaExplorarRecursos(
-  idUsuario: _idUsuario,
-),
-
-  PantallaMisReservas(),
-  NotificacionesScreen(idUsuario: _idUsuario),
-  PantallaPerfil(),
-];
-
-  void _openCreateReserva() {
-    Navigator.push(
+  void _openCreateReserva() async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => PantallaCreateReserva()),
     );
+
+    // Si vuelves desde CreateReserva, refresca
+    if (result == true) {
+      _explorarKey.currentState
+          ?.fetchRecursos(); // Refresca la lista de recursos
+    }
   }
 
   @override
@@ -369,9 +371,9 @@ class _HomeTab extends StatelessWidget {
           ),
         ),
         StreamBuilder<int>(
-          stream: idUsuario.isEmpty 
-    ? const Stream.empty() 
-    : NotificacionService().contarNoLeidas(idUsuario),
+          stream: idUsuario.isEmpty
+              ? const Stream.empty()
+              : NotificacionService().contarNoLeidas(idUsuario),
           builder: (context, snap) {
             final count = snap.data ?? 0;
             return Badge(
@@ -451,7 +453,11 @@ class _HomeTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 2),
-              const Icon(Icons.chevron_right, color: Color(0xFF8FA3B8), size: 20),
+              const Icon(
+                Icons.chevron_right,
+                color: Color(0xFF8FA3B8),
+                size: 20,
+              ),
             ],
           ),
         ),
@@ -637,7 +643,10 @@ class _FeaturedCard extends StatelessWidget {
               top: 12,
               left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF5DA9FF),
                   borderRadius: BorderRadius.circular(999),
@@ -761,7 +770,10 @@ class _AvailableCard extends StatelessWidget {
                     top: 10,
                     left: 10,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor,
                         borderRadius: BorderRadius.circular(999),

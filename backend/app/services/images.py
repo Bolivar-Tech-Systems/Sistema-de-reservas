@@ -25,17 +25,36 @@ def get_supabase_client() -> Any:
 async def upload_image(db: Session, image: ImageCreate, user_id: int, file: UploadFile, reserva_id: int):
     try:
         image_read = await file.read()
+
+        ext = file.filename.split(".")[-1]
+        unique_name = f"{uuid.uuid4()}.{ext}"
+
+        storage_path = f"{user_id}/{image.file_name}"
+
         get_supabase_client().storage.from_(SUPABASE_BUCKET_NAME).upload(
-            f"{user_id}/{image.file_name}",
+            storage_path,
             image_read,
             file_options={"content-type": file.content_type},
         )
-        image_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/{user_id}/{image.file_name}"
+        image_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/{storage_path}"
         new_image = ImageRecurso(url=image_url, recurso_id=reserva_id)
+        
         db.add(new_image)
+        
+        recurso = db.query(Recurso).filter(
+            Recurso.id == reserva_id
+        ).first()
+
+        if recurso:
+            recurso.foto_principal = image_url
+
         db.commit()
         db.refresh(new_image)
-        return image_url
+
+        return {
+            "url": image_url
+        }
+
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
